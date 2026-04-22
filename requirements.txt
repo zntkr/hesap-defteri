@@ -1,0 +1,8 @@
+# Akıllı Aritmetik Motoru - Bağımlılıklar (Dependencies)
+# Sistem Anayasası Madde 4: "Harici kütüphane bağımlılığı minimumda tutulmalıdır."
+# Bu proje %100 Python Standart Kütüphaneleri (tkinter, re, statistics) ile çalışır.
+
+# --- DERLEME (BUILD) ARAÇLARI ---
+# Sadece projeyi .exe haline getirmek isteyen geliştiriciler içindir.
+# Kaynak koddan çalıştırmak için (python main.py) hiçbir şey kurmanıza gerek YOKTUR.
+pyinstaller>=6.0.0

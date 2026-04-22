@@ -1,0 +1,24 @@
+# --- PYTHON ÖNBELLEK VE DERLENMİŞ DOSYALAR ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- SANAL ORTAMLAR (Virtual Environments) ---
+venv/
+.venv/
+env/
+
+# --- PYINSTALLER (Derleme Çıktıları) ---
+build/
+dist/
+*.spec
+
+# --- İŞLETİM SİSTEMİ ARTIKLARI ---
+.DS_Store
+Thumbs.db
+
+# --- IDE VE EDİTÖR DOSYALARI ---
+.vscode/
+.idea/
+*.swp
+*.swo
