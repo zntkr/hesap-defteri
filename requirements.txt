@@ -1,4 +1,4 @@
-# Akıllı Aritmetik Motoru - Bağımlılıklar (Dependencies)
+# Hesaplayıcı - Bağımlılıklar (Dependencies)
 # Sistem Anayasası Madde 4: "Harici kütüphane bağımlılığı minimumda tutulmalıdır."
 # Bu proje %100 Python Standart Kütüphaneleri (tkinter, re, statistics) ile çalışır.
 

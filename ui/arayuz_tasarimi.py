@@ -15,7 +15,7 @@ class MainUI:
     """
     def __init__(self, root):
         self.root = root
-        self.root.title("Akıllı Aritmetik Motoru v6.1")
+        self.root.title("Hesaplayıcı v1.0.0")
         self.root.geometry("440x620") 
         self.root.resizable(False, False)
         
@@ -79,7 +79,7 @@ class MainUI:
         self.top_frame = tk.Frame(self.root, bg=self.bg_color, padx=30, pady=20)
         self.top_frame.pack(fill="x")
 
-        tk.Label(self.top_frame, text="AKILLI ARİTMETİK MOTORU", font=self.font_bold, fg=self.fg_color, bg=self.bg_color).pack(anchor="w")
+        tk.Label(self.top_frame, text="HESAPLAYICI", font=self.font_bold, fg=self.fg_color, bg=self.bg_color).pack(anchor="w")
         tk.Label(self.top_frame, text="Ortalaması alınacak sayıları yapıştırın:", font=self.font_main, fg="#888888", bg=self.bg_color).pack(anchor="w", pady=(2, 8))
         
         input_frame = tk.Frame(self.top_frame, bg=self.bg_color)
@@ -184,7 +184,7 @@ class MainUI:
         if os.path.exists("app_icon.ico"):
             about_win.iconbitmap("app_icon.ico")
             
-        about_win.title("Hakkında: Akıllı Aritmetik Motoru")
+        about_win.title("Hakkında: Hesaplayıcı")
         about_win.resizable(False, False)
         about_win.config(bg=self.bg_color)
         
@@ -198,8 +198,8 @@ class MainUI:
         about_win.grab_set()
         about_win.focus_set()
 
-        tk.Label(about_win, text="AKILLI ARİTMETİK MOTORU", font=self.font_bold, fg=self.fg_color, bg=self.bg_color).pack(pady=(20, 5))
-        tk.Label(about_win, text="Sürüm 6.1 (Build 2026)", font=self.font_main, fg=self.fg_color, bg=self.bg_color).pack()
+        tk.Label(about_win, text="HESAPLAYICI", font=self.font_bold, fg=self.fg_color, bg=self.bg_color).pack(pady=(20, 5))
+        tk.Label(about_win, text="Sürüm 1.0.0 (Build 2026)", font=self.font_main, fg=self.fg_color, bg=self.bg_color).pack()
         
         guide_title = "SİSTEM YETENEKLERİ VE KULLANIMI:"
         tk.Label(about_win, text=guide_title, font=self.font_bold, fg=self.fg_color, bg=self.bg_color).pack(anchor="w", padx=30, pady=(15, 5))
