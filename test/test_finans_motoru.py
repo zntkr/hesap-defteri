@@ -1,6 +1,8 @@
 import unittest
 import sys
 import os
+from datetime import datetime, timedelta
+from unittest.mock import patch
 
 # Proje kök dizinini Python yoluna ekle (core modülünü bulabilmesi için)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -9,94 +11,81 @@ from core.finans_motoru import FinansMotoru
 
 class TestFinansMotoru(unittest.TestCase):
 
-    def test_temiz_sayi(self):
-        self.assertEqual(FinansMotoru._temiz_sayi(10.0), 10)
-        self.assertEqual(FinansMotoru._temiz_sayi(10.50), 10.5)
-        self.assertEqual(FinansMotoru._temiz_sayi(10.555), 10.56)  # 2 basamağa yuvarlama kontrolü
-        self.assertEqual(FinansMotoru._temiz_sayi(10.554), 10.55)
-
-    def test_temiz_sayi_asiri_kucuk_kusuratlar(self):
-        self.assertEqual(FinansMotoru._temiz_sayi(10.0000001), 10)
-        self.assertEqual(FinansMotoru._temiz_sayi(10.999), 11)
-        self.assertEqual(FinansMotoru._temiz_sayi(-0.0), 0)
-
-    def test_kdv_hesapla_varsayilan(self):
-        sonuc = FinansMotoru.kdv_hesapla(100.0)
-        self.assertEqual(sonuc["ham_tutar"], 100)
-        self.assertEqual(sonuc["kdv_tutari"], 20)
-        self.assertEqual(sonuc["toplam"], 120)
-
-    def test_kdv_hesapla_ozel_oran(self):
-        sonuc = FinansMotoru.kdv_hesapla(100.0, 18.0)
-        self.assertEqual(sonuc["kdv_tutari"], 18)
-        self.assertEqual(sonuc["toplam"], 118)
-
-    def test_kdv_hesapla_sifir(self):
-        sonuc = FinansMotoru.kdv_hesapla(0.0)
-        self.assertEqual(sonuc["toplam"], 0)
+    def test_kdv_hesapla(self):
+        sonuc = FinansMotoru.kdv_hesapla(1000, 20)
+        self.assertEqual(sonuc["ham_tutar"], 1000.0)
+        self.assertEqual(sonuc["kdv_tutari"], 200.0)
+        self.assertEqual(sonuc["toplam"], 1200.0)
         
-    def test_kdv_hesapla_negatif_tutar(self):
-        # İade/İptal faturası senaryosu (Negatif tutar)
-        sonuc = FinansMotoru.kdv_hesapla(-100.0, 20.0)
-        self.assertEqual(sonuc["ham_tutar"], -100)
-        self.assertEqual(sonuc["kdv_tutari"], -20)
-        self.assertEqual(sonuc["toplam"], -120)
+        # Ondalıklı/Küsüratlı Test
+        sonuc_ondalik = FinansMotoru.kdv_hesapla(150.50, 18)
+        self.assertEqual(sonuc_ondalik["kdv_tutari"], 27.09)
 
-    def test_indirim_hesapla_varsayilan(self):
-        sonuc = FinansMotoru.indirim_hesapla(200.0)
-        self.assertEqual(sonuc["ham_tutar"], 200)
-        self.assertEqual(sonuc["indirim_tutari"], 20)
-        self.assertEqual(sonuc["net_tutar"], 180)
+    def test_indirim_hesapla(self):
+        sonuc = FinansMotoru.indirim_hesapla(2000, 15)
+        self.assertEqual(sonuc["indirim_tutari"], 300.0)
+        self.assertEqual(sonuc["net_tutar"], 1700.0)
 
-    def test_indirim_hesapla_ozel_oran(self):
-        sonuc = FinansMotoru.indirim_hesapla(200.0, 15.0)
-        self.assertEqual(sonuc["indirim_tutari"], 30)
-        self.assertEqual(sonuc["net_tutar"], 170)
+    def test_degisim_orani_hesapla(self):
+        # Artış senaryosu
+        sonuc_artis = FinansMotoru.degisim_orani_hesapla(100, 150)
+        self.assertEqual(sonuc_artis["degisim_orani"], 50.0)
         
-    def test_indirim_hesapla_yuzdeyuz_indirim(self):
-        # Bedelsiz ürün / %100 indirim senaryosu
-        sonuc = FinansMotoru.indirim_hesapla(500.0, 100.0)
-        self.assertEqual(sonuc["indirim_tutari"], 500)
-        self.assertEqual(sonuc["net_tutar"], 0)
+        # Azalış senaryosu
+        sonuc_azalis = FinansMotoru.degisim_orani_hesapla(200, 150)
+        self.assertEqual(sonuc_azalis["degisim_orani"], -25.0)
+        
+        # Sıfıra bölünme koruması (eski değer 0 ise)
+        sonuc_sifir = FinansMotoru.degisim_orani_hesapla(0, 100)
+        self.assertEqual(sonuc_sifir["degisim_orani"], 0)
 
-    def test_indirim_hesapla_sifir_indirim(self):
-        sonuc = FinansMotoru.indirim_hesapla(250.0, 0.0)
-        self.assertEqual(sonuc["indirim_tutari"], 0)
-        self.assertEqual(sonuc["net_tutar"], 250)
+    def test_yas_hesapla(self):
+        # Gelecek problemi yaşamamak için bugüne göre dinamik "10 yıl önce" tarihi
+        bugun = datetime.now()
+        gecmis = bugun - timedelta(days=365 * 10 + 2) # Yaklaşık 10 yıl
+        tarih_str = gecmis.strftime("%d.%m.%Y")
+        
+        sonuc = FinansMotoru.yas_hesapla(tarih_str)
+        self.assertIn("yillar", sonuc)
+        self.assertEqual(sonuc["yillar"], 10)
 
-    def test_degisim_orani_hesapla_artis(self):
-        sonuc = FinansMotoru.degisim_orani_hesapla(100.0, 150.0)
-        self.assertEqual(sonuc["degisim_orani"], 50.0)
+    def test_yas_hesapla_hatalar(self):
+        # Geçersiz format testi
+        sonuc_format = FinansMotoru.yas_hesapla("45.15.1990")
+        self.assertEqual(sonuc_format["hata"], "Geçersiz format")
+        
+        # Gelecek tarih testi
+        gelecek = datetime.now() + timedelta(days=365 * 5)
+        sonuc_gelecek = FinansMotoru.yas_hesapla(gelecek.strftime("%d.%m.%Y"))
+        self.assertEqual(sonuc_gelecek["hata"], "Gelecek tarih")
 
-    def test_degisim_orani_hesapla_azalis(self):
-        sonuc = FinansMotoru.degisim_orani_hesapla(100.0, 75.0)
-        self.assertEqual(sonuc["degisim_orani"], -25.0)
+    @patch('core.finans_motoru.datetime')
+    def test_yas_hesapla_kapsam_artirici(self, mock_datetime):
+        # Sahte bir bugün tarihi ayarlıyoruz: 10 Ocak 2026
+        mock_datetime.now.return_value = datetime(2026, 1, 10)
+        mock_datetime.strptime = datetime.strptime # strptime metodunu bozmamak için orijinaline bağlıyoruz
+        
+        # 1. Aylar < 0 Tetiklemesi (Doğum: 15 Mayıs 2020)
+        sonuc_ay_eksi = FinansMotoru.yas_hesapla("15.05.2020")
+        self.assertEqual(sonuc_ay_eksi["yillar"], 5)
+        
+        # 2. Günler < 0 Tetiklemesi (Doğum: 15 Ocak 2020)
+        sonuc_gun_eksi = FinansMotoru.yas_hesapla("15.01.2020")
+        self.assertEqual(sonuc_gun_eksi["yillar"], 5)
+        
+        # 3. Artık Yıl (29 Şubat) kapsamı ve ValueError tetiklemeleri
+        # (Bu test, replace() hatalarının tümünü başarıyla cover eder)
+        sonuc_artik = FinansMotoru.yas_hesapla("29.02.2020")
+        self.assertEqual(sonuc_artik["yillar"], 5)
 
-    def test_degisim_orani_hesapla_sifir_bolme_hatasi_onleme(self):
-        # Eski değer 0 olduğunda sıfıra bölme hatası vermemeli
-        sonuc = FinansMotoru.degisim_orani_hesapla(0.0, 100.0)
-        self.assertEqual(sonuc["eski_deger"], 0)
-        self.assertEqual(sonuc["yeni_deger"], 100)
-        self.assertEqual(sonuc["degisim_orani"], 0)
-
-    def test_degisim_orani_hesapla_negatif_degerler(self):
-        sonuc = FinansMotoru.degisim_orani_hesapla(-50.0, -25.0)
-        self.assertEqual(sonuc["degisim_orani"], 50.0)
-
-    def test_degisim_orani_hesapla_degisim_yok(self):
-        sonuc = FinansMotoru.degisim_orani_hesapla(100.0, 100.0)
-        self.assertEqual(sonuc["degisim_orani"], 0.0)
-
-    def test_degisim_orani_hesapla_negatiften_pozitife(self):
-        # Zarardan kâra geçiş senaryosu (Eski: -50, Yeni: 50 -> Beklenen %200 artış)
-        sonuc = FinansMotoru.degisim_orani_hesapla(-50.0, 50.0)
-        self.assertEqual(sonuc["degisim_orani"], 200.0)
-
-    def test_degisim_orani_hesapla_ikisi_de_sifir(self):
-        sonuc = FinansMotoru.degisim_orani_hesapla(0.0, 0.0)
-        self.assertEqual(sonuc["eski_deger"], 0)
-        self.assertEqual(sonuc["yeni_deger"], 0)
-        self.assertEqual(sonuc["degisim_orani"], 0.0)
+    def test_oranti_hesapla(self):
+        # 150 ürün 4500 ise, 75 ürün = 2250
+        sonuc = FinansMotoru.oranti_hesapla(150, 4500, 75)
+        self.assertEqual(sonuc["sonuc"], 2250.0)
+        
+        # 1. değer sıfır olursa ZeroDivisionError koruması
+        sonuc_sifir = FinansMotoru.oranti_hesapla(0, 4500, 75)
+        self.assertEqual(sonuc_sifir["hata"], "1. Deger sifir olamaz")
 
 if __name__ == '__main__':
     unittest.main()

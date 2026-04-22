@@ -3,6 +3,10 @@ from tkinter import ttk
 from tkinter import font as tkfont
 import os
 import sys
+
+# Proje kök dizinini Python yoluna ekle (Pylance import hatalarını önlemek için)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from core.matematik_motoru import MatematikMotoru
 from ui.dashboard_tab import DashboardTab
 from ui.history_tab import HistoryTab

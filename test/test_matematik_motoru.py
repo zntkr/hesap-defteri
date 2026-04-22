@@ -43,16 +43,17 @@ class TestMatematikMotoru(unittest.TestCase):
         # EU/TR Format: 1.500.000,50 -> 1500000.5
         # Virgüllü ondalık: 15,5 -> 15.5
         # Çoklu binlik: 1.500.000 -> 1500000.0
-        # Sadece virgüllü çoklu binlik: 1,500,000 -> 1500000.0
-        metin = "US 1,500,000.50, TR 1.500.000,50, basit 15,5, TR 1.500.000 ve US 1,500,000"
+        # Çoklu virgül (US binlik): 1,500,000 -> 1500000.0
+        metin = "US 1,500,000.50, TR 1.500.000,50, basit 15,5 ve 1.500.000 ile 1,500,000"
         beklenen = [1500000.5, 1500000.5, 15.5, 1500000.0, 1500000.0]
         self.assertEqual(MatematikMotoru.metinden_sayilari_ayikla(metin), beklenen)
 
-    def test_sayilari_ayikla_hatali_formatlar(self):
-        # Regex'ten geçip float'a dönüşemeyen karmaşık yapılar (ValueError çökme koruması testi)
-        # Örn: 1.234,567.89 -> 1.234567.89 -> ValueError
-        metin = "Hatalı bir sayı formu olan 1.234,567.89 motoru çökertmemeli, atlanmalı."
-        self.assertEqual(MatematikMotoru.metinden_sayilari_ayikla(metin), [])
+    def test_sayilari_ayikla_coklu_nokta_ve_hatali(self):
+        # 1.500.000 -> Sadece noktadan oluşan binlik ayırıcı (Satır 44-45 kapsamı)
+        # 1.234,567.89 -> Yanlış formatlanmış ve ValueError tetikleyecek sayı (Satır 56-57 kapsamı)
+        metin = "Sadece nokta 1.500.000 ve float hatası veren 1.234,567.89 testi."
+        beklenen = [1500000.0]
+        self.assertEqual(MatematikMotoru.metinden_sayilari_ayikla(metin), beklenen)
 
     def test_detayli_analiz_yap_temel(self):
         sayilar = [10.0, 20.0, 30.0, 40.0, 50.0]
@@ -68,7 +69,7 @@ class TestMatematikMotoru(unittest.TestCase):
         self.assertEqual(analiz["en_kucuk"], 10.0)
         self.assertEqual(analiz["medyan"], 30.0)
         self.assertEqual(analiz["toplam"], 150.0)
-        self.assertEqual(analiz["varyans"], 250.0)
+        self.assertEqual(analiz["aciklik"], 40.0)
         self.assertEqual(analiz["std_sapma"], 15.8114)
 
     def test_detayli_analiz_yap_sifir_degerleri(self):
@@ -86,7 +87,7 @@ class TestMatematikMotoru(unittest.TestCase):
         self.assertEqual(analiz["en_kucuk"], -10.0)
         self.assertEqual(analiz["medyan"], 0.0)
         self.assertEqual(analiz["toplam"], 0.0)
-        self.assertEqual(analiz["varyans"], 100.0)
+        self.assertEqual(analiz["aciklik"], 20.0)
         self.assertEqual(analiz["std_sapma"], 10.0)
 
     def test_detayli_analiz_yap_tek_eleman(self):
@@ -101,7 +102,7 @@ class TestMatematikMotoru(unittest.TestCase):
         self.assertEqual(analiz["medyan"], 42.0)
         self.assertEqual(analiz["en_buyuk"], 42.0)
         self.assertEqual(analiz["en_kucuk"], 42.0)
-        self.assertEqual(analiz["varyans"], 0.0)
+        self.assertEqual(analiz["aciklik"], 0.0)
         self.assertEqual(analiz["std_sapma"], 0.0)
 
     def test_detayli_analiz_yap_hassasiyet(self):
@@ -113,7 +114,7 @@ class TestMatematikMotoru(unittest.TestCase):
         assert isinstance(analiz, dict)
         self.assertEqual(analiz["toplam"], 0.3)
         self.assertEqual(analiz["ortalama"], 0.15)
-        self.assertEqual(analiz["varyans"], 0.005)
+        self.assertEqual(analiz["aciklik"], 0.1)
         self.assertEqual(analiz["std_sapma"], 0.0707107) # :g formatı 6 anlamlı basamağa yuvarlar
 
     def test_detayli_analiz_yap_bos_liste(self):

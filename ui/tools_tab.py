@@ -1,5 +1,11 @@
 import tkinter as tk
 from tkinter import ttk
+import sys
+import os
+
+# Proje kök dizinini Python yoluna ekle (Pylance import hatalarını önlemek için)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from core.matematik_motoru import MatematikMotoru
 from core.finans_motoru import FinansMotoru
 
