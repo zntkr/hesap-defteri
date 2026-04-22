@@ -8,6 +8,8 @@ class MatematikMotoru:
     Metin içindeki sayıları format (US/TR) bağımsız olarak bulur ve istatistiklerini hesaplar.
     """
 
+    SAYI_PATERNI = r"[-+]?(?:\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?|[.,]\d+)"
+
     @staticmethod
     def metinden_sayilari_ayikla(metin: str) -> List[float]:
         """
@@ -22,8 +24,7 @@ class MatematikMotoru:
         # 1. Grup: 1,500,000.50 veya 1.500.000,50 gibi binlik ayırıcılı formatlar
         # 2. Grup: 15.5 veya 15,5 gibi standart ondalıklı tam sayılar
         # 3. Grup: .5 veya ,5 gibi doğrudan ondalıkla başlayanlar
-        patern = r"[-+]?(?:\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?|[.,]\d+)"
-        eslesmeler = re.findall(patern, metin)
+        eslesmeler = re.findall(MatematikMotoru.SAYI_PATERNI, metin)
         
         sayilar = []
         for s in eslesmeler:

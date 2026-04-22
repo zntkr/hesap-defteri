@@ -57,29 +57,29 @@ class ToolsTab(tk.Frame):
     def build_tax_tool(self):
         frame = tk.Frame(self.container, bg=self.ui.bg_color)
         
-        desc_frame = tk.Frame(frame, bg="#EFEBE6", padx=10, pady=10)
+        desc_frame = tk.Frame(frame, bg=self.ui.bg_secondary, padx=10, pady=10)
         desc_frame.pack(fill="x", pady=(0, 15))
-        tk.Label(desc_frame, text="KDV Hesaplayıcı", font=self.ui.font_bold, fg=self.ui.accent_color, bg="#EFEBE6").pack(anchor="w")
-        tk.Label(desc_frame, text="Örn: 1.500 TL tutar ve %20 oran girerek KDV payını ve toplam matrahı hesaplayabilirsiniz.", font=self.ui.font_main, fg="#888888", bg="#EFEBE6", justify="left", wraplength=360).pack(anchor="w", pady=(2,0))
+        tk.Label(desc_frame, text="KDV Hesaplayıcı", font=self.ui.font_bold, fg=self.ui.accent_color, bg=self.ui.bg_secondary).pack(anchor="w")
+        tk.Label(desc_frame, text="Örn: 1.500 TL tutar ve %20 oran girerek KDV payını ve toplam matrahı hesaplayabilirsiniz.", font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, justify="left", wraplength=360).pack(anchor="w", pady=(2,0))
         
         tax_frame = tk.Frame(frame, bg=self.ui.bg_color)
         tax_frame.pack(fill="x", pady=5)
         
         tk.Label(tax_frame, text="Tutar:", font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_color).grid(row=0, column=0, sticky="w", pady=5)
-        self.tax_amount_entry = tk.Entry(tax_frame, font=self.ui.font_main, bg="#FFFFFF", fg=self.ui.fg_color, bd=2, relief="sunken", width=15)
+        self.tax_amount_entry = tk.Entry(tax_frame, font=self.ui.font_main, bg=self.ui.shadow_light, fg=self.ui.fg_color, bd=2, relief="sunken", width=15)
         self.tax_amount_entry.grid(row=0, column=1, padx=10, pady=5)
         
         tk.Label(tax_frame, text="Oran (%):", font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_color).grid(row=1, column=0, sticky="w", pady=5)
-        self.tax_rate_entry = tk.Entry(tax_frame, font=self.ui.font_main, bg="#FFFFFF", fg=self.ui.fg_color, bd=2, relief="sunken", width=15)
+        self.tax_rate_entry = tk.Entry(tax_frame, font=self.ui.font_main, bg=self.ui.shadow_light, fg=self.ui.fg_color, bd=2, relief="sunken", width=15)
         self.tax_rate_entry.insert(0, "20")
         self.tax_rate_entry.grid(row=1, column=1, padx=10, pady=5)
         
-        tax_btn = tk.Button(tax_frame, text="HESAPLA", font=self.ui.font_bold, bg=self.ui.accent_color, fg="#FFFFFF", 
-                            bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground="#FFFFFF", cursor="hand2", command=self.calculate_tax)
+        tax_btn = tk.Button(tax_frame, text="HESAPLA", font=self.ui.font_bold, bg=self.ui.accent_color, fg=self.ui.shadow_light, 
+                            bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground=self.ui.shadow_light, cursor="hand2", command=self.calculate_tax)
         tax_btn.grid(row=0, column=2, padx=10, sticky="nsew", pady=(5, 2), ipadx=10)
         
-        tax_clear_btn = tk.Button(tax_frame, text="Temizle", font=(self.ui.font_main[0], 8), bg="#EFEBE6", fg="#888888", 
-                                  bd=1, relief="raised", activebackground="#E0DCE3", cursor="hand2", command=self.clear_data)
+        tax_clear_btn = tk.Button(tax_frame, text="Temizle", font=(self.ui.font_main[0], 8), bg=self.ui.bg_secondary, fg=self.ui.text_secondary, 
+                                  bd=1, relief="raised", activebackground=self.ui.border_color, cursor="hand2", command=self.clear_data)
         tax_clear_btn.grid(row=1, column=2, padx=10, sticky="nsew", pady=(2, 5))
         
         tax_res_frame = tk.Frame(frame, bg=self.ui.bg_color)
@@ -88,12 +88,12 @@ class ToolsTab(tk.Frame):
         self.tax_labels = {}
         tax_items = [("Ham Tutar:", "ham_tutar"), ("KDV Tutarı:", "kdv_tutari"), ("Toplam Tutar:", "toplam")]
         for i, (text, key) in enumerate(tax_items):
-            tk.Label(tax_res_frame, text=text, fg="#888888", bg=self.ui.bg_color, font=self.ui.font_main).grid(row=i, column=0, sticky="w", pady=4)
+            tk.Label(tax_res_frame, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_color, font=self.ui.font_main).grid(row=i, column=0, sticky="w", pady=4)
             lbl = tk.Label(tax_res_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_color)
             lbl.grid(row=i, column=1, sticky="w", padx=20)
             self.tax_labels[key] = lbl
             
-        self.tax_info_lbl = tk.Label(frame, text="KDV hesaplamak için tutarı girin", font=self.ui.font_main, fg="#888888", bg=self.ui.bg_color)
+        self.tax_info_lbl = tk.Label(frame, text="KDV hesaplamak için tutarı girin", font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_color)
         self.tax_info_lbl.pack(pady=(5, 0))
         
         self.tax_amount_entry.bind('<Return>', self.calculate_tax)
@@ -104,29 +104,29 @@ class ToolsTab(tk.Frame):
     def build_discount_tool(self):
         frame = tk.Frame(self.container, bg=self.ui.bg_color)
         
-        desc_frame = tk.Frame(frame, bg="#EFEBE6", padx=10, pady=10)
+        desc_frame = tk.Frame(frame, bg=self.ui.bg_secondary, padx=10, pady=10)
         desc_frame.pack(fill="x", pady=(0, 15))
-        tk.Label(desc_frame, text="İndirim Hesaplayıcı", font=self.ui.font_bold, fg=self.ui.accent_color, bg="#EFEBE6").pack(anchor="w")
-        tk.Label(desc_frame, text="Örn: 2.500 TL'lik bir ürüne %15 indirim uygulandığında net fiyatı ve indirim tutarını gösterir.", font=self.ui.font_main, fg="#888888", bg="#EFEBE6", justify="left", wraplength=360).pack(anchor="w", pady=(2,0))
+        tk.Label(desc_frame, text="İndirim Hesaplayıcı", font=self.ui.font_bold, fg=self.ui.accent_color, bg=self.ui.bg_secondary).pack(anchor="w")
+        tk.Label(desc_frame, text="Örn: 2.500 TL'lik bir ürüne %15 indirim uygulandığında net fiyatı ve indirim tutarını gösterir.", font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, justify="left", wraplength=360).pack(anchor="w", pady=(2,0))
         
         discount_frame = tk.Frame(frame, bg=self.ui.bg_color)
         discount_frame.pack(fill="x", pady=5)
         
         tk.Label(discount_frame, text="Tutar:", font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_color).grid(row=0, column=0, sticky="w", pady=5)
-        self.discount_amount_entry = tk.Entry(discount_frame, font=self.ui.font_main, bg="#FFFFFF", fg=self.ui.fg_color, bd=2, relief="sunken", width=15)
+        self.discount_amount_entry = tk.Entry(discount_frame, font=self.ui.font_main, bg=self.ui.shadow_light, fg=self.ui.fg_color, bd=2, relief="sunken", width=15)
         self.discount_amount_entry.grid(row=0, column=1, padx=10, pady=5)
         
         tk.Label(discount_frame, text="İndirim (%):", font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_color).grid(row=1, column=0, sticky="w", pady=5)
-        self.discount_rate_entry = tk.Entry(discount_frame, font=self.ui.font_main, bg="#FFFFFF", fg=self.ui.fg_color, bd=2, relief="sunken", width=15)
+        self.discount_rate_entry = tk.Entry(discount_frame, font=self.ui.font_main, bg=self.ui.shadow_light, fg=self.ui.fg_color, bd=2, relief="sunken", width=15)
         self.discount_rate_entry.insert(0, "10")
         self.discount_rate_entry.grid(row=1, column=1, padx=10, pady=5)
         
-        discount_btn = tk.Button(discount_frame, text="HESAPLA", font=self.ui.font_bold, bg=self.ui.accent_color, fg="#FFFFFF", 
-                                 bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground="#FFFFFF", cursor="hand2", command=self.calculate_discount)
+        discount_btn = tk.Button(discount_frame, text="HESAPLA", font=self.ui.font_bold, bg=self.ui.accent_color, fg=self.ui.shadow_light, 
+                                 bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground=self.ui.shadow_light, cursor="hand2", command=self.calculate_discount)
         discount_btn.grid(row=0, column=2, padx=10, sticky="nsew", pady=(5, 2), ipadx=10)
         
-        discount_clear_btn = tk.Button(discount_frame, text="Temizle", font=(self.ui.font_main[0], 8), bg="#EFEBE6", fg="#888888", 
-                                       bd=1, relief="raised", activebackground="#E0DCE3", cursor="hand2", command=self.clear_data)
+        discount_clear_btn = tk.Button(discount_frame, text="Temizle", font=(self.ui.font_main[0], 8), bg=self.ui.bg_secondary, fg=self.ui.text_secondary, 
+                                       bd=1, relief="raised", activebackground=self.ui.border_color, cursor="hand2", command=self.clear_data)
         discount_clear_btn.grid(row=1, column=2, padx=10, sticky="nsew", pady=(2, 5))
         
         discount_res_frame = tk.Frame(frame, bg=self.ui.bg_color)
@@ -135,12 +135,12 @@ class ToolsTab(tk.Frame):
         self.discount_labels = {}
         discount_items = [("Ham Tutar:", "ham_tutar"), ("İndirim Tutarı:", "indirim_tutari"), ("Net Tutar:", "net_tutar")]
         for i, (text, key) in enumerate(discount_items):
-            tk.Label(discount_res_frame, text=text, fg="#888888", bg=self.ui.bg_color, font=self.ui.font_main).grid(row=i, column=0, sticky="w", pady=4)
+            tk.Label(discount_res_frame, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_color, font=self.ui.font_main).grid(row=i, column=0, sticky="w", pady=4)
             lbl = tk.Label(discount_res_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_color)
             lbl.grid(row=i, column=1, sticky="w", padx=20)
             self.discount_labels[key] = lbl
             
-        self.discount_info_lbl = tk.Label(frame, text="İndirim hesaplamak için tutarı girin", font=self.ui.font_main, fg="#888888", bg=self.ui.bg_color)
+        self.discount_info_lbl = tk.Label(frame, text="İndirim hesaplamak için tutarı girin", font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_color)
         self.discount_info_lbl.pack(pady=(5, 0))
         
         self.discount_amount_entry.bind('<Return>', self.calculate_discount)
@@ -151,39 +151,39 @@ class ToolsTab(tk.Frame):
     def build_change_tool(self):
         frame = tk.Frame(self.container, bg=self.ui.bg_color)
         
-        desc_frame = tk.Frame(frame, bg="#EFEBE6", padx=10, pady=10)
+        desc_frame = tk.Frame(frame, bg=self.ui.bg_secondary, padx=10, pady=10)
         desc_frame.pack(fill="x", pady=(0, 15))
-        tk.Label(desc_frame, text="Yüzdelik Değişim Oranı", font=self.ui.font_bold, fg=self.ui.accent_color, bg="#EFEBE6").pack(anchor="w")
-        tk.Label(desc_frame, text="Örn: Eski fiyatı 150 TL, yeni fiyatı 200 TL olan bir ürünün yüzde kaç zamlandığını hesaplar.", font=self.ui.font_main, fg="#888888", bg="#EFEBE6", justify="left", wraplength=360).pack(anchor="w", pady=(2,0))
+        tk.Label(desc_frame, text="Yüzdelik Değişim Oranı", font=self.ui.font_bold, fg=self.ui.accent_color, bg=self.ui.bg_secondary).pack(anchor="w")
+        tk.Label(desc_frame, text="Örn: Eski fiyatı 150 TL, yeni fiyatı 200 TL olan bir ürünün yüzde kaç zamlandığını hesaplar.", font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, justify="left", wraplength=360).pack(anchor="w", pady=(2,0))
         
         change_frame = tk.Frame(frame, bg=self.ui.bg_color)
         change_frame.pack(fill="x", pady=5)
         
         tk.Label(change_frame, text="Eski Değer:", font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_color).grid(row=0, column=0, sticky="w", pady=5)
-        self.old_val_entry = tk.Entry(change_frame, font=self.ui.font_main, bg="#FFFFFF", fg=self.ui.fg_color, bd=2, relief="sunken", width=15)
+        self.old_val_entry = tk.Entry(change_frame, font=self.ui.font_main, bg=self.ui.shadow_light, fg=self.ui.fg_color, bd=2, relief="sunken", width=15)
         self.old_val_entry.grid(row=0, column=1, padx=10, pady=5)
         
         tk.Label(change_frame, text="Yeni Değer:", font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_color).grid(row=1, column=0, sticky="w", pady=5)
-        self.new_val_entry = tk.Entry(change_frame, font=self.ui.font_main, bg="#FFFFFF", fg=self.ui.fg_color, bd=2, relief="sunken", width=15)
+        self.new_val_entry = tk.Entry(change_frame, font=self.ui.font_main, bg=self.ui.shadow_light, fg=self.ui.fg_color, bd=2, relief="sunken", width=15)
         self.new_val_entry.grid(row=1, column=1, padx=10, pady=5)
         
-        change_btn = tk.Button(change_frame, text="HESAPLA", font=self.ui.font_bold, bg=self.ui.accent_color, fg="#FFFFFF", 
-                                 bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground="#FFFFFF", cursor="hand2", command=self.calculate_change)
+        change_btn = tk.Button(change_frame, text="HESAPLA", font=self.ui.font_bold, bg=self.ui.accent_color, fg=self.ui.shadow_light, 
+                                 bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground=self.ui.shadow_light, cursor="hand2", command=self.calculate_change)
         change_btn.grid(row=0, column=2, padx=10, sticky="nsew", pady=(5, 2), ipadx=10)
         
-        change_clear_btn = tk.Button(change_frame, text="Temizle", font=(self.ui.font_main[0], 8), bg="#EFEBE6", fg="#888888", 
-                                     bd=1, relief="raised", activebackground="#E0DCE3", cursor="hand2", command=self.clear_data)
+        change_clear_btn = tk.Button(change_frame, text="Temizle", font=(self.ui.font_main[0], 8), bg=self.ui.bg_secondary, fg=self.ui.text_secondary, 
+                                     bd=1, relief="raised", activebackground=self.ui.border_color, cursor="hand2", command=self.clear_data)
         change_clear_btn.grid(row=1, column=2, padx=10, sticky="nsew", pady=(2, 5))
         
         change_res_frame = tk.Frame(frame, bg=self.ui.bg_color)
         change_res_frame.pack(fill="x", pady=(10, 0))
         
-        tk.Label(change_res_frame, text="Değişim Oranı:", fg="#888888", bg=self.ui.bg_color, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=4)
+        tk.Label(change_res_frame, text="Değişim Oranı:", fg=self.ui.text_secondary, bg=self.ui.bg_color, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=4)
         self.change_res_lbl = tk.Label(change_res_frame, text="-", font=self.ui.font_title, fg=self.ui.fg_color, bg=self.ui.bg_color, cursor="hand2")
         self.change_res_lbl.grid(row=0, column=1, sticky="w", padx=20)
         self.change_res_lbl.bind('<Button-1>', self.copy_change_rate)
             
-        self.change_info_lbl = tk.Label(frame, text="Artış veya azalışı görmek için değerleri girin", font=self.ui.font_main, fg="#888888", bg=self.ui.bg_color)
+        self.change_info_lbl = tk.Label(frame, text="Artış veya azalışı görmek için değerleri girin", font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_color)
         self.change_info_lbl.pack(pady=(15, 0))
         
         self.old_val_entry.bind('<Return>', self.calculate_change)
@@ -198,7 +198,7 @@ class ToolsTab(tk.Frame):
         desc_frame = tk.Frame(frame, bg="#EFEBE6", padx=10, pady=10)
         desc_frame.pack(fill="x", pady=(0, 15))
         tk.Label(desc_frame, text="İçler Dışlar / Doğru Orantı", font=self.ui.font_bold, fg=self.ui.accent_color, bg="#EFEBE6").pack(anchor="w")
-        tk.Label(desc_frame, text="Örn: 150 adet mal 4.500 TL ise, 75 adet mal kaç TL yapar?", font=self.ui.font_main, fg="#888888", bg="#EFEBE6", justify="left", wraplength=360).pack(anchor="w", pady=(2,0))
+        tk.Label(desc_frame, text="Örn: 150 adet mal 4.500 TL ise, 75 adet mal kaç TL yapar?", font=self.ui.font_main, fg="#666666", bg="#EFEBE6", justify="left", wraplength=360).pack(anchor="w", pady=(2,0))
         
         prop_frame = tk.Frame(frame, bg=self.ui.bg_color)
         prop_frame.pack(fill="x", pady=5)
@@ -226,12 +226,12 @@ class ToolsTab(tk.Frame):
         prop_res_frame = tk.Frame(frame, bg=self.ui.bg_color)
         prop_res_frame.pack(fill="x", pady=(15, 0))
         
-        tk.Label(prop_res_frame, text="Netice (X):", fg="#888888", bg=self.ui.bg_color, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=4)
+        tk.Label(prop_res_frame, text="Netice (X):", fg=self.ui.text_secondary, bg=self.ui.bg_color, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=4)
         self.prop_res_lbl = tk.Label(prop_res_frame, text="-", font=self.ui.font_title, fg=self.ui.fg_color, bg=self.ui.bg_color, cursor="hand2")
         self.prop_res_lbl.grid(row=0, column=1, sticky="w", padx=20)
         self.prop_res_lbl.bind('<Button-1>', self.copy_prop_rate)
             
-        self.prop_info_lbl = tk.Label(frame, text="Orantı sonucunu görmek için değerleri girin", font=self.ui.font_main, fg="#888888", bg=self.ui.bg_color)
+        self.prop_info_lbl = tk.Label(frame, text="Orantı sonucunu görmek için değerleri girin", font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_color)
         self.prop_info_lbl.pack(pady=(5, 0))
         
         self.prop_a_entry.bind('<Return>', self.calculate_proportion)
@@ -243,16 +243,16 @@ class ToolsTab(tk.Frame):
     def build_age_tool(self):
         frame = tk.Frame(self.container, bg=self.ui.bg_color)
         
-        desc_frame = tk.Frame(frame, bg="#EFEBE6", padx=10, pady=10)
+        desc_frame = tk.Frame(frame, bg=self.ui.bg_secondary, padx=10, pady=10)
         desc_frame.pack(fill="x", pady=(0, 15))
-        tk.Label(desc_frame, text="Detaylı Yaş Analizi", font=self.ui.font_bold, fg=self.ui.accent_color, bg="#EFEBE6").pack(anchor="w")
-        tk.Label(desc_frame, text="Örn: 15.05.1990 girerek doğduğunuz günü, tam yaşınızı ve sonraki doğum gününüze kalan süreyi bulun.", font=self.ui.font_main, fg="#888888", bg="#EFEBE6", justify="left", wraplength=360).pack(anchor="w", pady=(2,0))
+        tk.Label(desc_frame, text="Detaylı Yaş Analizi", font=self.ui.font_bold, fg=self.ui.accent_color, bg=self.ui.bg_secondary).pack(anchor="w")
+        tk.Label(desc_frame, text="Örn: 15.05.1990 girerek doğduğunuz günü, tam yaşınızı ve sonraki doğum gününüze kalan süreyi bulun.", font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, justify="left", wraplength=360).pack(anchor="w", pady=(2,0))
         
         age_frame = tk.Frame(frame, bg=self.ui.bg_color)
         age_frame.pack(fill="x", pady=5)
         
         tk.Label(age_frame, text="Doğum Tarihi:", font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_color).grid(row=0, column=0, sticky="w", pady=5)
-        self.age_year_entry = tk.Entry(age_frame, font=self.ui.font_main, bg="#FFFFFF", fg="#888888", bd=2, relief="sunken", width=15)
+        self.age_year_entry = tk.Entry(age_frame, font=self.ui.font_main, bg=self.ui.shadow_light, fg=self.ui.text_placeholder, bd=2, relief="sunken", width=15)
         self.age_year_entry.insert(0, "GG.AA.YYYY")
         self.age_year_entry.grid(row=0, column=1, padx=10, pady=5)
         
@@ -262,16 +262,18 @@ class ToolsTab(tk.Frame):
                 self.age_year_entry.config(fg=self.ui.fg_color)
                 
         def add_age_placeholder(event):
+            if getattr(self.ui, 'context_menu_open', False):
+                return
             if not self.age_year_entry.get().strip():
                 self.age_year_entry.insert(0, "GG.AA.YYYY")
-                self.age_year_entry.config(fg="#888888")
+                self.age_year_entry.config(fg=self.ui.text_placeholder)
 
-        age_btn = tk.Button(age_frame, text="HESAPLA", font=self.ui.font_bold, bg=self.ui.accent_color, fg="#FFFFFF", 
-                                 bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground="#FFFFFF", cursor="hand2", command=self.calculate_age)
+        age_btn = tk.Button(age_frame, text="HESAPLA", font=self.ui.font_bold, bg=self.ui.accent_color, fg=self.ui.shadow_light, 
+                                 bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground=self.ui.shadow_light, cursor="hand2", command=self.calculate_age)
         age_btn.grid(row=0, column=2, padx=10, sticky="nsew", pady=(5, 2), ipadx=10)
         
-        age_clear_btn = tk.Button(age_frame, text="Temizle", font=(self.ui.font_main[0], 8), bg="#EFEBE6", fg="#888888", 
-                                     bd=1, relief="raised", activebackground="#E0DCE3", cursor="hand2", command=self.clear_data)
+        age_clear_btn = tk.Button(age_frame, text="Temizle", font=(self.ui.font_main[0], 8), bg=self.ui.bg_secondary, fg=self.ui.text_secondary, 
+                                     bd=1, relief="raised", activebackground=self.ui.border_color, cursor="hand2", command=self.clear_data)
         age_clear_btn.grid(row=1, column=2, padx=10, sticky="nsew", pady=(2, 5))
         
         age_res_frame = tk.Frame(frame, bg=self.ui.bg_color)
@@ -284,7 +286,7 @@ class ToolsTab(tk.Frame):
         self.age_res_txt.config(state="disabled")
         self.age_res_txt.bind('<Button-1>', self.copy_age_rate)
             
-        self.age_info_lbl = tk.Label(frame, text="Analiz raporunu görmek için doğum tarihinizi girin", font=self.ui.font_main, fg="#888888", bg=self.ui.bg_color)
+        self.age_info_lbl = tk.Label(frame, text="Analiz raporunu görmek için doğum tarihinizi girin", font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_color)
         self.age_info_lbl.pack(pady=(15, 0))
         
         self.age_year_entry.bind('<Return>', self.calculate_age)
@@ -301,7 +303,9 @@ class ToolsTab(tk.Frame):
         rate_numbers = MatematikMotoru.metinden_sayilari_ayikla(rate_str)
         
         if not amount_numbers:
-            self.tax_info_lbl.config(text="Geçersiz tutar!", fg="#D32F2F")
+            for lbl in self.tax_labels.values():
+                lbl.config(text="-")
+            self.tax_info_lbl.config(text="Geçersiz tutar!", fg=self.ui.error_color)
             return "break"
             
         amount = amount_numbers[0]
@@ -321,7 +325,9 @@ class ToolsTab(tk.Frame):
         rate_numbers = MatematikMotoru.metinden_sayilari_ayikla(rate_str)
         
         if not amount_numbers:
-            self.discount_info_lbl.config(text="Geçersiz tutar!", fg="#D32F2F")
+            for lbl in self.discount_labels.values():
+                lbl.config(text="-")
+            self.discount_info_lbl.config(text="Geçersiz tutar!", fg=self.ui.error_color)
             return "break"
             
         amount = amount_numbers[0]
@@ -341,7 +347,8 @@ class ToolsTab(tk.Frame):
         new_nums = MatematikMotoru.metinden_sayilari_ayikla(new_str)
         
         if not old_nums or not new_nums:
-            self.change_info_lbl.config(text="Eski ve yeni değer eksik!", fg="#D32F2F")
+            self.change_res_lbl.config(text="-")
+            self.change_info_lbl.config(text="Eski ve yeni değer eksik!", fg=self.ui.error_color)
             return "break"
             
         old_val = old_nums[0]
@@ -365,13 +372,15 @@ class ToolsTab(tk.Frame):
         c_nums = MatematikMotoru.metinden_sayilari_ayikla(c_str)
         
         if not a_nums or not b_nums or not c_nums:
-            self.prop_info_lbl.config(text="Lütfen üç değeri de eksiksiz girin!", fg="#D32F2F")
+            self.prop_res_lbl.config(text="-")
+            self.prop_info_lbl.config(text="Lütfen üç değeri de eksiksiz girin!", fg=self.ui.error_color)
             return "break"
             
         result = FinansMotoru.oranti_hesapla(a_nums[0], b_nums[0], c_nums[0])
         
         if "hata" in result:
-            self.prop_info_lbl.config(text="1. Değer (A) sıfır olamaz!", fg="#D32F2F")
+            self.prop_res_lbl.config(text="-")
+            self.prop_info_lbl.config(text="1. Değer (A) sıfır olamaz!", fg=self.ui.error_color)
             self.prop_res_lbl.config(text="-")
             return "break"
             
@@ -385,16 +394,20 @@ class ToolsTab(tk.Frame):
             date_str = ""
         
         if not date_str:
-            self.age_info_lbl.config(text="Lütfen doğum tarihinizi girin!", fg="#D32F2F")
+            self.age_res_txt.config(state="normal")
+            self.age_res_txt.delete("1.0", tk.END)
+            self.age_res_txt.insert("1.0", "-")
+            self.age_res_txt.config(state="disabled")
+            self.age_info_lbl.config(text="Lütfen doğum tarihinizi girin!", fg=self.ui.error_color)
             return "break"
             
         result = FinansMotoru.yas_hesapla(date_str)
         
         if "hata" in result:
             if result["hata"] == "Gelecek tarih":
-                self.age_info_lbl.config(text="Gelecek bir tarih giremezsiniz!", fg="#D32F2F")
+                self.age_info_lbl.config(text="Gelecek bir tarih giremezsiniz!", fg=self.ui.error_color)
             else:
-                self.age_info_lbl.config(text="Geçersiz format! Örn: 15.05.1990", fg="#D32F2F")
+                self.age_info_lbl.config(text="Geçersiz format! Örn: 15.05.1990", fg=self.ui.error_color)
             
             self.age_res_txt.config(state="normal")
             self.age_res_txt.delete("1.0", tk.END)
@@ -467,30 +480,30 @@ class ToolsTab(tk.Frame):
         self.tax_rate_entry.delete(0, tk.END)
         self.tax_rate_entry.insert(0, "20")
         for lbl in self.tax_labels.values(): lbl.config(text="-")
-        self.tax_info_lbl.config(text="KDV hesaplamak için tutarı girin", fg="#888888")
+        self.tax_info_lbl.config(text="KDV hesaplamak için tutarı girin", fg=self.ui.text_secondary)
         
         self.discount_amount_entry.delete(0, tk.END)
         self.discount_rate_entry.delete(0, tk.END)
         self.discount_rate_entry.insert(0, "10")
         for lbl in self.discount_labels.values(): lbl.config(text="-")
-        self.discount_info_lbl.config(text="İndirim hesaplamak için tutarı girin", fg="#888888")
+        self.discount_info_lbl.config(text="İndirim hesaplamak için tutarı girin", fg=self.ui.text_secondary)
         
         self.old_val_entry.delete(0, tk.END)
         self.new_val_entry.delete(0, tk.END)
         self.change_res_lbl.config(text="-")
-        self.change_info_lbl.config(text="Artış veya azalışı görmek için değerleri girin", fg="#888888")
+        self.change_info_lbl.config(text="Artış veya azalışı görmek için değerleri girin", fg=self.ui.text_secondary)
         
         self.prop_a_entry.delete(0, tk.END)
         self.prop_b_entry.delete(0, tk.END)
         self.prop_c_entry.delete(0, tk.END)
         self.prop_res_lbl.config(text="-")
-        self.prop_info_lbl.config(text="Orantı sonucunu görmek için değerleri girin", fg="#888888")
+        self.prop_info_lbl.config(text="Orantı sonucunu görmek için değerleri girin", fg=self.ui.text_secondary)
         
         self.age_year_entry.delete(0, tk.END)
         self.age_year_entry.insert(0, "GG.AA.YYYY")
-        self.age_year_entry.config(fg="#888888")
+        self.age_year_entry.config(fg=self.ui.text_placeholder)
         self.age_res_txt.config(state="normal")
         self.age_res_txt.delete("1.0", tk.END)
         self.age_res_txt.insert("1.0", "-")
         self.age_res_txt.config(state="disabled")
-        self.age_info_lbl.config(text="Örn: 15.05.1990 şeklinde tarihinizi girin", fg="#888888")
+        self.age_info_lbl.config(text="Örn: 15.05.1990 şeklinde tarihinizi girin", fg=self.ui.text_secondary)
