@@ -37,6 +37,7 @@ class MainUI:
         self.font_bold = (selected_font, 10, "bold")
         self.font_title = (selected_font, 24)
         
+        self.placeholder_text = "sayıları giriniz..."
         self.root.config(bg=self.bg_color)
         self.history = []
         
@@ -80,13 +81,13 @@ class MainUI:
         self.top_frame.pack(fill="x")
 
         tk.Label(self.top_frame, text="HESAPLAYICI", font=self.font_bold, fg=self.fg_color, bg=self.bg_color).pack(anchor="w")
-        tk.Label(self.top_frame, text="Ortalaması alınacak sayıları yapıştırın:", font=self.font_main, fg="#888888", bg=self.bg_color).pack(anchor="w", pady=(2, 8))
+        tk.Label(self.top_frame, text="Ortalama hesaplamak için sayıları girin:", font=self.font_main, fg="#888888", bg=self.bg_color).pack(anchor="w", pady=(2, 8))
         
         input_frame = tk.Frame(self.top_frame, bg=self.bg_color)
         input_frame.pack(fill="x")
 
         self.entry = tk.Entry(input_frame, font=self.font_main, bg="#FFFFFF", fg="#888888", bd=2, relief="sunken")
-        self.entry.insert(0, "yazınız")
+        self.entry.insert(0, self.placeholder_text)
         self.entry.pack(side="left", fill="x", expand=True, ipady=4, padx=(0, 10))
         self.entry.focus()
         
@@ -116,14 +117,14 @@ class MainUI:
         self.tabs.bind('<<NotebookTabChanged>>', self.handle_tab_change)
 
     def clear_placeholder(self, event=None):
-        if self.entry.get() == "yazınız":
+        if self.entry.get() == self.placeholder_text:
             self.entry.delete(0, tk.END)
             self.entry.config(fg=self.fg_color)
 
     def add_placeholder(self, event=None):
         if not self.entry.get().strip():
             self.entry.delete(0, tk.END)
-            self.entry.insert(0, "yazınız")
+            self.entry.insert(0, self.placeholder_text)
             self.entry.config(fg="#888888")
 
     def handle_tab_change(self, event=None):
@@ -135,7 +136,7 @@ class MainUI:
 
     def process_input(self, event=None):
         raw_input = self.entry.get().strip()
-        if raw_input == "yazınız":
+        if raw_input == self.placeholder_text:
             raw_input = ""
             
         numbers = MatematikMotoru.metinden_sayilari_ayikla(raw_input)

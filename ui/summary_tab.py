@@ -15,7 +15,7 @@ class SummaryTab(tk.Frame):
         self.sum_lbl = tk.Label(self, text="Toplam: 0", font=self.ui.font_bold, fg="#888888", bg=self.ui.bg_color)
         self.sum_lbl.pack(pady=(0, 10))
         
-        self.info_lbl = tk.Label(self, text="Sayıları yapıştırıp Enter'a basın", font=self.ui.font_main, fg="#888888", bg=self.ui.bg_color)
+        self.info_lbl = tk.Label(self, text="Hesaplamak için Enter'a basın", font=self.ui.font_main, fg="#888888", bg=self.ui.bg_color)
         self.info_lbl.pack()
 
     def copy_to_clipboard(self, event=None):
@@ -35,4 +35,4 @@ class SummaryTab(tk.Frame):
     def clear_data(self):
         self.result_lbl.config(text="0")
         self.sum_lbl.config(text="Toplam: 0")
-        self.info_lbl.config(text="Sayıları yapıştırıp Enter'a basın", fg="#888888")
+        self.info_lbl.config(text="Hesaplamak için Enter'a basın", fg="#888888")
