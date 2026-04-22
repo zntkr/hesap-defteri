@@ -21,7 +21,7 @@ if __name__ == "__main__":
     
     # Gizli pencerenin boyutunu winfo_width() yanlış (örneğin 200px) verebilir.
     # Arayüz tasarımında belirlediğimiz 440x620 boyutunu statik olarak alıp ekranın tam ortasını buluyoruz:
-    genislik, yukseklik = 440, 620
+    genislik, yukseklik = 440, 520
     x = (root.winfo_screenwidth() // 2) - (genislik // 2)
     y = (root.winfo_screenheight() // 2) - (yukseklik // 2)
     root.geometry(f"{genislik}x{yukseklik}+{x}+{y}")

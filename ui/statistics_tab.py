@@ -10,6 +10,8 @@ class StatisticsTab(tk.Frame):
 
     def build_ui(self):
         items = [
+            ("ORTALAMA:", "ortalama"),
+            ("TOPLAM:", "toplam"),
             ("EN BÜYÜK:", "en_buyuk"), 
             ("EN KÜÇÜK:", "en_kucuk"), 
             ("MEDYAN:", "medyan"),

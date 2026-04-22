@@ -37,7 +37,7 @@ class MainUI:
         self.font_bold = (selected_font, 10, "bold")
         self.font_title = (selected_font, 24)
         
-        self.placeholder_text = "sayıları giriniz..."
+        self.placeholder_text = "Veriyi buraya yapıştırın..."
         self.root.config(bg=self.bg_color)
         self.history = []
         
@@ -81,7 +81,7 @@ class MainUI:
         self.top_frame.pack(fill="x")
 
         tk.Label(self.top_frame, text="HESAPLAYICI", font=self.font_bold, fg=self.fg_color, bg=self.bg_color).pack(anchor="w")
-        tk.Label(self.top_frame, text="Ortalama hesaplamak için sayıları girin:", font=self.font_main, fg="#888888", bg=self.bg_color).pack(anchor="w", pady=(2, 8))
+        tk.Label(self.top_frame, text="Sayıları, listeleri veya karmaşık metinleri yapıştırın:", font=self.font_main, fg="#888888", bg=self.bg_color).pack(anchor="w", pady=(2, 8))
         
         input_frame = tk.Frame(self.top_frame, bg=self.bg_color)
         input_frame.pack(fill="x")
@@ -212,22 +212,18 @@ class MainUI:
         tk.Label(about_win, text="HESAPLAYICI", font=self.font_bold, fg=self.fg_color, bg=self.bg_color).pack(pady=(20, 5))
         tk.Label(about_win, text="Sürüm 1.0.0 (Build 2026)", font=self.font_main, fg=self.fg_color, bg=self.bg_color).pack()
         
-        guide_title = "SİSTEM YETENEKLERİ VE KULLANIMI:"
+        guide_title = "KULLANMA REHBERİ:"
         tk.Label(about_win, text=guide_title, font=self.font_bold, fg=self.fg_color, bg=self.bg_color).pack(anchor="w", padx=30, pady=(15, 5))
 
         guide_note = (
-            "• Agnostik Veri Girişi:\n"
-            "  Sistem, girdi içindeki sayıları karakter ayrımı yapmadan\n"
-            "  (virgül, boşluk, harf vb.) Regex ile ayıklar.\n\n"
-            "• İstatistiki Kapsam:\n"
-            "  Aritmetik ortalamanın yanı sıra uç değerler (min/max)\n"
-            "  ve merkez değer (medyan) eş zamanlı hesaplanır.\n\n"
-            "• Oturum Belleği:\n"
-            "  Hesaplamalar geçmiş sekmesinde tutulur. Çift tıklama\n"
-            "  ile eski veri setleri işleme geri çağrılabilir.\n\n"
-            "• Operasyonel Kısayollar:\n"
-            "  [Enter] hesaplamayı tetikler. Sonuca tıklanması\n"
-            "  durumunda değer sistem panosuna kopyalanır."
+            "• Sayı Girişi ve Formatlar:\n"
+            "  Metinleri doğrudan yapıştırın. Binlik sayılar\n"
+            "  için tam format (Örn: 1.500,00) kullanın.\n\n"
+            "• Geçmiş ve Bellek:\n"
+            "  Eski bir işleme çift tıklayarak ana ekrana yükleyin.\n\n"
+            "• Kısayollar:\n"
+            "  [Enter] ile hesaplayabilir, çıkan sonuçlara tıklayarak\n"
+            "  değerleri anında panoya kopyalayabilirsiniz."
         )
         tk.Label(about_win, text=guide_note, font=self.font_main, fg="#888888", bg=self.bg_color, justify="left").pack(anchor="w", padx=30, pady=5)
         
