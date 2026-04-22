@@ -168,24 +168,6 @@ class ToolsTab(tk.Frame):
         
         return frame
 
-    def update_tax_clear_btn(self, *args):
-        if self.tax_amt_var.get().strip() or self.tax_rate_var.get().strip() != "20":
-            self.tax_clear_btn.config(fg=self.ui.fg_color)
-        else:
-            self.tax_clear_btn.config(fg="#888888")
-            
-    def update_discount_clear_btn(self, *args):
-        if self.disc_amt_var.get().strip() or self.disc_rate_var.get().strip() != "10":
-            self.discount_clear_btn.config(fg=self.ui.fg_color)
-        else:
-            self.discount_clear_btn.config(fg="#888888")
-            
-    def update_change_clear_btn(self, *args):
-        if self.old_val_var.get().strip() or self.new_val_var.get().strip():
-            self.change_clear_btn.config(fg=self.ui.fg_color)
-        else:
-            self.change_clear_btn.config(fg="#888888")
-
     def calculate_tax(self, event=None):
         amount_str = self.tax_amount_entry.get().strip()
         rate_str = self.tax_rate_entry.get().strip()

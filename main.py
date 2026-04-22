@@ -1,6 +1,12 @@
 import tkinter as tk
 import os
+import sys
 from ui.arayuz_tasarimi import MainUI
+
+def get_resource_path(relative_path):
+    """PyInstaller --onefile ile derlendiğinde geçici klasördeki dosyaları bulur."""
+    base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
+    return os.path.join(base_path, relative_path)
 
 if __name__ == "__main__":
     root = tk.Tk()
@@ -9,9 +15,9 @@ if __name__ == "__main__":
     # ikon yükleme gibi disk işlemlerinden bile ÖNCE yazılmalıdır.
     root.withdraw()
 
-    # Sektör Standardı: İkon ataması (Eğer dosya dizinde mevcutsa uygula, yoksa çökmeyi engelle)
-    if os.path.exists("app_icon.ico"):
-        root.iconbitmap("app_icon.ico")
+    icon_path = get_resource_path("app_icon.ico")
+    if os.path.exists(icon_path):
+        root.iconbitmap(icon_path)
 
     # 2. DEKORU KUR: Arayuzu olustur
     app = MainUI(root)
@@ -21,7 +27,7 @@ if __name__ == "__main__":
     
     # Gizli pencerenin boyutunu winfo_width() yanlış (örneğin 200px) verebilir.
     # Arayüz tasarımında belirlediğimiz 440x620 boyutunu statik olarak alıp ekranın tam ortasını buluyoruz:
-    genislik, yukseklik = 440, 520
+    genislik, yukseklik = 440, 640
     x = (root.winfo_screenwidth() // 2) - (genislik // 2)
     y = (root.winfo_screenheight() // 2) - (yukseklik // 2)
     root.geometry(f"{genislik}x{yukseklik}+{x}+{y}")

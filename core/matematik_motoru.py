@@ -87,7 +87,7 @@ class MatematikMotoru:
             "en_kucuk": MatematikMotoru._temiz_sayi(min(sayi_listesi)),
             "medyan": MatematikMotoru._temiz_sayi(statistics.median(sayi_listesi)),
             "toplam": MatematikMotoru._temiz_sayi(sum(sayi_listesi)),
-            "varyans": MatematikMotoru._temiz_sayi(statistics.variance(sayi_listesi)) if len(sayi_listesi) > 1 else 0,
+            "aciklik": MatematikMotoru._temiz_sayi(max(sayi_listesi) - min(sayi_listesi)),
             "std_sapma": MatematikMotoru._temiz_sayi(statistics.stdev(sayi_listesi)) if len(sayi_listesi) > 1 else 0
         }
         return analiz

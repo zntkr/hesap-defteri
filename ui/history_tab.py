@@ -3,7 +3,7 @@ import tkinter as tk
 class HistoryTab(tk.Frame):
     """Component class for the History (Geçmiş) tab."""
     def __init__(self, parent, ui):
-        super().__init__(parent, bg=ui.bg_color, padx=20, pady=(15, 20))
+        super().__init__(parent, bg=ui.bg_color, padx=20, pady=15)
         self.ui = ui
         self.build_ui()
 
@@ -22,3 +22,6 @@ class HistoryTab(tk.Frame):
     def add_entry(self, text):
         self.listbox.insert(tk.END, text)
         self.listbox.yview(tk.END)
+
+    def clear_data(self):
+        self.listbox.delete(0, tk.END)
