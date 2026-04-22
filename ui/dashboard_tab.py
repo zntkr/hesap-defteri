@@ -60,7 +60,7 @@ class DashboardTab(tk.Frame):
         self.has_data = True
         self.result_lbl.config(text=str(analysis["ortalama"]), fg=self.ui.fg_color)
         self.sum_lbl.config(text=f"Toplam: {analysis['toplam']}")
-        self.info_lbl.config(text=f"{analysis['adet']} sayı işlendi • Kopyalamak için sonuca tıklayın", fg=self.ui.accent_color) 
+        self.info_lbl.config(text=f"{analysis['adet']} sayı işlendi • Kopyalamak için rakama tıklayın", fg=self.ui.accent_color) 
         for key, lbl in self.stats_labels.items():
             lbl.config(text=str(analysis[key]))
 

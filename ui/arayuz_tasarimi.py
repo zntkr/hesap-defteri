@@ -41,6 +41,7 @@ class MainUI:
         self.placeholder_text = "Sayıları yazın veya bir liste yapıştırın...\nÖrn: 150  22.5  300  1.250,75"
         self.root.config(bg=self.bg_color)
         self.history = []
+        self.always_on_top_var = tk.BooleanVar(value=False)
         
         self.build_menu()
         self.build_ui()
@@ -53,14 +54,21 @@ class MainUI:
         file_menu.add_separator()
         file_menu.add_command(label="Çıkış", command=self.root.quit)
         
+        view_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_color, fg=self.fg_color)
+        view_menu.add_checkbutton(label="Her Zaman Üstte Tut", variable=self.always_on_top_var, command=self.toggle_always_on_top)
+        
         help_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_color, fg=self.fg_color)
         help_menu.add_command(label="Kullanma Rehberi", command=self.show_guide)
         help_menu.add_separator()
         help_menu.add_command(label="Hakkında", command=self.show_about)
         
         menubar.add_cascade(label="Dosya", menu=file_menu)
+        menubar.add_cascade(label="Görünüm", menu=view_menu)
         menubar.add_cascade(label="Yardım", menu=help_menu)
         self.root.config(menu=menubar)
+
+    def toggle_always_on_top(self):
+        self.root.wm_attributes("-topmost", self.always_on_top_var.get())
 
     def build_ui(self):
         style = ttk.Style()
@@ -127,7 +135,7 @@ class MainUI:
         self.tab_history = HistoryTab(self.tabs, self)
         self.tab_tools = ToolsTab(self.tabs, self)
         
-        self.tabs.add(self.tab_dashboard, text="Sonuçlar")
+        self.tabs.add(self.tab_dashboard, text="Hesaplanan")
         self.tabs.add(self.tab_history, text="Geçmiş")
         self.tabs.add(self.tab_tools, text="Araçlar")
         self.tabs.pack(expand=True, fill="both")
