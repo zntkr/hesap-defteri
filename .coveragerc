@@ -1,0 +1,7 @@
+[run]
+# Raporu sadece 'core' klasörüyle sınırla, test dosyalarını ve UI'ı rapora dahil etme.
+source = core
+
+[report]
+exclude_lines =
+    if __name__ == .__main__.:

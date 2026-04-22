@@ -6,3 +6,7 @@
 # Sadece projeyi .exe haline getirmek isteyen geliştiriciler içindir.
 # Kaynak koddan çalıştırmak için (python main.py) hiçbir şey kurmanıza gerek YOKTUR.
 pyinstaller>=6.0.0
+
+# --- TEST & KAPSAM (COVERAGE) ARAÇLARI ---
+# Yazılan testlerin kodun yüzde kaçını kapsadığını ölçmek için kullanılır.
+coverage>=7.0.0

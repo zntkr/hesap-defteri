@@ -5,6 +5,7 @@ class SummaryTab(tk.Frame):
     def __init__(self, parent, ui):
         super().__init__(parent, bg=ui.bg_color, padx=30, pady=20)
         self.ui = ui
+        self.has_data = False
         self.build_ui()
 
     def build_ui(self):
@@ -19,8 +20,8 @@ class SummaryTab(tk.Frame):
         self.info_lbl.pack()
 
     def copy_to_clipboard(self, event=None):
-        result = self.result_lbl.cget("text")
-        if result != "0":
+        if self.has_data:
+            result = self.result_lbl.cget("text")
             self.ui.root.clipboard_clear()
             self.ui.root.clipboard_append(result)
             self.ui.root.update() 
@@ -28,11 +29,13 @@ class SummaryTab(tk.Frame):
             self.ui.root.after(1500, lambda: self.info_lbl.config(text="Sayıları yapıştırıp Enter'a basın", fg="#888888"))
 
     def update_data(self, analysis):
+        self.has_data = True
         self.result_lbl.config(text=str(analysis["ortalama"]), fg=self.ui.fg_color)
         self.sum_lbl.config(text=f"Toplam: {analysis['toplam']}")
         self.info_lbl.config(text=f"{analysis['adet']} sayı işlendi • Kopyalamak için sonuca tıklayın", fg=self.ui.accent_color) 
 
     def clear_data(self):
+        self.has_data = False
         self.result_lbl.config(text="0")
         self.sum_lbl.config(text="Toplam: 0")
         self.info_lbl.config(text="Hesaplamak için Enter'a basın", fg="#888888")

@@ -148,6 +148,13 @@ class MainUI:
             
             summary_text = f"Ort: {analysis['ortalama']} ({analysis['adet']} veri)"
             self.history.append({"girdi": raw_input, "analiz": analysis})
+            
+            # Bellek Yönetimi: En fazla 100 işlem geçmişi tutulur.
+            if len(self.history) > 100:
+                self.history.pop(0)
+                if hasattr(self.tab_history, 'listbox'):
+                    self.tab_history.listbox.delete(0)
+                    
             self.tab_history.add_entry(summary_text)
             
             self.entry.select_range(0, tk.END)
@@ -174,9 +181,12 @@ class MainUI:
     def clear_all(self):
         self.entry.delete(0, tk.END)
         self.add_placeholder()
+        self.history.clear()
         self.tab_summary.clear_data()
         self.tab_statistics.clear_data()
         self.tab_tools.clear_data()
+        if hasattr(self.tab_history, 'clear_data'):
+            self.tab_history.clear_data()
 
     def show_about(self):
         about_win = tk.Toplevel(self.root)

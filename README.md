@@ -37,11 +37,11 @@ Windows kullanıcıları için projeyi bağımsız, taşınabilir ve kurulum ger
 
 ## 🧪 Testleri Çalıştırma
 
-Projenin kalbi olan `MatematikMotoru`, sınır değerleri (Edge cases), IEEE 754 kayan nokta hassasiyeti ve binlik ayırıcı senaryolarını barındıran kapsamlı bir test süitine sahiptir.
+Projenin `core` (çekirdek) katmanında yer alan motorlar, sınır değerleri (Edge cases), IEEE 754 kayan nokta hassasiyeti, binlik ayırıcı senaryoları ve sıfıra bölme risklerini barındıran kapsamlı bir test süitine sahiptir.
 
-Birim testlerini (Unit Tests) çalıştırmak için proje ana dizininde şu komutu kullanın:
+Tüm birim testlerini (Unit Tests) eş zamanlı çalıştırmak için proje ana dizininde şu komutu kullanın:
 ```bash
-python -m unittest tests/test_matematik_motoru.py
+python -m unittest discover
 ```
 Ekranda `OK` mesajını gördüğünüzde, motorun tüm sınır testlerinden başarıyla geçtiğinden emin olabilirsiniz.
 

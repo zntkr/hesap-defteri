@@ -1,24 +1,18 @@
-# --- PYTHON ÖNBELLEK VE DERLENMİŞ DOSYALAR ---
+# Python Önbellek Dosyaları
 __pycache__/
 *.py[cod]
 *$py.class
 
-# --- SANAL ORTAMLAR (Virtual Environments) ---
-venv/
-.venv/
-env/
-
-# --- PYINSTALLER (Derleme Çıktıları) ---
+# PyInstaller Derleme (Build) Çıktıları
 build/
 dist/
 *.spec
 
-# --- İŞLETİM SİSTEMİ ARTIKLARI ---
+# Test ve Kapsam (Coverage) Raporları
+.coverage
+htmlcov/
+
+# İşletim Sistemi Kalıntıları
 .DS_Store
 Thumbs.db
-
-# --- IDE VE EDİTÖR DOSYALARI ---
-.vscode/
-.idea/
-*.swp
-*.swo
+Desktop.ini
