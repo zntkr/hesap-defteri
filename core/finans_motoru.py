@@ -1,6 +1,7 @@
 from typing import Dict, Union
 from decimal import Decimal, ROUND_HALF_UP
 from datetime import datetime, timedelta
+import math
 
 class FinansMotoru:
     """
@@ -12,8 +13,17 @@ class FinansMotoru:
     def _temiz_sayi(deger: float) -> Union[float, int]:
         """Finansal veriyi 2 basamağa yuvarlar ve gereksiz .0 küsuratını atar."""
         # IEEE 754 float kayıplarını ve Banker's Rounding'i aşmak için Decimal kullanıyoruz
+        if math.isinf(deger) or math.isnan(deger):
+            return deger
         v = float(Decimal(str(deger)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
         return int(v) if v.is_integer() else v
+
+    @staticmethod
+    def _guvenli_yil_degistir(tarih: datetime, yeni_yil: int) -> datetime:
+        try:
+            return tarih.replace(year=yeni_yil)
+        except ValueError:
+            return tarih.replace(year=yeni_yil, day=28)
 
     @staticmethod
     def kdv_hesapla(tutar: float, oran: float = 20.0) -> Dict[str, Union[float, int]]:
@@ -79,7 +89,10 @@ class FinansMotoru:
             # Bir önceki ayın gün sayısını bulma
             ilk_gun = bugun.replace(day=1)
             onceki_ay_sonu = ilk_gun - timedelta(days=1)
-            gunler += onceki_ay_sonu.day
+            if dogum.day > onceki_ay_sonu.day:
+                gunler = bugun.day
+            else:
+                gunler = onceki_ay_sonu.day - dogum.day + bugun.day
             
         if aylar < 0:
             yillar -= 1
@@ -89,15 +102,12 @@ class FinansMotoru:
         gunler_tr = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"]
         
         # Artık yıl (29 Şubat) doğumlular için replace hatalarını yakalıyoruz
-        try: son_dogum_gunu = dogum.replace(year=bugun.year)
-        except ValueError: son_dogum_gunu = dogum.replace(year=bugun.year, day=28)
+        son_dogum_gunu = FinansMotoru._guvenli_yil_degistir(dogum, bugun.year)
             
         if son_dogum_gunu > bugun:
-            try: son_dogum_gunu = dogum.replace(year=bugun.year - 1)
-            except ValueError: son_dogum_gunu = dogum.replace(year=bugun.year - 1, day=28)
+            son_dogum_gunu = FinansMotoru._guvenli_yil_degistir(dogum, bugun.year - 1)
 
-        try: sonraki_dogum_gunu = dogum.replace(year=son_dogum_gunu.year + 1)
-        except ValueError: sonraki_dogum_gunu = dogum.replace(year=son_dogum_gunu.year + 1, day=28)
+        sonraki_dogum_gunu = FinansMotoru._guvenli_yil_degistir(dogum, son_dogum_gunu.year + 1)
 
         kalan_gun = (sonraki_dogum_gunu - bugun).days
         yasanilan_gun = (bugun - dogum).days + 1

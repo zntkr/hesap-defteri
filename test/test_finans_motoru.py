@@ -3,6 +3,7 @@ import sys
 import os
 from datetime import datetime, timedelta
 from unittest.mock import patch
+import math
 
 # Proje kök dizinini Python yoluna ekle (core modülünü bulabilmesi için)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -78,6 +79,14 @@ class TestFinansMotoru(unittest.TestCase):
         sonuc_artik = FinansMotoru.yas_hesapla("29.02.2020")
         self.assertEqual(sonuc_artik["yillar"], 5)
 
+        # 4. Negatif Gün Mantık Hatası Testi (Örn: 31 Ocak doğum, 1 Mart bugün)
+        mock_datetime.now.return_value = datetime(2020, 3, 1) # Artık yıl
+        sonuc_negatif_gun = FinansMotoru.yas_hesapla("31.01.2020")
+        # 31 Ocak'tan 29 Şubat'a 1 ay. 29 Şubat'tan 1 Mart'a 1 gün. Toplam: 1 Ay 1 Gün (Eskiden -1 Gün çıkıyordu)
+        self.assertEqual(sonuc_negatif_gun["yillar"], 0)
+        self.assertEqual(sonuc_negatif_gun["aylar"], 1)
+        self.assertEqual(sonuc_negatif_gun["gunler"], 1)
+
     def test_oranti_hesapla(self):
         # 150 ürün 4500 ise, 75 ürün = 2250
         sonuc = FinansMotoru.oranti_hesapla(150, 4500, 75)
@@ -86,6 +95,14 @@ class TestFinansMotoru(unittest.TestCase):
         # 1. değer sıfır olursa ZeroDivisionError koruması
         sonuc_sifir = FinansMotoru.oranti_hesapla(0, 4500, 75)
         self.assertEqual(sonuc_sifir["hata"], "1. Deger sifir olamaz")
+
+    def test_temiz_sayi_sonsuz_deger(self):
+        # Çok yüksek işlemlerde veya geçersiz durumlarda Infinity'nin çökme yaratmaması
+        sonsuz = float('inf')
+        nan_deger = float('nan')
+        
+        self.assertTrue(math.isinf(FinansMotoru._temiz_sayi(sonsuz)))
+        self.assertTrue(math.isnan(FinansMotoru._temiz_sayi(nan_deger)))
 
 if __name__ == '__main__':
     unittest.main()

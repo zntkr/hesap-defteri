@@ -1,27 +1,40 @@
 @echo off
-echo ==========================================
-echo ZNTKR Hesaplayici Derleme Araci
-echo ==========================================
+echo =======================================================
+echo   HESAPLAYICI - DERLEME VE INSA ARACI (BUILD TOOL)
+echo =======================================================
+echo.
+echo [*] Sistem gereksinimleri denetleniyor...
 echo.
 
-echo [1/2] Gerekli paketler kontrol ediliyor...
-python -m pip install "pyinstaller>=6.0.0"
+echo [1/2] Bagimliliklar (PyInstaller) kontrol ediliyor...
+python -m pip install "pyinstaller>=6.0.0" --quiet
 IF %ERRORLEVEL% NEQ 0 (
     echo.
-    echo [HATA] PyInstaller yuklenirken bir sorun olustu. Python'un yuklu oldugundan emin olun.
+    echo [!] KRITIK HATA: PyInstaller yuklenemedi. 
+    echo     Lutfen Python'un sisteme kurulu oldugundan ve 
+    echo     internet baglantinizdan emin olun.
     pause
     exit /b %ERRORLEVEL%
 )
+echo [+] Bagimliliklar saglandi.
+echo.
 
-echo [2/2] .exe dosyasi olusturuluyor lutfen bekleyin...
+echo [2/2] Calistirilabilir dosya (.exe) derleniyor...
+echo     Bu islem bilgisayarinizin hizina bagli olarak 1-2 dakika surebilir.
 python -m PyInstaller --noconfirm --onefile --windowed --icon "app_icon.ico" --name "Hesaplayici" "main.py"
 IF %ERRORLEVEL% NEQ 0 (
     echo.
-    echo [HATA] Derleme basarisiz oldu! Lutfen yukaridaki hatalari inceleyin. Ornegin main.py eksik olabilir.
+    echo [!] KRITIK HATA: Derleme islemi (Build) basarisiz oldu!
+    echo     Lutfen kaynak dosyalarin eksiksiz oldugundan emin olun.
     pause
     exit /b %ERRORLEVEL%
 )
 
 echo.
-echo Islem basarili! Uygulamaniz "dist" klasoru icerisinde hazir.
+echo =======================================================
+echo [+] ISLEM BASARILI! 
+echo     Hesaplayici.exe dosyasi "dist" klasoru icerisinde 
+echo     kullanima hazir sekilde olusturuldu.
+echo =======================================================
+echo.
 pause

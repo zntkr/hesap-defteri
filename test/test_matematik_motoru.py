@@ -1,6 +1,7 @@
 import unittest
 import sys
 import os
+import math
 
 # Proje kök dizinini Python yoluna ekle (core modülünü bulabilmesi için)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -48,9 +49,15 @@ class TestMatematikMotoru(unittest.TestCase):
         beklenen = [1500000.5, 1500000.5, 15.5, 1500000.0, 1500000.0]
         self.assertEqual(MatematikMotoru.metinden_sayilari_ayikla(metin), beklenen)
 
+    def test_sayilari_ayikla_tek_binlik_ayiricilar(self):
+        # 1.000 -> 1000.0 ve 1,000 -> 1000.0 (Tek noktalı/virgüllü 3 basamaklılar binlik sayılmalı)
+        metin = "1.000 adet ürün ve 2,500 dolar"
+        beklenen = [1000.0, 2500.0]
+        self.assertEqual(MatematikMotoru.metinden_sayilari_ayikla(metin), beklenen)
+
     def test_sayilari_ayikla_coklu_nokta_ve_hatali(self):
         # 1.500.000 -> Sadece noktadan oluşan binlik ayırıcı (Satır 44-45 kapsamı)
-        # 1.234,567.89 -> Yanlış formatlanmış ve ValueError tetikleyecek sayı (Satır 56-57 kapsamı)
+        # 1.234,567.89 -> Yanlış formatlanmış sayı yine de tolere edilebilmeli
         metin = "Sadece nokta 1.500.000 ve float hatası veren 1.234,567.89 testi."
         beklenen = [1500000.0]
         self.assertEqual(MatematikMotoru.metinden_sayilari_ayikla(metin), beklenen)
@@ -115,7 +122,17 @@ class TestMatematikMotoru(unittest.TestCase):
         self.assertEqual(analiz["toplam"], 0.3)
         self.assertEqual(analiz["ortalama"], 0.15)
         self.assertEqual(analiz["aciklik"], 0.1)
-        self.assertEqual(analiz["std_sapma"], 0.0707107) # :g formatı 6 anlamlı basamağa yuvarlar
+        self.assertEqual(analiz["std_sapma"], 0.0707) # 4 basamak hassasiyet standardı
+
+    def test_detayli_analiz_yap_sonsuz_ve_hata_sinirlari(self):
+        # Python float limitlerini aşan (Infinity) değerlerde uygulamanın çökmemesi test edilir.
+        sayilar = [1e308, 1e308]
+        analiz = MatematikMotoru.detayli_analiz_yap(sayilar)
+        self.assertIsNotNone(analiz)
+        assert isinstance(analiz, dict)
+        
+        self.assertTrue(math.isinf(analiz["toplam"]))
+        self.assertTrue(math.isinf(analiz["ortalama"]))
 
     def test_detayli_analiz_yap_bos_liste(self):
         # Anayasaya göre sayi_listesi boşsa None dönmelidir

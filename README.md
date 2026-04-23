@@ -8,9 +8,9 @@ Sistem Anayasasına uygun olarak geliştirilmiş, **stateless (durumsuz)** ve **
 
 ## 🚀 Öne Çıkan Özellikler
 
-* **Agnostik Veri Girişi:** Kopyaladığınız metnin içinde harfler, semboller veya boşluklar olması fark etmez. Akıllı Regex motoru, metin içindeki sayıları (Binlik ayırıcılar dahil - US ve TR formatlarını otomatik tanıyarak) kusursuzca ayıklar.
-* **Gelişmiş İstatistikler:** Sadece aritmetik ortalama almaz; girilen verinin En Büyük, En Küçük, Medyan, Varyans ve Standart Sapma değerlerini eş zamanlı olarak hesaplar.
-* **Oturum Belleği (Geçmiş):** Yaptığınız tüm işlemler arka planda tutulur. Eski bir sonuca çift tıklayarak veri setini tekrar ana ekrana yükleyebilirsiniz.
+* **Odaklı Tek Ekran (Single-Window):** Sekmeler (tabs) ve karmaşık menüler arasında kaybolmazsınız. İhtiyacınız olan tüm araçlar tek bir açılır menüden (Combobox) yönetilir.
+* **Çok Amaçlı Araç Kutusu:** Gelişmiş istatistik ve ortalama hesabının yanı sıra; KDV, İndirim, Yüzdelik Değişim, İçler-Dışlar Orantısı ve Detaylı Yaş Analizi gibi günlük ofis/finans ihtiyaçlarınızı tek ekranda çözer.
+* **Agnostik Veri Girişi:** Ortalama hesaplayıcıda kopyaladığınız metnin içinde harfler, semboller veya boşluklar olması fark etmez. Akıllı Regex motoru, metin içindeki sayıları format (US/TR) bağımsız olarak kusursuzca ayıklar.
 * **Neo-Retro (Warm Brutalism) Arayüz:** Göz yormayan sıcak krem arka plan, daktilo mürekkebi metinler ve kiremit rengi vurgularla "IBM Plex Mono" tipografisini birleştiren elit masaüstü tasarımı.
 * **Operasyonel Kısayollar:** Klavye öncelikli (Keyboard-first) tasarlanmıştır. Çıkan sonuca tıklanması durumunda değer otomatik olarak sistem panosuna kopyalanır.
 
@@ -18,7 +18,7 @@ Sistem Anayasasına uygun olarak geliştirilmiş, **stateless (durumsuz)** ve **
 
 Proje "Separation of Concerns" (Sorumlulukların Ayrıştırılması) prensibine göre tasarlanmıştır:
 
-* **`core/matematik_motoru.py` (Logic Layer):** Tamamen durumsuz (stateless) matematiksel işlemler ve regex veri ayıklama motoru. Arayüzden tamamen izoledir ve bu sayede API veya CLI araçlarına kolayca entegre edilebilir.
+* **`core/` (Logic Layer):** Tamamen durumsuz (stateless) olarak çalışan matematik ve finans motorları. Arayüzden tamamen izoledir ve bu sayede bir web API'sine veya CLI aracına kolayca entegre edilebilir.
 * **`ui/arayuz_tasarimi.py` (Presentation Layer):** Durum yönetimi (State) ve arayüz çizimlerinden sorumlu UI katmanı.
 * **`main.py` (Boot):** Sistemin başlatıcı (Entry Point) dosyası. İşletim sistemi kaynaklı pencere zıplamalarını (flicker/FOUC) engelleyen "Perde Arkası" çizim mantığını yönetir.
 
