@@ -255,24 +255,22 @@ class MainUI:
         about_win.deiconify()
 
     def show_guide(self) -> None:
-        # Pencere boyutunu 520x500'den 480x420'ye küçülttük
-        guide_win = self._create_centered_modal("Kullanma Rehberi", 480, 420)
+        guide_win = self._create_centered_modal("Kullanma Rehberi", 520, 500)
 
-        guide_title = "Kılavuz ve Kısayollar"
-        tk.Label(guide_win, text=guide_title, font=(self.font_bold[0], 13, "bold"), fg=self.fg_color, bg=self.bg_color).pack(anchor="w", padx=25, pady=(20, 5))
+        guide_title = "KULLANMA REHBERİ"
+        tk.Label(guide_win, text=guide_title, font=(self.font_bold[0], 13, "bold"), fg=self.fg_color, bg=self.bg_color).pack(anchor="w", padx=15, pady=(15, 5))
+
+        # Butonu alta yerleştir (Önce paketlenir ki taşma durumunda kesilmesin)
+        close_btn = tk.Button(guide_win, text="TAMAM", font=self.font_bold, bg=self.accent_color, fg=self.shadow_light, 
+                              bd=2, relief="raised", activebackground=self.accent_hover, activeforeground=self.shadow_light, cursor="hand2", command=guide_win.destroy)
+        close_btn.pack(side="bottom", pady=(10, 15), ipadx=15, ipady=3)
 
         text_frame = tk.Frame(guide_win, bg=self.bg_color)
-        text_frame.pack(fill="both", expand=True, padx=25, pady=(5, 10))
-        
-        # --- Dikey Kaydırma Çubuğu (Scrollbar) ---
-        scrollbar = ttk.Scrollbar(text_frame, orient="vertical")
-        scrollbar.pack(side="right", fill="y")
+        text_frame.pack(fill="both", expand=True, padx=15, pady=(0, 10))
         
         guide_text = tk.Text(text_frame, font=self.font_main, bg=self.bg_secondary, fg=self.text_secondary, 
-                             wrap="word", bd=1, relief="sunken", padx=15, pady=15, cursor="arrow",
-                             yscrollcommand=scrollbar.set)
+                             wrap="word", bd=1, relief="sunken", padx=15, pady=15, cursor="arrow")
         guide_text.pack(side="left", fill="both", expand=True)
-        scrollbar.config(command=guide_text.yview)
 
         # Metin içi stil etiketleri (Tags)
         guide_text.tag_configure("header", font=self.font_bold, foreground=self.accent_color, spacing1=10, spacing3=5)
@@ -303,10 +301,6 @@ class MainUI:
 
         # Sadece klavye girdilerini engelleyerek metni salt okunur ancak seçilebilir/kopyalanabilir yapıyoruz
         guide_text.bind("<Key>", lambda e: "break" if e.keysym not in ("c", "C") or not (e.state & 0x0004) else None)
-        
-        close_btn = tk.Button(guide_win, text="TAMAM", font=self.font_bold, bg=self.accent_color, fg=self.shadow_light, 
-                              bd=2, relief="raised", activebackground=self.accent_hover, activeforeground=self.shadow_light, cursor="hand2", command=guide_win.destroy)
-        close_btn.pack(pady=(15, 20), ipadx=15, ipady=3)
         
         # --- Klavye Kısayolları (Keyboard-First) ---
         guide_win.bind('<Escape>', lambda e: guide_win.destroy())
