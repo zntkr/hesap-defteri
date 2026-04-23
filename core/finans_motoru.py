@@ -1,5 +1,5 @@
 from typing import Dict, Union
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
 from datetime import datetime, timedelta
 import math
 
@@ -15,7 +15,11 @@ class FinansMotoru:
         # IEEE 754 float kayıplarını ve Banker's Rounding'i aşmak için Decimal kullanıyoruz
         if math.isinf(deger) or math.isnan(deger):
             return deger
-        v = float(Decimal(str(deger)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
+        try:
+            v = float(Decimal(str(deger)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
+        except InvalidOperation:
+            # Çok büyük sayılarda Decimal'in max precision (28) limitini aşmamak için fallback
+            v = round(deger, 2)
         return int(v) if v.is_integer() else v
 
     @staticmethod

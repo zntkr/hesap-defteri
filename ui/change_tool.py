@@ -5,10 +5,10 @@ from core.finans_motoru import FinansMotoru
 from ui.base_tool import BaseToolWidget
 
 class ChangeToolWidget(BaseToolWidget):
-    def get_name(self) -> str: return "Değişim Oranı"
+    def get_name(self) -> str: return "Değişiklik Hesaplayıcı"
 
     def build_ui(self) -> None:
-        self._build_header(self, "Yüzdelik Değişim Oranı", "Örn: Eski fiyatı 150 TL, yeni fiyatı 200 TL olan bir ürünün yüzde kaç zamlandığını hesaplar.")
+        self._build_header(self, "Örn: Eski fiyatı 150 TL, yeni fiyatı 200 TL olan bir malınyüzde kaç zamlandığını hesaplar.")
         change_frame = tk.Frame(self, bg=self.ui.bg_color)
         change_frame.pack(fill="x", pady=5)
         
@@ -19,12 +19,12 @@ class ChangeToolWidget(BaseToolWidget):
         change_res_frame = tk.Frame(self, bg=self.ui.bg_color)
         change_res_frame.pack(fill="x", pady=(10, 0))
         
-        tk.Label(change_res_frame, text="Değişim Oranı:", fg=self.ui.text_secondary, bg=self.ui.bg_color, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=4)
+        tk.Label(change_res_frame, text="Değişiklik Oranı:", fg=self.ui.text_secondary, bg=self.ui.bg_color, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=4)
         self.change_res_lbl = tk.Label(change_res_frame, text="-", font=self.ui.font_title, fg=self.ui.fg_color, bg=self.ui.bg_color, cursor="hand2")
         self.change_res_lbl.grid(row=0, column=1, sticky="w", padx=20)
-        self.change_res_lbl.bind('<Button-1>', lambda e: self.ui.main_view._copy_to_clipboard(self.change_res_lbl.cget("text"), self.change_info_lbl, "Hesaplandı • Kopyalamak için sonuca tıklayın"))
+        self.change_res_lbl.bind('<Button-1>', lambda e: self.copy_to_clipboard(self.change_res_lbl.cget("text")))
             
-        self.change_info_lbl = self._build_info_label(self, "Artış veya azalışı görmek için değerleri girin", pad_y=(15, 0))
+        self._build_info_label(self, "Artış veya azalışı görmek için değerleri girin", pad_y=(15, 0))
         
         self.old_val_entry.bind('<Return>', self.calculate_change)
         self.new_val_entry.bind('<Return>', self.calculate_change)
@@ -36,17 +36,15 @@ class ChangeToolWidget(BaseToolWidget):
         
         if not old_nums or not new_nums:
             self.change_res_lbl.config(text="-")
-            self.change_info_lbl.config(text="Eski ve yeni değer eksik!", fg=self.ui.error_color)
+            self.info_lbl.config(text="Eski ve yeni değer eksik!", fg=self.ui.error_color)
             return "break"
             
         result = FinansMotoru.degisim_orani_hesapla(old_nums[0], new_nums[0])
         oran = result["degisim_orani"]
         self.change_res_lbl.config(text=f"%{'+' if oran > 0 else ''}{oran}")
-        self.change_info_lbl.config(text="Hesaplandı • Kopyalamak için sonuca tıklayın", fg=self.ui.accent_color)
+        self.info_lbl.config(text="Hesaplandı • Kopyalamak için sonuca tıklayın", fg=self.ui.accent_color)
         return "break"
 
     def clear_data(self) -> None:
-        self.old_val_entry.delete(0, tk.END)
-        self.new_val_entry.delete(0, tk.END)
+        self.reset_defaults()
         self.change_res_lbl.config(text="-")
-        self.change_info_lbl.config(text="Artış veya azalışı görmek için değerleri girin", fg=self.ui.text_secondary)

@@ -53,8 +53,8 @@ class ToolsTab(tk.Frame):
         self.frames = {tool.get_name(): tool for tool in tools_list}
         self.tool_selector['values'] = tuple(self.frames.keys())
         
-        # Başlangıç Aracı
-        default_tool = "Değişim Oranı"
+        # Başlangıç Aracı dinamik olarak (kayıtlı ilk araç) belirlenir
+        default_tool = list(self.frames.keys())[0]
         self.tool_var.set(default_tool)
         self.current_frame = self.frames[default_tool]
         self.current_frame.pack(fill="both", expand=True)
@@ -64,15 +64,6 @@ class ToolsTab(tk.Frame):
         tool = self.frames.get(self.tool_var.get())
         if tool and tool.primary_input:
             tool.primary_input.focus_set()
-
-    def _copy_to_clipboard(self, result_text: str, info_lbl: tk.Label, default_msg: str) -> None:
-        """Tüm araçlar için ortak (Generic) pano kopyalama metodu."""
-        if result_text and result_text != "-":
-            self.ui.root.clipboard_clear()
-            self.ui.root.clipboard_append(result_text)
-            self.ui.root.update()
-            info_lbl.config(text="Kopyalandı!", fg=self.ui.accent_color)
-            self.ui.root.after(1500, lambda: info_lbl.config(text=default_msg, fg=self.ui.text_secondary))
 
     def cycle_tools(self, event: Optional[tk.Event] = None) -> Optional[str]:
         tools = self.tool_selector['values']

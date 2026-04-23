@@ -17,7 +17,14 @@ class MainUI:
     """
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
-        self.root.title("Ortalama Hesaplama v1.0.0")
+        
+        # --- APP CONFIG ---
+        self.app_name = "Hesap Defteri"
+        self.app_version = "1.0.0"
+        self.build_year = "2026"
+        self.date_placeholder = "GG.AA.YYYY"
+        
+        self.root.title(f"{self.app_name} - v{self.app_version}")
         self.root.geometry("440x540") 
         self.root.resizable(False, False)
         
@@ -49,9 +56,9 @@ class MainUI:
         self.root.config(bg=self.bg_color)
         self.always_on_top_var = tk.BooleanVar(value=False)
         
+        self.build_ui()
         self.build_menu()
         self.build_context_menu()
-        self.build_ui()
 
     def build_menu(self) -> None:
         menubar = tk.Menu(self.root, font=self.font_main, bg=self.bg_color, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
@@ -69,12 +76,8 @@ class MainUI:
         edit_menu.add_command(label="Tümünü Seç", command=self._select_all, accelerator="Ctrl+A")
 
         tools_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_color, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
-        tools_menu.add_command(label="Ortalama Hesaplama", command=lambda: self.select_tool("Ortalama Hesaplama"))
-        tools_menu.add_command(label="Değişim Oranı", command=lambda: self.select_tool("Değişim Oranı"))
-        tools_menu.add_command(label="KDV Hesaplayıcı", command=lambda: self.select_tool("KDV Hesaplayıcı"))
-        tools_menu.add_command(label="İndirim Hesaplayıcı", command=lambda: self.select_tool("İndirim Hesaplayıcı"))
-        tools_menu.add_command(label="Orantı Hesaplayıcı", command=lambda: self.select_tool("Orantı Hesaplayıcı"))
-        tools_menu.add_command(label="Yaş Hesaplayıcı", command=lambda: self.select_tool("Yaş Hesaplayıcı"))
+        for tool_name in self.main_view.frames.keys():
+            tools_menu.add_command(label=tool_name, command=lambda name=tool_name: self.select_tool(name))
 
         view_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_color, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
         view_menu.add_checkbutton(label="Her Zaman Üstte Tut", variable=self.always_on_top_var, command=self.toggle_always_on_top)
@@ -146,7 +149,7 @@ class MainUI:
         if isinstance(widget, tk.Text) and widget.get("1.0", "end-1c") == self.placeholder_text:
             widget.delete("1.0", tk.END)
             widget.config(fg=self.fg_color)
-        elif isinstance(widget, tk.Entry) and widget.get() == "GG.AA.YYYY":
+        elif isinstance(widget, tk.Entry) and widget.get() == self.date_placeholder:
             widget.delete(0, tk.END)
             widget.config(fg=self.fg_color)
             
@@ -239,10 +242,10 @@ class MainUI:
     def show_about(self) -> None:
         about_win = self._create_centered_modal("Hakkında", 340, 210)
 
-        tk.Label(about_win, text="Hesaplayıcı", font=(self.font_bold[0], 14, "bold"), fg=self.fg_color, bg=self.bg_color).pack(pady=(30, 2))
-        tk.Label(about_win, text="Sürüm 1.0.0 (Build 2026)", font=self.font_main, fg=self.text_secondary, bg=self.bg_color).pack()
+        tk.Label(about_win, text=self.app_name, font=(self.font_bold[0], 14, "bold"), fg=self.fg_color, bg=self.bg_color).pack(pady=(30, 2))
+        tk.Label(about_win, text=f"Versiyon {self.app_version} (Build {self.build_year})", font=self.font_main, fg=self.text_secondary, bg=self.bg_color).pack()
         
-        copyright_text = "Telif Hakkı © 2026 | MIT Lisansı\nSıfır bloatware, maksimum odak."
+        copyright_text = f"Telif Hakkı © {self.build_year} | MIT Lisansı\nSıfır bloatware, maksimum odak."
         tk.Label(about_win, text=copyright_text, font=(self.font_main[0], 8), fg=self.text_disabled, bg=self.bg_color, justify="center").pack(pady=(15, 15))
 
         close_btn = tk.Button(about_win, text="TAMAM", font=self.font_bold, bg=self.accent_color, fg=self.shadow_light, 
@@ -252,7 +255,8 @@ class MainUI:
         about_win.deiconify()
 
     def show_guide(self) -> None:
-        guide_win = self._create_centered_modal("Kullanma Rehberi", 520, 500)
+        # Pencere boyutunu 520x500'den 480x420'ye küçülttük
+        guide_win = self._create_centered_modal("Kullanma Rehberi", 480, 420)
 
         guide_title = "Kılavuz ve Kısayollar"
         tk.Label(guide_win, text=guide_title, font=(self.font_bold[0], 13, "bold"), fg=self.fg_color, bg=self.bg_color).pack(anchor="w", padx=25, pady=(20, 5))
@@ -260,9 +264,15 @@ class MainUI:
         text_frame = tk.Frame(guide_win, bg=self.bg_color)
         text_frame.pack(fill="both", expand=True, padx=25, pady=(5, 10))
         
+        # --- Dikey Kaydırma Çubuğu (Scrollbar) ---
+        scrollbar = ttk.Scrollbar(text_frame, orient="vertical")
+        scrollbar.pack(side="right", fill="y")
+        
         guide_text = tk.Text(text_frame, font=self.font_main, bg=self.bg_secondary, fg=self.text_secondary, 
-                             wrap="word", bd=1, relief="sunken", padx=15, pady=15, cursor="arrow")
-        guide_text.pack(fill="both", expand=True)
+                             wrap="word", bd=1, relief="sunken", padx=15, pady=15, cursor="arrow",
+                             yscrollcommand=scrollbar.set)
+        guide_text.pack(side="left", fill="both", expand=True)
+        scrollbar.config(command=guide_text.yview)
 
         # Metin içi stil etiketleri (Tags)
         guide_text.tag_configure("header", font=self.font_bold, foreground=self.accent_color, spacing1=10, spacing3=5)
@@ -273,15 +283,15 @@ class MainUI:
         content = [
             ("ORTALAMA HESAPLAMA MOTORU\n", "header"),
             ("• ", "bullet"), ("Agnostik Veri Girişi: ", "highlight"), ("Kopyaladığınız metinleri doğrudan yapıştırın. Sistem harfleri ve boşlukları yoksayarak içindeki sayıları (TR/US formatlı) otomatik ayıklar.\n", "normal"),
-            ("• ", "bullet"), ("Tek Tıkla Kopyalama: ", "highlight"), ("Hesaplanan sonuçların üzerine tıklayarak değeri panoya alabilirsiniz.\n", "normal"),
+            ("• ", "bullet"), ("Tek Tıkla Kopyalama: ", "highlight"), ("Hesaplanan Sayının üzerine tıklayarak değeri kopyalayabilirsiniz.\n", "normal"),
             
             ("ARAÇ KUTUSU\n", "header"),
-            ("• ", "bullet"), ("Geniş Yelpaze: ", "highlight"), ("Ofis ihtiyaçlarınız için (KDV, Orantı vb.) geliştirilmiş araçlara açılır menüden geçiş yapabilirsiniz.\n", "normal"),
+            ("• ", "bullet"), ("Geniş Yelpaze: ", "highlight"), ("Ofis ihtiyaçlarınız için programlanmış araçlara açılır menüden geçiş yapabilirsiniz.\n", "normal"),
 
-            ("KLAVYE KISAYOLLARI (KEYBOARD-FIRST)\n", "header"),
-            (" [ Enter ] ", "key"), ("    Aktif araçta hesaplama işlemini başlatır.\n", "normal"),
-            (" [ ESC ] ", "key"), ("      Verileri anında temizler ve imleci odaklar.\n", "normal"),
-            (" [ Ctrl+Tab ] ", "key"), (" Araçlar arasında hızlı döngüsel geçiş yapar.\n", "normal"),
+            ("KLAVYE KISAYOLLARI\n", "header"),
+            (" [ Enter ] ", "key"), ("    Aktif araçta hesaplama talimatını verir.\n", "normal"),
+            (" [ ESC ] ", "key"), ("      Verileri anında temizler ve işaretçiyi odaklar.\n", "normal"),
+            (" [ Ctrl+Tab ] ", "key"), (" Araçlar arasında hızlı geçiş yapar.\n", "normal"),
             (" Sağ Tık ", "key"), ("      Standart Kes/Kopyala/Yapıştır menüsünü açar.\n", "normal"),
 
             ("DİĞER ÖZELLİKLER\n", "header"),
@@ -291,10 +301,15 @@ class MainUI:
         for text, tag in content:
             guide_text.insert(tk.END, text, tag if tag != "normal" else "")
 
-        guide_text.config(state="disabled")
+        # Sadece klavye girdilerini engelleyerek metni salt okunur ancak seçilebilir/kopyalanabilir yapıyoruz
+        guide_text.bind("<Key>", lambda e: "break" if e.keysym not in ("c", "C") or not (e.state & 0x0004) else None)
         
         close_btn = tk.Button(guide_win, text="TAMAM", font=self.font_bold, bg=self.accent_color, fg=self.shadow_light, 
                               bd=2, relief="raised", activebackground=self.accent_hover, activeforeground=self.shadow_light, cursor="hand2", command=guide_win.destroy)
         close_btn.pack(pady=(15, 20), ipadx=15, ipady=3)
+        
+        # --- Klavye Kısayolları (Keyboard-First) ---
+        guide_win.bind('<Escape>', lambda e: guide_win.destroy())
+        guide_win.bind('<Return>', lambda e: guide_win.destroy())
         
         guide_win.deiconify()

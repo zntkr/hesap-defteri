@@ -6,10 +6,10 @@ from core.matematik_motoru import MatematikMotoru
 from ui.base_tool import BaseToolWidget
 
 class AverageToolWidget(BaseToolWidget):
-    def get_name(self) -> str: return "Ortalama Hesaplama"
+    def get_name(self) -> str: return "Ortalama Hesaplayıcı"
 
     def build_ui(self) -> None:
-        self._build_header(self, "Ortalama Hesaplayıcı", "Metin içindeki sayıları ayıklayıp ortalamasını ve istatistiklerini hesaplar.")
+        self._build_header(self, "Metin içindeki sayıları ayıklayıp ortalamasını ve istatistiklerini hesaplar.")
         input_frame = tk.Frame(self, bg=self.ui.bg_color)
         input_frame.pack(fill="x", pady=5)
         
@@ -47,13 +47,12 @@ class AverageToolWidget(BaseToolWidget):
         
         self.avg_result_lbl = tk.Label(res_frame, text="-", font=self.ui.font_title, fg=self.ui.fg_color, bg=self.ui.bg_color, cursor="hand2")
         self.avg_result_lbl.pack(pady=(0, 0)) 
-        self.avg_result_lbl.bind('<Button-1>', lambda e: self.ui.main_view._copy_to_clipboard(self.avg_result_lbl.cget("text"), self.avg_info_lbl, "Sayıları yapıştırıp Enter'a basın"))
+        self.avg_result_lbl.bind('<Button-1>', lambda e: self.copy_to_clipboard(self.avg_result_lbl.cget("text")))
         
         self.avg_sum_lbl = tk.Label(res_frame, text="Toplam: -", font=self.ui.font_bold, fg=self.ui.text_secondary, bg=self.ui.bg_color)
         self.avg_sum_lbl.pack(pady=(0, 2))
         
-        self.avg_info_lbl = tk.Label(res_frame, text="Sayıları yapıştırıp Enter'a basın", font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_color)
-        self.avg_info_lbl.pack()
+        self._build_info_label(res_frame, "Sayıları yapıştırıp Enter'a basın", pad_y=(0, 0))
         
         stats_frame = tk.Frame(res_frame, bg=self.ui.bg_color)
         stats_frame.pack(pady=(8, 0))
@@ -70,7 +69,7 @@ class AverageToolWidget(BaseToolWidget):
 
         transparency_frame = tk.Frame(res_frame, bg=self.ui.bg_color)
         transparency_frame.pack(fill="both", expand=True, pady=(5, 0))
-        tk.Label(transparency_frame, text="İŞLEME ALINAN SAYILAR:", font=(self.ui.font_bold[0], 8, "bold"), fg=self.ui.text_secondary, bg=self.ui.bg_color).pack(anchor="w")
+        tk.Label(transparency_frame, text="HESABA KATILAN SAYILAR:", font=(self.ui.font_bold[0], 8, "bold"), fg=self.ui.text_secondary, bg=self.ui.bg_color).pack(anchor="w")
 
         text_wrapper2 = tk.Frame(transparency_frame, bg=self.ui.bg_color)
         text_wrapper2.pack(fill="both", expand=True, pady=(2, 0))
@@ -117,7 +116,7 @@ class AverageToolWidget(BaseToolWidget):
         
         if len(raw_input) > 5000:
             self.clear_data(keep_input=True)
-            self.avg_info_lbl.config(text="Limit aşıldı! En fazla 5.000 karakter girilebilir.", fg=self.ui.error_color)
+            self.info_lbl.config(text="Limit aşıldı! En fazla 5.000 karakter girilebilir.", fg=self.ui.error_color)
             return "break"
 
         numbers = MatematikMotoru.metinden_sayilari_ayikla(raw_input)
@@ -126,7 +125,7 @@ class AverageToolWidget(BaseToolWidget):
         if analysis:
             self.avg_result_lbl.config(text=str(analysis["ortalama"]), fg=self.ui.fg_color)
             self.avg_sum_lbl.config(text=f"Toplam: {analysis['toplam']}")
-            self.avg_info_lbl.config(text=f"{analysis['adet']} sayı işlendi • Kopyalamak için rakama tıklayın", fg=self.ui.accent_color)
+            self.info_lbl.config(text=f"{analysis['adet']} sayı hesaplandı • Kopyalamak için rakama tıklayın", fg=self.ui.accent_color)
             
             for key, lbl in self.avg_stats_labels.items():
                 if key in analysis: lbl.config(text=str(analysis[key]))
@@ -140,7 +139,7 @@ class AverageToolWidget(BaseToolWidget):
                 self.avg_text_input.tag_add("detected_number", f"1.0 + {match.start()} chars", f"1.0 + {match.end()} chars")
         else:
             self.clear_data(keep_input=True)
-            self.avg_info_lbl.config(text="Sayı bulunamadı veya geçersiz giriş!", fg=self.ui.error_color)
+            self.info_lbl.config(text="Sayı bulunamadı veya geçersiz veri girişi!", fg=self.ui.error_color)
             
         return "break"
 
@@ -151,7 +150,7 @@ class AverageToolWidget(BaseToolWidget):
         self.avg_text_input.tag_remove("detected_number", "1.0", tk.END)
         self.avg_result_lbl.config(text="-")
         self.avg_sum_lbl.config(text="Toplam: -")
-        self.avg_info_lbl.config(text="Sayıları yapıştırıp Enter'a basın", fg=self.ui.text_secondary)
+        self.reset_defaults()
         for lbl in self.avg_stats_labels.values(): lbl.config(text="-")
         self.avg_extracted_text.config(state="normal")
         self.avg_extracted_text.delete("1.0", tk.END)

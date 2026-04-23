@@ -1,5 +1,5 @@
 import tkinter as tk
-from typing import Optional, Tuple, TYPE_CHECKING, Callable, Any
+from typing import Optional, Tuple, TYPE_CHECKING, Callable, Any, Dict
 
 if TYPE_CHECKING:
     from ui.arayuz_tasarimi import MainUI
@@ -12,6 +12,9 @@ class BaseToolWidget(tk.Frame):
         self.ui = ui
         self.orchestrator = orchestrator
         self.primary_input: Optional[tk.Widget] = None
+        self.default_inputs: Dict[tk.Entry, str] = {}
+        self.info_lbl: Optional[tk.Label] = None
+        self.default_info_msg: str = ""
         self.build_ui()
 
     def get_name(self) -> str:
@@ -23,10 +26,10 @@ class BaseToolWidget(tk.Frame):
     def clear_data(self) -> None:
         pass
 
-    def _build_header(self, parent: tk.Frame, title: str, desc: str) -> None:
+    def _build_header(self, parent: tk.Frame, desc: str) -> None:
         desc_frame = tk.Frame(parent, bg=self.ui.bg_secondary, padx=10, pady=10)
         desc_frame.pack(fill="x", pady=(0, 15))
-        tk.Label(desc_frame, text=title, font=self.ui.font_bold, fg=self.ui.accent_color, bg=self.ui.bg_secondary).pack(anchor="w")
+        tk.Label(desc_frame, text=self.get_name(), font=self.ui.font_bold, fg=self.ui.accent_color, bg=self.ui.bg_secondary).pack(anchor="w")
         tk.Label(desc_frame, text=desc, font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, justify="left", wraplength=360).pack(anchor="w", pady=(2,0))
 
     def _build_input_row(self, parent: tk.Frame, row: int, label_text: str, default_val: str = "", width: int = 15) -> tk.Entry:
@@ -34,6 +37,7 @@ class BaseToolWidget(tk.Frame):
         entry = tk.Entry(parent, font=self.ui.font_main, bg=self.ui.shadow_light, fg=self.ui.fg_color, bd=2, relief="sunken", width=width)
         if default_val:
             entry.insert(0, default_val)
+            self.default_inputs[entry] = default_val
         entry.grid(row=row, column=1, padx=10, pady=5)
         return entry
 
@@ -43,7 +47,26 @@ class BaseToolWidget(tk.Frame):
         clear_btn = tk.Button(parent, text="Temizle", font=(self.ui.font_main[0], 8), bg=self.ui.bg_secondary, fg=self.ui.text_secondary, bd=1, relief="raised", activebackground=self.ui.border_color, cursor="hand2", command=clear_cmd)
         clear_btn.grid(row=1, column=2, padx=10, sticky="nsew", pady=(2, 5))
 
-    def _build_info_label(self, parent: tk.Frame, text: str, pad_y: Tuple[int, int] = (5, 0)) -> tk.Label:
-        lbl = tk.Label(parent, text=text, font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_color)
-        lbl.pack(pady=pad_y)
-        return lbl
+    def _build_info_label(self, parent: tk.Frame, default_msg: str, pad_y: Tuple[int, int] = (5, 0)) -> tk.Label:
+        self.default_info_msg = default_msg
+        self.info_lbl = tk.Label(parent, text=default_msg, font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_color)
+        self.info_lbl.pack(pady=pad_y)
+        return self.info_lbl
+
+    def reset_defaults(self) -> None:
+        """Kayıtlı tüm form elemanlarını varsayılan değerlerine döndürür."""
+        for entry, def_val in self.default_inputs.items():
+            entry.delete(0, tk.END)
+            entry.insert(0, def_val)
+        if self.info_lbl:
+            self.info_lbl.config(text=self.default_info_msg, fg=self.ui.text_secondary)
+
+    def copy_to_clipboard(self, result_text: str) -> None:
+        """Sonucu panoya kopyalar ve bilgi etiketini (info_lbl) geçici olarak günceller."""
+        if not result_text or result_text == "-": return
+        self.ui.root.clipboard_clear()
+        self.ui.root.clipboard_append(result_text)
+        self.ui.root.update()
+        if self.info_lbl:
+            self.info_lbl.config(text="Kopyalandı!", fg=self.ui.accent_color)
+            self.ui.root.after(1500, lambda: self.info_lbl.config(text=self.default_info_msg, fg=self.ui.text_secondary))

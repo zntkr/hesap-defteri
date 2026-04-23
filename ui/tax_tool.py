@@ -8,7 +8,7 @@ class TaxToolWidget(BaseToolWidget):
     def get_name(self) -> str: return "KDV Hesaplayıcı"
 
     def build_ui(self) -> None:
-        self._build_header(self, "KDV Hesaplayıcı", "Örn: 1.500 TL tutar ve %20 oran girerek KDV payını ve toplam matrahı hesaplayabilirsiniz.")
+        self._build_header(self, "Örn: 1.500 TL tutar ve %20 oran girerek KDV payını ve toplam matrahı hesaplayabilirsiniz.")
         tax_frame = tk.Frame(self, bg=self.ui.bg_color)
         tax_frame.pack(fill="x", pady=5)
         
@@ -27,7 +27,7 @@ class TaxToolWidget(BaseToolWidget):
             lbl.grid(row=i, column=1, sticky="w", padx=20)
             self.tax_labels[key] = lbl
             
-        self.tax_info_lbl = self._build_info_label(self, "KDV hesaplamak için tutarı girin")
+        self._build_info_label(self, "KDV hesaplamak için tutarı girin")
         self.tax_amount_entry.bind('<Return>', self.calculate_tax)
         self.tax_rate_entry.bind('<Return>', self.calculate_tax)
         self.primary_input = self.tax_amount_entry
@@ -38,17 +38,14 @@ class TaxToolWidget(BaseToolWidget):
         
         if not amount_numbers:
             for lbl in self.tax_labels.values(): lbl.config(text="-")
-            self.tax_info_lbl.config(text="Geçersiz tutar!", fg=self.ui.error_color)
+            self.info_lbl.config(text="Geçersiz tutar!", fg=self.ui.error_color)
             return "break"
             
         result = FinansMotoru.kdv_hesapla(amount_numbers[0], rate_numbers[0] if rate_numbers else 20.0)
         for key, lbl in self.tax_labels.items(): lbl.config(text=str(result[key]))
-        self.tax_info_lbl.config(text="KDV hesaplandı", fg=self.ui.accent_color)
+        self.info_lbl.config(text="KDV hesaplandı", fg=self.ui.accent_color)
         return "break"
 
     def clear_data(self) -> None:
-        self.tax_amount_entry.delete(0, tk.END)
-        self.tax_rate_entry.delete(0, tk.END)
-        self.tax_rate_entry.insert(0, "20")
+        self.reset_defaults()
         for lbl in self.tax_labels.values(): lbl.config(text="-")
-        self.tax_info_lbl.config(text="KDV hesaplamak için tutarı girin", fg=self.ui.text_secondary)
