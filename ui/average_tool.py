@@ -20,7 +20,7 @@ class AverageToolWidget(BaseToolWidget):
         self.avg_char_count_lbl = tk.Label(text_wrapper, text="0 / 5.000", font=(self.ui.font_main[0], 8), fg=self.ui.text_disabled, bg=self.ui.bg_color)
         self.avg_char_count_lbl.pack(side="bottom", anchor="e")
 
-        scrollbar = tk.Scrollbar(text_wrapper)
+        scrollbar = ttk.Scrollbar(text_wrapper)
         scrollbar.pack(side="right", fill="y")
         
         self.avg_text_input = tk.Text(text_wrapper, height=3, width=10, font=self.ui.font_main, bg=self.ui.shadow_light, fg=self.ui.text_placeholder, bd=2, relief="sunken", wrap="word", yscrollcommand=scrollbar.set, selectbackground=self.ui.accent_light, selectforeground=self.ui.shadow_light)
@@ -45,17 +45,21 @@ class AverageToolWidget(BaseToolWidget):
         res_frame = tk.Frame(self, bg=self.ui.bg_color)
         res_frame.pack(fill="both", expand=True)
         
-        self.avg_result_lbl = tk.Label(res_frame, text="-", font=self.ui.font_title, fg=self.ui.fg_color, bg=self.ui.bg_color, cursor="hand2")
-        self.avg_result_lbl.pack(pady=(0, 0)) 
+        top_res_frame = tk.Frame(res_frame, bg=self.ui.bg_color)
+        top_res_frame.pack(fill="x")
+        
+        tk.Label(top_res_frame, text="Ortalama:", fg=self.ui.text_secondary, bg=self.ui.bg_color, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=4)
+        self.avg_result_lbl = tk.Label(top_res_frame, text="-", font=self.ui.font_title, fg=self.ui.fg_color, bg=self.ui.bg_color, cursor="hand2")
+        self.avg_result_lbl.grid(row=0, column=1, sticky="w", padx=20)
         self.avg_result_lbl.bind('<Button-1>', lambda e: self.copy_to_clipboard(self.avg_result_lbl.cget("text")))
         
-        self.avg_sum_lbl = tk.Label(res_frame, text="Toplam: -", font=self.ui.font_bold, fg=self.ui.text_secondary, bg=self.ui.bg_color)
-        self.avg_sum_lbl.pack(pady=(0, 2))
-        
-        self._build_info_label(res_frame, "Sayıları yapıştırıp Enter'a basın", pad_y=(0, 0))
+        tk.Label(top_res_frame, text="Toplam:", fg=self.ui.text_secondary, bg=self.ui.bg_color, font=self.ui.font_main).grid(row=1, column=0, sticky="w", pady=4)
+        self.avg_sum_lbl = tk.Label(top_res_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_color, cursor="hand2")
+        self.avg_sum_lbl.grid(row=1, column=1, sticky="w", padx=20)
+        self.avg_sum_lbl.bind('<Button-1>', lambda e: self.copy_to_clipboard(self.avg_sum_lbl.cget("text")))
         
         stats_frame = tk.Frame(res_frame, bg=self.ui.bg_color)
-        stats_frame.pack(pady=(8, 0))
+        stats_frame.pack(fill="x", pady=(15, 0))
         
         self.avg_stats_labels = {}
         items = [("VERİ ADEDİ:", "adet"), ("MEDYAN:", "medyan"), ("EN BÜYÜK:", "en_buyuk"), ("AÇIKLIK (FARK):", "aciklik"), ("EN KÜÇÜK:", "en_kucuk"), ("STD. SAPMA:", "std_sapma")]
@@ -63,23 +67,14 @@ class AverageToolWidget(BaseToolWidget):
         for i, (text, key) in enumerate(items):
             row, col = i // 2, (i % 2) * 2
             tk.Label(stats_frame, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_color, font=self.ui.font_main).grid(row=row, column=col, sticky="w", pady=4, padx=(30 if col == 2 else 0, 5))
-            lbl = tk.Label(stats_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_color)
+            lbl = tk.Label(stats_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_color, cursor="hand2")
             lbl.grid(row=row, column=col+1, sticky="w")
+            lbl.bind('<Button-1>', lambda e, l=lbl: self.copy_to_clipboard(l.cget("text")))
             self.avg_stats_labels[key] = lbl
 
-        transparency_frame = tk.Frame(res_frame, bg=self.ui.bg_color)
-        transparency_frame.pack(fill="both", expand=True, pady=(5, 0))
-        tk.Label(transparency_frame, text="HESABA KATILAN SAYILAR:", font=(self.ui.font_bold[0], 8, "bold"), fg=self.ui.text_secondary, bg=self.ui.bg_color).pack(anchor="w")
 
-        text_wrapper2 = tk.Frame(transparency_frame, bg=self.ui.bg_color)
-        text_wrapper2.pack(fill="both", expand=True, pady=(2, 0))
         
-        scroll2 = tk.Scrollbar(text_wrapper2)
-        scroll2.pack(side="right", fill="y")
-        self.avg_extracted_text = tk.Text(text_wrapper2, height=2, font=self.ui.font_main, bg=self.ui.bg_secondary, fg=self.ui.fg_color, bd=1, relief="sunken", wrap="word", yscrollcommand=scroll2.set)
-        self.avg_extracted_text.pack(side="left", fill="both", expand=True)
-        scroll2.config(command=self.avg_extracted_text.yview)
-        self.avg_extracted_text.config(state="disabled")
+        self._build_info_label(self, "Sayıları yapıştırıp Enter'a basın", pad_y=(15, 0))
         self.primary_input = self.avg_text_input
 
     def clear_avg_placeholder(self, event: Optional[tk.Event] = None) -> Optional[str]:
@@ -124,16 +119,13 @@ class AverageToolWidget(BaseToolWidget):
 
         if analysis:
             self.avg_result_lbl.config(text=str(analysis["ortalama"]), fg=self.ui.fg_color)
-            self.avg_sum_lbl.config(text=f"Toplam: {analysis['toplam']}")
+            self.avg_sum_lbl.config(text=str(analysis['toplam']))
             self.info_lbl.config(text=f"{analysis['adet']} sayı hesaplandı • Kopyalamak için rakama tıklayın", fg=self.ui.accent_color)
             
             for key, lbl in self.avg_stats_labels.items():
                 if key in analysis: lbl.config(text=str(analysis[key]))
                     
-            self.avg_extracted_text.config(state="normal")
-            self.avg_extracted_text.delete("1.0", tk.END)
-            self.avg_extracted_text.insert("1.0", " • ".join(str(s) for s in analysis.get("sayilar", [])))
-            self.avg_extracted_text.config(state="disabled")
+
             
             for match in re.finditer(MatematikMotoru.SAYI_PATERNI, full_text):
                 self.avg_text_input.tag_add("detected_number", f"1.0 + {match.start()} chars", f"1.0 + {match.end()} chars")
@@ -149,9 +141,6 @@ class AverageToolWidget(BaseToolWidget):
             self.add_avg_placeholder()
         self.avg_text_input.tag_remove("detected_number", "1.0", tk.END)
         self.avg_result_lbl.config(text="-")
-        self.avg_sum_lbl.config(text="Toplam: -")
+        self.avg_sum_lbl.config(text="-")
         self.reset_defaults()
         for lbl in self.avg_stats_labels.values(): lbl.config(text="-")
-        self.avg_extracted_text.config(state="normal")
-        self.avg_extracted_text.delete("1.0", tk.END)
-        self.avg_extracted_text.config(state="disabled")

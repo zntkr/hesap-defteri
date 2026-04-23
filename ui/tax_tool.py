@@ -23,8 +23,9 @@ class TaxToolWidget(BaseToolWidget):
         tax_items = [("Ham Tutar:", "ham_tutar"), ("KDV Tutarı:", "kdv_tutari"), ("Toplam Tutar:", "toplam")]
         for i, (text, key) in enumerate(tax_items):
             tk.Label(tax_res_frame, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_color, font=self.ui.font_main).grid(row=i, column=0, sticky="w", pady=4)
-            lbl = tk.Label(tax_res_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_color)
+            lbl = tk.Label(tax_res_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_color, cursor="hand2")
             lbl.grid(row=i, column=1, sticky="w", padx=20)
+            lbl.bind('<Button-1>', lambda e, l=lbl: self.copy_to_clipboard(l.cget("text")))
             self.tax_labels[key] = lbl
             
         self._build_info_label(self, "KDV hesaplamak için tutarı girin")

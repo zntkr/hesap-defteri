@@ -29,8 +29,20 @@ class BaseToolWidget(tk.Frame):
     def _build_header(self, parent: tk.Frame, desc: str) -> None:
         desc_frame = tk.Frame(parent, bg=self.ui.bg_secondary, padx=10, pady=10)
         desc_frame.pack(fill="x", pady=(0, 15))
-        tk.Label(desc_frame, text=self.get_name(), font=self.ui.font_bold, fg=self.ui.accent_color, bg=self.ui.bg_secondary).pack(anchor="w")
+        
+        top_row = tk.Frame(desc_frame, bg=self.ui.bg_secondary)
+        top_row.pack(fill="x")
+        
+        tk.Label(top_row, text=self.get_name(), font=self.ui.font_bold, fg=self.ui.accent_color, bg=self.ui.bg_secondary).pack(side="left")
+        
+        self.badge_lbl = tk.Label(top_row, text="", font=(self.ui.font_main[0], 9, "bold"), fg=self.ui.text_disabled, bg=self.ui.bg_secondary)
+        self.badge_lbl.pack(side="right")
+        
         tk.Label(desc_frame, text=desc, font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, justify="left", wraplength=360).pack(anchor="w", pady=(2,0))
+
+    def set_page_badge(self, current: int, total: int) -> None:
+        if hasattr(self, 'badge_lbl'):
+            self.badge_lbl.config(text=f"[ {current:02d} / {total:02d} ]")
 
     def _build_input_row(self, parent: tk.Frame, row: int, label_text: str, default_val: str = "", width: int = 15) -> tk.Entry:
         tk.Label(parent, text=label_text, font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_color).grid(row=row, column=0, sticky="w", pady=5)

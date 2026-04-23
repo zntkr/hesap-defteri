@@ -53,6 +53,11 @@ class ToolsTab(tk.Frame):
         self.frames = {tool.get_name(): tool for tool in tools_list}
         self.tool_selector['values'] = tuple(self.frames.keys())
         
+        total_tools = len(tools_list)
+        for i, tool in enumerate(tools_list, start=1):
+            if hasattr(tool, 'set_page_badge'):
+                tool.set_page_badge(i, total_tools)
+        
         # Başlangıç Aracı dinamik olarak (kayıtlı ilk araç) belirlenir
         default_tool = list(self.frames.keys())[0]
         self.tool_var.set(default_tool)
@@ -78,6 +83,8 @@ class ToolsTab(tk.Frame):
         self.current_frame.pack_forget()
         self.current_frame = self.frames[self.tool_var.get()]
         self.current_frame.pack(fill="both", expand=True)
+        if hasattr(self.ui, 'active_tool_var'):
+            self.ui.active_tool_var.set(self.tool_var.get())
         self._focus_active_tool()
 
     def clear_data(self) -> None:

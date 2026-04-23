@@ -64,39 +64,75 @@ class MainUI:
         menubar = tk.Menu(self.root, font=self.font_main, bg=self.bg_color, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
         
         file_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_color, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
-        file_menu.add_command(label="Temizle", command=self.clear_all)
+        file_menu.add_command(label="Dışa Aktar (Çok Yakında)", state="disabled")
         file_menu.add_separator()
-        file_menu.add_command(label="Çıkış", command=self.root.quit)
+        file_menu.add_command(label="Çıkış", command=self.root.quit, accelerator="Alt+F4")
         
-        edit_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_color, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
-        edit_menu.add_command(label="Kes", command=lambda: self._trigger_os_event("<<Cut>>"), accelerator="Ctrl+X")
-        edit_menu.add_command(label="Kopyala", command=lambda: self._trigger_os_event("<<Copy>>"), accelerator="Ctrl+C")
-        edit_menu.add_command(label="Yapıştır", command=lambda: self._trigger_os_event("<<Paste>>"), accelerator="Ctrl+V")
-        edit_menu.add_separator()
-        edit_menu.add_command(label="Tümünü Seç", command=self._select_all, accelerator="Ctrl+A")
+        self.edit_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_color, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light, postcommand=self._update_edit_menu)
+        self.edit_menu.add_command(label="Geri Al", command=lambda: self._trigger_os_event("<<Undo>>"), accelerator="Ctrl+Z")
+        self.edit_menu.add_command(label="Yeniden Yap", command=lambda: self._trigger_os_event("<<Redo>>"), accelerator="Ctrl+Y")
+        self.edit_menu.add_separator()
+        self.edit_menu.add_command(label="Kes", command=lambda: self._trigger_os_event("<<Cut>>"), accelerator="Ctrl+X")
+        self.edit_menu.add_command(label="Kopyala", command=lambda: self._trigger_os_event("<<Copy>>"), accelerator="Ctrl+C")
+        self.edit_menu.add_command(label="Yapıştır", command=lambda: self._trigger_os_event("<<Paste>>"), accelerator="Ctrl+V")
+        self.edit_menu.add_separator()
+        self.edit_menu.add_command(label="Tümünü Seç", command=self._select_all, accelerator="Ctrl+A")
+        self.edit_menu.add_separator()
+        self.edit_menu.add_command(label="Tümünü Temizle", command=self.clear_all, accelerator="Esc")
 
         tools_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_color, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
-        for tool_name in self.main_view.frames.keys():
-            tools_menu.add_command(label=tool_name, command=lambda name=tool_name: self.select_tool(name))
+        self.active_tool_var = tk.StringVar()
+        for i, tool_name in enumerate(self.main_view.frames.keys(), start=1):
+            accel = f"Ctrl+{i}"
+            tools_menu.add_radiobutton(label=tool_name, variable=self.active_tool_var, value=tool_name, command=lambda name=tool_name: self.select_tool(name), accelerator=accel)
+            self.root.bind(f"<Control-Key-{i}>", lambda e, name=tool_name: self.select_tool(name))
 
         view_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_color, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
         view_menu.add_checkbutton(label="Her Zaman Üstte Tut", variable=self.always_on_top_var, command=self.toggle_always_on_top)
         
         help_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_color, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
-        help_menu.add_command(label="Kullanma Rehberi", command=self.show_guide)
+        help_menu.add_command(label="Kullanma Rehberi", command=self.show_guide, accelerator="F1")
         help_menu.add_separator()
         help_menu.add_command(label="Hakkında", command=self.show_about)
         
         menubar.add_cascade(label="Dosya", menu=file_menu)
-        menubar.add_cascade(label="Düzenle", menu=edit_menu)
+        menubar.add_cascade(label="Düzenle", menu=self.edit_menu)
         menubar.add_cascade(label="Araçlar", menu=tools_menu)
         menubar.add_cascade(label="Görünüş", menu=view_menu)
         menubar.add_cascade(label="Yardım", menu=help_menu)
         self.root.config(menu=menubar)
+        
+        self.root.bind("<F1>", lambda e: self.show_guide())
+
+    def _update_edit_menu(self) -> None:
+        """Düzenle menüsü açılmadan hemen önce tetiklenir ve öğelerin aktif/pasif durumunu belirler."""
+        widget = self.root.focus_get()
+        has_selection = False
+        try:
+            if isinstance(widget, tk.Text):
+                has_selection = bool(widget.tag_ranges("sel"))
+            elif isinstance(widget, tk.Entry):
+                has_selection = widget.select_present()
+        except tk.TclError:
+            pass
+
+        state = "normal" if has_selection else "disabled"
+        self.edit_menu.entryconfig("Kes", state=state)
+        self.edit_menu.entryconfig("Kopyala", state=state)
+        
+        # Yapıştır kontrolü (Pano boş mu dolu mu)
+        try:
+            clipboard = self.root.clipboard_get()
+            paste_state = "normal" if clipboard else "disabled"
+        except tk.TclError:
+            paste_state = "disabled"
+            
+        self.edit_menu.entryconfig("Yapıştır", state=paste_state)
 
     def select_tool(self, tool_name: str) -> None:
         """Üst menüden seçilen aracı aktif eder ve Araçlar sekmesine geçer."""
         if hasattr(self, 'main_view'):
+            self.active_tool_var.set(tool_name)
             self.main_view.tool_var.set(tool_name)
             self.main_view.on_tool_change()
 
@@ -255,24 +291,22 @@ class MainUI:
         about_win.deiconify()
 
     def show_guide(self) -> None:
-        # Pencere boyutunu 520x500'den 480x420'ye küçülttük
-        guide_win = self._create_centered_modal("Kullanma Rehberi", 480, 420)
+        guide_win = self._create_centered_modal("Kullanma Rehberi", 520, 500)
 
-        guide_title = "Kılavuz ve Kısayollar"
-        tk.Label(guide_win, text=guide_title, font=(self.font_bold[0], 13, "bold"), fg=self.fg_color, bg=self.bg_color).pack(anchor="w", padx=25, pady=(20, 5))
+        guide_title = "KULLANMA REHBERİ"
+        tk.Label(guide_win, text=guide_title, font=(self.font_bold[0], 13, "bold"), fg=self.fg_color, bg=self.bg_color).pack(anchor="w", padx=15, pady=(15, 5))
+
+        # Butonu alta yerleştir (Önce paketlenir ki taşma durumunda kesilmesin)
+        close_btn = tk.Button(guide_win, text="TAMAM", font=self.font_bold, bg=self.accent_color, fg=self.shadow_light, 
+                              bd=2, relief="raised", activebackground=self.accent_hover, activeforeground=self.shadow_light, cursor="hand2", command=guide_win.destroy)
+        close_btn.pack(side="bottom", pady=(10, 15), ipadx=15, ipady=3)
 
         text_frame = tk.Frame(guide_win, bg=self.bg_color)
-        text_frame.pack(fill="both", expand=True, padx=25, pady=(5, 10))
-        
-        # --- Dikey Kaydırma Çubuğu (Scrollbar) ---
-        scrollbar = ttk.Scrollbar(text_frame, orient="vertical")
-        scrollbar.pack(side="right", fill="y")
+        text_frame.pack(fill="both", expand=True, padx=15, pady=(0, 10))
         
         guide_text = tk.Text(text_frame, font=self.font_main, bg=self.bg_secondary, fg=self.text_secondary, 
-                             wrap="word", bd=1, relief="sunken", padx=15, pady=15, cursor="arrow",
-                             yscrollcommand=scrollbar.set)
+                             wrap="word", bd=1, relief="sunken", padx=15, pady=15, cursor="arrow")
         guide_text.pack(side="left", fill="both", expand=True)
-        scrollbar.config(command=guide_text.yview)
 
         # Metin içi stil etiketleri (Tags)
         guide_text.tag_configure("header", font=self.font_bold, foreground=self.accent_color, spacing1=10, spacing3=5)
@@ -303,10 +337,6 @@ class MainUI:
 
         # Sadece klavye girdilerini engelleyerek metni salt okunur ancak seçilebilir/kopyalanabilir yapıyoruz
         guide_text.bind("<Key>", lambda e: "break" if e.keysym not in ("c", "C") or not (e.state & 0x0004) else None)
-        
-        close_btn = tk.Button(guide_win, text="TAMAM", font=self.font_bold, bg=self.accent_color, fg=self.shadow_light, 
-                              bd=2, relief="raised", activebackground=self.accent_hover, activeforeground=self.shadow_light, cursor="hand2", command=guide_win.destroy)
-        close_btn.pack(pady=(15, 20), ipadx=15, ipady=3)
         
         # --- Klavye Kısayolları (Keyboard-First) ---
         guide_win.bind('<Escape>', lambda e: guide_win.destroy())
