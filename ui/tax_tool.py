@@ -9,21 +9,21 @@ class TaxToolWidget(BaseToolWidget):
 
     def build_ui(self) -> None:
         self._build_header(self, "Örn: 1.500 TL tutar ve %20 oran girerek KDV payını ve toplam matrahı hesaplayabilirsiniz.")
-        tax_frame = tk.Frame(self, bg=self.ui.bg_color)
+        tax_frame = tk.Frame(self, bg=self.ui.bg_secondary)
         tax_frame.pack(fill="x", pady=5)
         
         self.tax_amount_entry = self._build_input_row(tax_frame, 0, "Tutar:")
         self.tax_rate_entry = self._build_input_row(tax_frame, 1, "Oran (%):", "20")
         self._build_action_buttons(tax_frame, self.calculate_tax, self.clear_data)
         
-        tax_res_frame = tk.Frame(self, bg=self.ui.bg_color)
+        tax_res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
         tax_res_frame.pack(fill="x", pady=(15, 0))
         
         self.tax_labels = {}
         tax_items = [("Ham Tutar:", "ham_tutar"), ("KDV Tutarı:", "kdv_tutari"), ("Toplam Tutar:", "toplam")]
         for i, (text, key) in enumerate(tax_items):
-            tk.Label(tax_res_frame, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_color, font=self.ui.font_main).grid(row=i, column=0, sticky="w", pady=4)
-            lbl = tk.Label(tax_res_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_color, cursor="hand2")
+            tk.Label(tax_res_frame, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=i, column=0, sticky="w", pady=4)
+            lbl = tk.Label(tax_res_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_secondary, cursor="hand2")
             lbl.grid(row=i, column=1, sticky="w", padx=20)
             lbl.bind('<Button-1>', lambda e, l=lbl: self.copy_to_clipboard(l.cget("text")))
             self.tax_labels[key] = lbl

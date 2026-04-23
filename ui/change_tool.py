@@ -9,18 +9,18 @@ class ChangeToolWidget(BaseToolWidget):
 
     def build_ui(self) -> None:
         self._build_header(self, "Örn: Eski fiyatı 150 TL, yeni fiyatı 200 TL olan bir malınyüzde kaç zamlandığını hesaplar.")
-        change_frame = tk.Frame(self, bg=self.ui.bg_color)
+        change_frame = tk.Frame(self, bg=self.ui.bg_secondary)
         change_frame.pack(fill="x", pady=5)
         
         self.old_val_entry = self._build_input_row(change_frame, 0, "Eski Değer:")
         self.new_val_entry = self._build_input_row(change_frame, 1, "Yeni Değer:")
         self._build_action_buttons(change_frame, self.calculate_change, self.clear_data)
         
-        change_res_frame = tk.Frame(self, bg=self.ui.bg_color)
+        change_res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
         change_res_frame.pack(fill="x", pady=(10, 0))
         
-        tk.Label(change_res_frame, text="Değişiklik Oranı:", fg=self.ui.text_secondary, bg=self.ui.bg_color, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=4)
-        self.change_res_lbl = tk.Label(change_res_frame, text="-", font=self.ui.font_title, fg=self.ui.fg_color, bg=self.ui.bg_color, cursor="hand2")
+        tk.Label(change_res_frame, text="Değişiklik Oranı:", fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=4)
+        self.change_res_lbl = tk.Label(change_res_frame, text="-", font=self.ui.font_title, fg=self.ui.fg_color, bg=self.ui.bg_secondary, cursor="hand2")
         self.change_res_lbl.grid(row=0, column=1, sticky="w", padx=20)
         self.change_res_lbl.bind('<Button-1>', lambda e: self.copy_to_clipboard(self.change_res_lbl.cget("text")))
             

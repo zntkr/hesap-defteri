@@ -10,20 +10,20 @@ class AverageToolWidget(BaseToolWidget):
 
     def build_ui(self) -> None:
         self._build_header(self, "Metin içindeki sayıları ayıklayıp ortalamasını ve istatistiklerini hesaplar.")
-        input_frame = tk.Frame(self, bg=self.ui.bg_color)
+        input_frame = tk.Frame(self, bg=self.ui.bg_secondary)
         input_frame.pack(fill="x", pady=5)
         
-        text_wrapper = tk.Frame(input_frame, bg=self.ui.bg_color)
+        text_wrapper = tk.Frame(input_frame, bg=self.ui.bg_secondary)
         text_wrapper.grid(row=0, column=0, columnspan=2, rowspan=2, sticky="nsew", padx=(0, 10))
         input_frame.columnconfigure(0, weight=1)
         
-        self.avg_char_count_lbl = tk.Label(text_wrapper, text="0 / 5.000", font=(self.ui.font_main[0], 8), fg=self.ui.text_disabled, bg=self.ui.bg_color)
+        self.avg_char_count_lbl = tk.Label(text_wrapper, text="0 / 5.000", font=(self.ui.font_main[0], 8), fg=self.ui.text_disabled, bg=self.ui.bg_secondary)
         self.avg_char_count_lbl.pack(side="bottom", anchor="e")
 
         scrollbar = ttk.Scrollbar(text_wrapper)
         scrollbar.pack(side="right", fill="y")
         
-        self.avg_text_input = tk.Text(text_wrapper, height=3, width=10, font=self.ui.font_main, bg=self.ui.shadow_light, fg=self.ui.text_placeholder, bd=2, relief="sunken", wrap="word", yscrollcommand=scrollbar.set, selectbackground=self.ui.accent_light, selectforeground=self.ui.shadow_light)
+        self.avg_text_input = tk.Text(text_wrapper, height=3, width=10, font=self.ui.font_main, bg=self.ui.shadow_light, fg=self.ui.text_placeholder, bd=1, relief="solid", wrap="word", yscrollcommand=scrollbar.set, selectbackground=self.ui.accent_light, selectforeground=self.ui.shadow_light)
         self.avg_text_input.insert("1.0", self.ui.placeholder_text)
         self.avg_text_input.pack(side="left", fill="both", expand=True)
         self.avg_text_input.tag_configure("detected_number", font=self.ui.font_bold, foreground=self.ui.accent_color)
@@ -42,23 +42,23 @@ class AverageToolWidget(BaseToolWidget):
         
         ttk.Separator(self, orient="horizontal").pack(fill="x", pady=(10, 5))
         
-        res_frame = tk.Frame(self, bg=self.ui.bg_color)
+        res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
         res_frame.pack(fill="both", expand=True)
         
-        top_res_frame = tk.Frame(res_frame, bg=self.ui.bg_color)
+        top_res_frame = tk.Frame(res_frame, bg=self.ui.bg_secondary)
         top_res_frame.pack(fill="x")
         
-        tk.Label(top_res_frame, text="Ortalama:", fg=self.ui.text_secondary, bg=self.ui.bg_color, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=4)
-        self.avg_result_lbl = tk.Label(top_res_frame, text="-", font=self.ui.font_title, fg=self.ui.fg_color, bg=self.ui.bg_color, cursor="hand2")
+        tk.Label(top_res_frame, text="Ortalama:", fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=4)
+        self.avg_result_lbl = tk.Label(top_res_frame, text="-", font=self.ui.font_title, fg=self.ui.fg_color, bg=self.ui.bg_secondary, cursor="hand2")
         self.avg_result_lbl.grid(row=0, column=1, sticky="w", padx=20)
         self.avg_result_lbl.bind('<Button-1>', lambda e: self.copy_to_clipboard(self.avg_result_lbl.cget("text")))
         
-        tk.Label(top_res_frame, text="Toplam:", fg=self.ui.text_secondary, bg=self.ui.bg_color, font=self.ui.font_main).grid(row=1, column=0, sticky="w", pady=4)
-        self.avg_sum_lbl = tk.Label(top_res_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_color, cursor="hand2")
+        tk.Label(top_res_frame, text="Toplam:", fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=1, column=0, sticky="w", pady=4)
+        self.avg_sum_lbl = tk.Label(top_res_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_secondary, cursor="hand2")
         self.avg_sum_lbl.grid(row=1, column=1, sticky="w", padx=20)
         self.avg_sum_lbl.bind('<Button-1>', lambda e: self.copy_to_clipboard(self.avg_sum_lbl.cget("text")))
         
-        stats_frame = tk.Frame(res_frame, bg=self.ui.bg_color)
+        stats_frame = tk.Frame(res_frame, bg=self.ui.bg_secondary)
         stats_frame.pack(fill="x", pady=(15, 0))
         
         self.avg_stats_labels = {}
@@ -66,8 +66,8 @@ class AverageToolWidget(BaseToolWidget):
         
         for i, (text, key) in enumerate(items):
             row, col = i // 2, (i % 2) * 2
-            tk.Label(stats_frame, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_color, font=self.ui.font_main).grid(row=row, column=col, sticky="w", pady=4, padx=(30 if col == 2 else 0, 5))
-            lbl = tk.Label(stats_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_color, cursor="hand2")
+            tk.Label(stats_frame, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=row, column=col, sticky="w", pady=4, padx=(30 if col == 2 else 0, 5))
+            lbl = tk.Label(stats_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_secondary, cursor="hand2")
             lbl.grid(row=row, column=col+1, sticky="w")
             lbl.bind('<Button-1>', lambda e, l=lbl: self.copy_to_clipboard(l.cget("text")))
             self.avg_stats_labels[key] = lbl

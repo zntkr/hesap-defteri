@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 class BaseToolWidget(tk.Frame):
     """Tüm araçların miras alacağı, ortak arayüz elemanlarını barındıran temel (Base) sınıf."""
     def __init__(self, parent: tk.Widget, ui: 'MainUI', orchestrator: 'ToolsTab') -> None:
-        super().__init__(parent, bg=ui.bg_color)
+        super().__init__(parent, bg=ui.bg_secondary)
         self.ui = ui
         self.orchestrator = orchestrator
         self.primary_input: Optional[tk.Widget] = None
@@ -45,8 +45,8 @@ class BaseToolWidget(tk.Frame):
             self.badge_lbl.config(text=f"[ {current:02d} / {total:02d} ]")
 
     def _build_input_row(self, parent: tk.Frame, row: int, label_text: str, default_val: str = "", width: int = 15) -> tk.Entry:
-        tk.Label(parent, text=label_text, font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_color).grid(row=row, column=0, sticky="w", pady=5)
-        entry = tk.Entry(parent, font=self.ui.font_main, bg=self.ui.shadow_light, fg=self.ui.fg_color, bd=2, relief="sunken", width=width)
+        tk.Label(parent, text=label_text, font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_secondary).grid(row=row, column=0, sticky="w", pady=5)
+        entry = tk.Entry(parent, font=self.ui.font_main, bg=self.ui.shadow_light, fg=self.ui.fg_color, bd=1, relief="solid", width=width)
         if default_val:
             entry.insert(0, default_val)
             self.default_inputs[entry] = default_val
@@ -61,7 +61,7 @@ class BaseToolWidget(tk.Frame):
 
     def _build_info_label(self, parent: tk.Frame, default_msg: str, pad_y: Tuple[int, int] = (5, 0)) -> tk.Label:
         self.default_info_msg = default_msg
-        self.info_lbl = tk.Label(parent, text=default_msg, font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_color)
+        self.info_lbl = tk.Label(parent, text=default_msg, font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_secondary)
         self.info_lbl.pack(pady=pad_y)
         return self.info_lbl
 

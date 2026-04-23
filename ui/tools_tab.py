@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class ToolsTab(tk.Frame):
     """Tüm bağımsız araç bileşenlerini yöneten Orkestratör Sınıf."""
     def __init__(self, parent: tk.Misc, ui: 'MainUI') -> None:
-        super().__init__(parent, bg=ui.bg_color, padx=30, pady=20)
+        super().__init__(parent, bg=ui.bg_color, padx=15, pady=15)
         self.ui = ui
         self.build_ui()
 
@@ -37,8 +37,21 @@ class ToolsTab(tk.Frame):
         
         ttk.Separator(self, orient="horizontal").pack(fill="x", pady=(0, 15))
 
-        self.container = tk.Frame(self, bg=self.ui.bg_color)
-        self.container.pack(fill="both", expand=True)
+        self.paper_wrapper = tk.Frame(self, bg=self.ui.bg_secondary)
+        self.paper_wrapper.pack(fill="both", expand=True, padx=(5, 5), pady=(0, 5))
+        
+        # Kağıdın sol kenarı (ciltleme / delik boşluğu)
+        left_margin = tk.Frame(self.paper_wrapper, bg=self.ui.bg_secondary, width=25)
+        left_margin.pack(side="left", fill="y")
+        left_margin.pack_propagate(False)
+        
+        # Kırmızı marj çizgisi
+        red_line = tk.Frame(self.paper_wrapper, bg=self.ui.accent_color, width=2)
+        red_line.pack(side="left", fill="y")
+        
+        # Ana içerik alanı (Kağıdın geri kalanı)
+        self.container = tk.Frame(self.paper_wrapper, bg=self.ui.bg_secondary)
+        self.container.pack(side="left", fill="both", expand=True)
         
         # --- PLUGIN REGISTRY (Bileşen Kaydı) ---
         tools_list = [
