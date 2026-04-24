@@ -50,4 +50,5 @@ class ProportionToolWidget(BaseToolWidget):
 
         self.prop_res_lbl.config(text=str(result["sonuc"]))
         if self.info_lbl: self.info_lbl.config(text=self._MSG_HESAPLANDI, fg=self.ui.accent_color)
+        self.ui.add_to_tape("ORANTI HESABI", f"A: {a_nums[0]:g}\nB: {b_nums[0]:g}\nC: {c_nums[0]:g}", str(result['sonuc']))
         return "break"

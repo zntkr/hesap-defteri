@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinter import font as tkfont
 import os
 import sys
+from datetime import datetime
 from typing import Optional, Any
 
 # Proje kök dizinini Python yoluna ekle (Pylance import hatalarını önlemek için)
@@ -41,6 +42,7 @@ class MainUI:
         self.text_secondary = "#666666"
         self.text_disabled = "#B0B0B0"
         self.bg_secondary = "#EFEBE6"
+        self.tape_bg = "#F4F1EA" # Hesap şeridi (yazar kasa fişi) için sarımsı saman kağıdı
         self.input_bg = "#F9F8F6" # Saf beyaz yerine defter kağıdından bir tık açık krem
         self.error_color = "#D32F2F"
         self.text_placeholder = "#888888"
@@ -60,6 +62,7 @@ class MainUI:
         self.placeholder_text = "Sayıları yazın veya bir liste yapıştırın...\nÖrn: 150  22.5  300  1.250,75"
         self.root.config(bg=self.bg_color)
         self.always_on_top_var = tk.BooleanVar(value=False)
+        self.show_tape_var = tk.BooleanVar(value=False)
         
         self.build_ui()
         self.build_menu()
@@ -89,6 +92,11 @@ class MainUI:
 
         view_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color)
         view_menu.add_checkbutton(label="Her Zaman Üstte Tut", variable=self.always_on_top_var, command=self.toggle_always_on_top)
+        view_menu.add_separator()
+        view_menu.add_checkbutton(label="Hesap Şeridini Göster", variable=self.show_tape_var, command=self.toggle_tape, accelerator="Ctrl+H")
+        
+        self.root.bind("<Control-h>", self.toggle_tape)
+        self.root.bind("<Control-H>", self.toggle_tape)
 
         help_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color)
         help_menu.add_command(label="Kullanma Rehberi", command=self.show_guide, accelerator="F1")
@@ -240,16 +248,106 @@ class MainUI:
                   foreground=[("selected", self.accent_color)],
                   expand=[("selected", [2, 2, 2, 2])]) 
 
-        self.main_view = ToolsTab(self.root, self)
-        self.main_view.pack(expand=True, fill="both")
+        main_container = tk.Frame(self.root, bg=self.bg_color)
+        main_container.pack(expand=True, fill="both")
+        
+        self.tape_container = tk.Frame(main_container, bg=self.bg_color, width=240)
+        self.tape_container.pack_propagate(False)
+        self._build_paper_tape(self.tape_container)
+        
+        self.main_view = ToolsTab(main_container, self)
+        self.main_view.pack(side="left", expand=True, fill="both")
         
         # --- KLAVYE KISAYOLLARI (KEYBOARD-FIRST) ---
+
+    def toggle_tape(self, event: Optional[tk.Event] = None) -> None:
+        if event:
+            self.show_tape_var.set(not self.show_tape_var.get())
+            
+        is_open = self.show_tape_var.get()
+        x, y = self.root.winfo_x(), self.root.winfo_y()
+        
+        if is_open:
+            self.root.geometry(f"688x544+{x}+{y}")
+            self.tape_container.pack(side="right", fill="y", padx=(0, 16), pady=16, before=self.main_view)
+        else:
+            self.root.geometry(f"432x544+{x}+{y}")
+            self.tape_container.pack_forget()
+
+    def _build_paper_tape(self, parent: tk.Frame) -> None:
+        """Ekranın sağ tarafındaki fiziksel 'Hesap Şeridi'ni (Yazar Kasa Fişi) inşa eder."""
+        wrapper = tk.Frame(parent, bg=self.bg_color, bd=0)
+        wrapper.pack(fill="both", expand=True)
+
+        tk.Frame(wrapper, bg=self.bg_shadow, height=8).pack(side="bottom", fill="x", padx=(8, 0))
+        middle = tk.Frame(wrapper, bg=self.bg_color, bd=0)
+        middle.pack(side="top", fill="both", expand=True)
+        tk.Frame(middle, bg=self.bg_shadow, width=8).pack(side="right", fill="y", pady=(8, 0))
+
+        paper = tk.Frame(middle, bg=self.tape_bg, bd=0)
+        paper.pack(side="left", fill="both", expand=True)
+
+        tk.Frame(paper, bg=self.shadow_light, width=2).pack(side="left", fill="y")
+        tk.Frame(paper, bg=self.shadow_dark, width=2).pack(side="right", fill="y")
+        tk.Frame(paper, bg=self.shadow_dark, height=2).pack(side="bottom", fill="x")
+
+        header_frame = tk.Frame(paper, bg=self.tape_bg)
+        header_frame.pack(fill="x", pady=(16, 8))
+        tk.Label(header_frame, text="HESAP ŞERİDİ", font=(self.font_bold[0], 9, "bold"), fg=self.accent_color, bg=self.tape_bg).pack()
+        tk.Label(paper, text="- "*18, font=self.font_small, fg=self.shadow_dark, bg=self.tape_bg).pack(fill="x")
+
+        self.tape_text = tk.Text(paper, font=self.font_small, bg=self.tape_bg, fg=self.fg_color, bd=0, highlightthickness=0, wrap="word", state="disabled", padx=16, pady=8)
+        self.tape_text.pack(fill="both", expand=True)
+        
+        self.tape_text.tag_configure("header", foreground=self.text_secondary, font=(self.font_main[0], 8, "bold"))
+        self.tape_text.tag_configure("result", foreground=self.fg_color, font=(self.font_bold[0], 9, "bold"))
+        self.tape_text.tag_configure("flash", background=self.shadow_dark)
+        
+        btn_frame = tk.Frame(paper, bg=self.tape_bg)
+        btn_frame.pack(fill="x", pady=16, padx=16)
+        
+        tk.Button(btn_frame, text="Kopyala", font=self.font_small, bg=self.tape_bg, fg=self.fg_color, bd=1, relief="raised", cursor="hand2", command=self._copy_tape).pack(side="left", fill="x", expand=True, padx=(0, 4))
+        tk.Button(btn_frame, text="Temizle", font=self.font_small, bg=self.tape_bg, fg=self.text_secondary, bd=1, relief="raised", cursor="hand2", command=self._clear_tape).pack(side="left", fill="x", expand=True, padx=(4, 0))
+
+    def _copy_tape(self) -> None:
+        content = self.tape_text.get("1.0", tk.END).strip()
+        if content:
+            self.root.clipboard_clear()
+            self.root.clipboard_append(content)
+            self.root.update()
+
+    def _clear_tape(self) -> None:
+        self.tape_text.config(state="normal")
+        self.tape_text.delete("1.0", tk.END)
+        self.tape_text.config(state="disabled")
+
+    def add_to_tape(self, title: str, details: str, result: str) -> None:
+        self.tape_text.config(state="normal")
+        
+        start_idx = self.tape_text.index("end-1c")
+        if start_idx != "1.0": 
+            self.tape_text.insert(tk.END, "\n")
+            start_idx = self.tape_text.index("end-1c")
+            
+        saat = datetime.now().strftime("%H:%M:%S")
+        self.tape_text.insert(tk.END, f"{title} ({saat})\n", "header")
+        self.tape_text.insert(tk.END, f"{details}\n{'-'*24}\n", "normal")
+        self.tape_text.insert(tk.END, f"Sonuç: {result}\n", "result")
+        self.tape_text.insert(tk.END, f"{'='*24}\n", "normal")
+        
+        self.tape_text.tag_add("flash", start_idx, tk.END)
+        self.root.after(800, lambda: self.tape_text.tag_remove("flash", "1.0", tk.END))
+        
+        self.tape_text.see(tk.END)
+        self.tape_text.config(state="disabled")
         self.root.bind('<Escape>', self.clear_all)
         self.root.bind('<Control-Tab>', lambda e: self.main_view.cycle_tools(e))
 
     def clear_all(self, event: Optional[tk.Event] = None) -> None:
         if hasattr(self, 'main_view'):
             self.main_view.clear_data()
+        if hasattr(self, 'tape_text'):
+            self._clear_tape()
 
     def _create_centered_modal(self, title: str, width: int, height: int) -> tk.Toplevel:
         """Yardımcı Metot: Belirtilen boyutlarda, ekranın ortasında açılan modal pencere üretir."""

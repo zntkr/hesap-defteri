@@ -70,6 +70,7 @@ class AgeToolWidget(BaseToolWidget):
         self.age_res_txt.config(state="disabled")
         
         if self.info_lbl: self.info_lbl.config(text="Hesaplandı • Kopyalamak için cevaba tıklayın", fg=self.ui.accent_color)
+        self.ui.add_to_tape("YAŞ HESABI", f"Doğum: {date_str}", f"{result['yillar']} Yıl, {result['aylar']} Ay")
         return "break"
 
     def _set_result(self, text: str) -> None:

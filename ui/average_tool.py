@@ -159,6 +159,7 @@ class AverageToolWidget(BaseToolWidget):
             
             for match in re.finditer(MatematikMotoru.SAYI_PATERNI, full_text):
                 self.avg_text_input.tag_add("detected_number", f"1.0 + {match.start()} chars", f"1.0 + {match.end()} chars")
+            self.ui.add_to_tape("ORTALAMA HESABI", f"Adet: {analysis['adet']}\nToplam: {analysis['toplam']}", str(analysis['ortalama']))
         else:
             self.clear_data(keep_input=True)
             if self.info_lbl: self.info_lbl.config(text="Sayı bulunamadı veya geçersiz veri girişi!", fg=self.ui.error_color)

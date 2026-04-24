@@ -44,4 +44,5 @@ class TaxToolWidget(BaseToolWidget):
         result = FinansMotoru.kdv_hesapla(amount_numbers[0], rate_numbers[0] if rate_numbers else 20.0)
         for key, lbl in self.result_labels.items(): lbl.config(text=str(result[key]))
         if self.info_lbl: self.info_lbl.config(text="KDV hesaplandı", fg=self.ui.accent_color)
+        self.ui.add_to_tape("KDV HESABI", f"Tutar: {amount_numbers[0]:g}\nOran: %{rate_numbers[0] if rate_numbers else 20.0:g}", str(result['toplam']))
         return "break"

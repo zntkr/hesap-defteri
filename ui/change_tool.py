@@ -43,4 +43,5 @@ class ChangeToolWidget(BaseToolWidget):
         oran = result["degisim_orani"]
         self.change_res_lbl.config(text=f"%{'+' if oran > 0 else ''}{oran}")
         if self.info_lbl: self.info_lbl.config(text=self._MSG_HESAPLANDI, fg=self.ui.accent_color)
+        self.ui.add_to_tape("DEĞİŞİM HESABI", f"Eski: {old_nums[0]:g}\nYeni: {new_nums[0]:g}", f"%{'+' if oran > 0 else ''}{oran}")
         return "break"

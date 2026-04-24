@@ -44,4 +44,5 @@ class DiscountToolWidget(BaseToolWidget):
         result = FinansMotoru.indirim_hesapla(amount_numbers[0], rate_numbers[0] if rate_numbers else 10.0)
         for key, lbl in self.result_labels.items(): lbl.config(text=str(result[key]))
         if self.info_lbl: self.info_lbl.config(text="İndirim hesaplandı", fg=self.ui.accent_color)
+        self.ui.add_to_tape("İNDİRİM HESABI", f"Tutar: {amount_numbers[0]:g}\nİndirim: %{rate_numbers[0] if rate_numbers else 10.0:g}", str(result['net_tutar']))
         return "break"
