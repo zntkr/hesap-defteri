@@ -14,6 +14,7 @@ class AgeToolWidget(BaseToolWidget):
         
         self.age_year_entry = self._build_input_row(age_frame, 0, "Doğum Tarihi:", self.ui.date_placeholder)
         self.age_year_entry.config(fg=self.ui.text_placeholder)
+        self._setup_entry_placeholder(self.age_year_entry, self.ui.date_placeholder)
         self._build_action_buttons(age_frame, self.calculate_age, self.clear_data)
         
         age_res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
@@ -29,20 +30,7 @@ class AgeToolWidget(BaseToolWidget):
         self._build_info_label(self, "Yaş hesaplama raporu için doğum tarihinizi girin")
         
         self.age_year_entry.bind('<Return>', self.calculate_age)
-        self.age_year_entry.bind('<FocusIn>', self._clear_age_placeholder)
-        self.age_year_entry.bind('<FocusOut>', self._add_age_placeholder)
         self.primary_input = self.age_year_entry
-
-    def _clear_age_placeholder(self, event: tk.Event) -> None:
-        if self.age_year_entry.get() == self.ui.date_placeholder:
-            self.age_year_entry.delete(0, tk.END)
-            self.age_year_entry.config(fg=self.ui.fg_color)
-            
-    def _add_age_placeholder(self, event: tk.Event) -> None:
-        if getattr(self.ui, 'context_menu_open', False): return
-        if not self.age_year_entry.get().strip():
-            self.age_year_entry.insert(0, self.ui.date_placeholder)
-            self.age_year_entry.config(fg=self.ui.text_placeholder)
 
     def calculate_age(self, event: Optional[tk.Event] = None) -> Optional[str]:
         date_str = self.age_year_entry.get().strip()

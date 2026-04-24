@@ -52,6 +52,7 @@ class MainUI:
         
         self.font_main = (selected_font, 10)
         self.font_bold = (selected_font, 10, "bold")
+        self.font_small = (selected_font, 8)
         self.font_title = (selected_font, 24)
         
         self.placeholder_text = "Sayıları yazın veya bir liste yapıştırın...\nÖrn: 150  22.5  300  1.250,75"
@@ -227,7 +228,7 @@ class MainUI:
                   selectbackground=[("readonly", self.accent_color), ("focus", self.accent_color)],
                   selectforeground=[("readonly", self.shadow_light), ("focus", self.shadow_light)])
         
-        style.configure("TNotebook", background=self.bg_color, borderwidth=2, 
+        style.configure("TNotebook", background=self.bg_color, borderwidth=0, tabmargins=[0, 2, 2, 0],
                         lightcolor=self.shadow_light, darkcolor=self.shadow_dark)
         
         style.configure("TNotebook.Tab", 
@@ -239,7 +240,7 @@ class MainUI:
         style.map("TNotebook.Tab", 
                   background=[("selected", self.bg_secondary)], 
                   foreground=[("selected", self.accent_color)],
-                  expand=[("selected", [1, 1, 1, 2])]) 
+                  expand=[("selected", [2, 2, 2, 2])]) 
 
         self.main_view = ToolsTab(self.root, self)
         self.main_view.pack(expand=True, fill="both")
@@ -338,7 +339,7 @@ class MainUI:
             guide_text.insert(tk.END, text, tag if tag != "normal" else "")
 
         # Sadece klavye girdilerini engelleyerek metni salt okunur ancak seçilebilir/kopyalanabilir yapıyoruz
-        guide_text.bind("<Key>", lambda e: "break" if e.keysym not in ("c", "C") or not (e.state & 0x0004) else None)
+        guide_text.bind("<Key>", lambda e: "break" if e.keysym not in ("c", "C") or not (isinstance(e.state, int) and (e.state & 0x0004)) else None)
         
         # --- Klavye Kısayolları (Keyboard-First) ---
         guide_win.bind('<Escape>', lambda e: guide_win.destroy())

@@ -28,14 +28,14 @@ class ToolsTab(tk.Frame):
         self.tool_var = tk.StringVar()
         
         style = ttk.Style()
-        style.configure("TNotebook", background=self.ui.bg_color)
-        style.configure("TNotebook.Tab", font=(self.ui.font_main[0], 9), padding=[4, 2], background=self.ui.shadow_dark, foreground=self.ui.text_secondary, anchor="center")
+        style.configure("TNotebook", background=self.ui.bg_color, tabmargins=[0, 2, 2, 0], borderwidth=0)
+        style.configure("TNotebook.Tab", width=9, font=(self.ui.font_main[0], 9), padding=[4, 2], background=self.ui.shadow_dark, foreground=self.ui.text_secondary, anchor="center")
         style.map("TNotebook.Tab",
                   background=[("selected", self.ui.bg_secondary)],
                   foreground=[("selected", self.ui.accent_color)],
                   lightcolor=[("selected", self.ui.shadow_light)],
                   darkcolor=[("selected", self.ui.shadow_dark)],
-                  expand=[("selected", [1, 1, 1, 2])])
+                  expand=[("selected", [2, 2, 2, 2])])
         
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill="both", expand=True, padx=(8, 8), pady=(0, 8))
@@ -51,16 +51,24 @@ class ToolsTab(tk.Frame):
         
         total_tools = len(tool_classes)
         for i, tool_cls in enumerate(tool_classes, start=1):
-            paper_wrapper = tk.Frame(self.notebook, bg=self.ui.bg_secondary)
+            paper_wrapper = tk.Frame(self.notebook, bg=self.ui.bg_secondary, bd=0)
             
-            left_margin = tk.Frame(paper_wrapper, bg=self.ui.bg_secondary, width=40)
+            # Özel 3D Kenarlıklar (Tkinter'ın kahverengi gölgelerini ezip kendi renklerimizi çiziyoruz)
+            tk.Frame(paper_wrapper, bg=self.ui.shadow_light, width=2).pack(side="left", fill="y")
+            tk.Frame(paper_wrapper, bg=self.ui.shadow_dark, width=2).pack(side="right", fill="y")
+            tk.Frame(paper_wrapper, bg=self.ui.shadow_dark, height=2).pack(side="bottom", fill="x")
+            
+            content_frame = tk.Frame(paper_wrapper, bg=self.ui.bg_secondary)
+            content_frame.pack(fill="both", expand=True)
+            
+            left_margin = tk.Frame(content_frame, bg=self.ui.bg_secondary, width=40)
             left_margin.pack(side="left", fill="y")
             left_margin.pack_propagate(False)
             
-            red_line = tk.Frame(paper_wrapper, bg=self.ui.accent_color, width=3)
+            red_line = tk.Frame(content_frame, bg=self.ui.accent_color, width=3)
             red_line.pack(side="left", fill="y")
             
-            container = tk.Frame(paper_wrapper, bg=self.ui.bg_secondary)
+            container = tk.Frame(content_frame, bg=self.ui.bg_secondary)
             container.pack(side="left", fill="both", expand=True, padx=(8, 0))
             
             tool_instance = tool_cls(container, self.ui, self)
@@ -69,11 +77,7 @@ class ToolsTab(tk.Frame):
             if hasattr(tool_instance, 'set_page_badge'):
                 tool_instance.set_page_badge(i, total_tools)
                 
-            # Kısa sekme isimlerinin (YAŞ, KDV) çok dar kalmaması için boşlukla destekliyoruz
             tab_text = tool_instance.get_short_name()
-            if len(tab_text) < 7:
-                tab_text = tab_text.center(7)
-                
             self.notebook.add(paper_wrapper, text=tab_text)
             self.frames[tool_instance.get_name()] = tool_instance
             self.tabs_list.append(tool_instance.get_name())

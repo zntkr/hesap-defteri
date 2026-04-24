@@ -19,7 +19,7 @@ class AverageToolWidget(BaseToolWidget):
         input_frame.columnconfigure(0, weight=1)
         input_frame.rowconfigure(2, weight=1)
         
-        self.avg_char_count_lbl = tk.Label(text_wrapper, text="0 / 5.000", font=(self.ui.font_main[0], 8), fg=self.ui.text_disabled, bg=self.ui.bg_secondary)
+        self.avg_char_count_lbl = tk.Label(text_wrapper, text="0 / 5.000", font=self.ui.font_small, fg=self.ui.text_disabled, bg=self.ui.bg_secondary)
         self.avg_char_count_lbl.pack(side="bottom", anchor="e")
 
         scrollbar = ttk.Scrollbar(text_wrapper)
@@ -51,14 +51,14 @@ class AverageToolWidget(BaseToolWidget):
         top_res_frame.pack(fill="x")
         
         tk.Label(top_res_frame, text="Ortalama:", fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=4)
-        self.avg_result_lbl = tk.Label(top_res_frame, text="-", font=self.ui.font_title, fg=self.ui.fg_color, bg=self.ui.bg_secondary, cursor="hand2")
+        self.avg_result_lbl = tk.Label(top_res_frame, text="-", font=self.ui.font_title, fg=self.ui.fg_color, bg=self.ui.bg_secondary)
         self.avg_result_lbl.grid(row=0, column=1, sticky="w", padx=24)
-        self.avg_result_lbl.bind('<Button-1>', lambda e: self.copy_to_clipboard(self.avg_result_lbl.cget("text")))
-        
+        self._make_label_clickable(self.avg_result_lbl)
+
         tk.Label(top_res_frame, text="Toplam:", fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=1, column=0, sticky="w", pady=4)
-        self.avg_sum_lbl = tk.Label(top_res_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_secondary, cursor="hand2")
+        self.avg_sum_lbl = tk.Label(top_res_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_secondary)
         self.avg_sum_lbl.grid(row=1, column=1, sticky="w", padx=24)
-        self.avg_sum_lbl.bind('<Button-1>', lambda e: self.copy_to_clipboard(self.avg_sum_lbl.cget("text")))
+        self._make_label_clickable(self.avg_sum_lbl)
         
         stats_frame = tk.Frame(res_frame, bg=self.ui.bg_secondary)
         stats_frame.pack(fill="x", pady=(16, 0))
@@ -69,9 +69,9 @@ class AverageToolWidget(BaseToolWidget):
         for i, (text, key) in enumerate(items):
             row, col = i // 2, (i % 2) * 2
             tk.Label(stats_frame, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=row, column=col, sticky="w", pady=4, padx=(16 if col == 2 else 0, 8))
-            lbl = tk.Label(stats_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_secondary, cursor="hand2")
+            lbl = tk.Label(stats_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_secondary)
             lbl.grid(row=row, column=col+1, sticky="w")
-            lbl.bind('<Button-1>', lambda e, l=lbl: self.copy_to_clipboard(l.cget("text")))
+            self._make_label_clickable(lbl)
             self.avg_stats_labels[key] = lbl
 
 
@@ -80,20 +80,12 @@ class AverageToolWidget(BaseToolWidget):
         self.primary_input = self.avg_text_input
 
     def clear_avg_placeholder(self, event: Optional[tk.Event] = None) -> Optional[str]:
-        is_placeholder = (self.avg_text_input.get("1.0", "end-1c") == self.ui.placeholder_text)
-        if is_placeholder:
-            self.avg_text_input.delete("1.0", tk.END)
-            self.avg_text_input.config(fg=self.ui.fg_color)
-            self.avg_text_input.mark_set("insert", "1.0")
+        result = self._handle_text_focus_in(self.avg_text_input, self.ui.placeholder_text, event)
         self.ui.root.after(10, self.update_avg_char_count)
-        if is_placeholder and event and event.type == tk.EventType.ButtonPress: return "break"
+        return result
 
     def add_avg_placeholder(self, event: Optional[tk.Event] = None) -> None:
-        if getattr(self.ui, 'context_menu_open', False): return
-        if not self.avg_text_input.get("1.0", tk.END).strip():
-            self.avg_text_input.delete("1.0", tk.END)
-            self.avg_text_input.insert("1.0", self.ui.placeholder_text)
-            self.avg_text_input.config(fg=self.ui.text_placeholder)
+        self._handle_text_focus_out(self.avg_text_input, self.ui.placeholder_text)
         self.update_avg_char_count()
 
     def update_avg_char_count(self, event: Optional[tk.Event] = None) -> None:

@@ -1,18 +1,24 @@
 import tkinter as tk
-from typing import Optional, Tuple, TYPE_CHECKING, Callable, Any, Dict
+from typing import Optional, Tuple, TYPE_CHECKING, Callable, Any, Dict, List
 
 if TYPE_CHECKING:
     from ui.arayuz_tasarimi import MainUI
     from ui.tools_tab import ToolsTab
 
+from core.matematik_motoru import MatematikMotoru
+
 class BaseToolWidget(tk.Frame):
     """Tüm araçların miras alacağı, ortak arayüz elemanlarını barındıran temel (Base) sınıf."""
+
+    _MSG_HESAPLANDI = "Hesaplandı • Kopyalamak için sonuca tıklayın"
+
     def __init__(self, parent: tk.Widget, ui: 'MainUI', orchestrator: 'ToolsTab') -> None:
         super().__init__(parent, bg=ui.bg_secondary)
         self.ui = ui
         self.orchestrator = orchestrator
         self.primary_input: Optional[tk.Widget] = None
         self.default_inputs: Dict[tk.Entry, str] = {}
+        self.result_labels: Dict[str, tk.Label] = {}
         self.info_lbl: Optional[tk.Label] = None
         self.default_info_msg: str = ""
         self.build_ui()
@@ -27,21 +33,23 @@ class BaseToolWidget(tk.Frame):
         raise NotImplementedError("Alt sınıf arayüzünü (UI) tanımlamalıdır.")
 
     def clear_data(self) -> None:
-        pass
+        self.reset_defaults()
+        for lbl in self.result_labels.values():
+            lbl.config(text="-")
 
     def _build_header(self, parent: tk.Frame, desc: str) -> None:
         desc_frame = tk.Frame(parent, bg=self.ui.bg_secondary, pady=8)
         desc_frame.pack(fill="x", pady=(0, 16), padx=(0, 8))
-        
+
         top_row = tk.Frame(desc_frame, bg=self.ui.bg_secondary)
         top_row.pack(fill="x")
-        
+
         tk.Label(top_row, text=self.get_name(), font=self.ui.font_bold, fg=self.ui.accent_color, bg=self.ui.bg_secondary).pack(side="left")
-        
+
         self.badge_lbl = tk.Label(top_row, text="", font=(self.ui.font_main[0], 9, "bold"), fg=self.ui.text_disabled, bg=self.ui.bg_secondary)
         self.badge_lbl.pack(side="right")
-        
-        tk.Label(desc_frame, text=desc, font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, justify="left", wraplength=320).pack(anchor="w", pady=(4,0))
+
+        tk.Label(desc_frame, text=desc, font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, justify="left", wraplength=320).pack(anchor="w", pady=(4, 0))
 
     def set_page_badge(self, current: int, total: int) -> None:
         if hasattr(self, 'badge_lbl'):
@@ -60,7 +68,7 @@ class BaseToolWidget(tk.Frame):
     def _build_action_buttons(self, parent: tk.Frame, calc_cmd: Callable[..., Any], clear_cmd: Callable[[], None]) -> None:
         calc_btn = tk.Button(parent, text="HESAPLA", font=self.ui.font_bold, bg=self.ui.accent_color, fg=self.ui.shadow_light, bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground=self.ui.shadow_light, cursor="hand2", command=calc_cmd)
         calc_btn.grid(row=0, column=2, padx=8, sticky="nsew", pady=(8, 4), ipadx=8)
-        clear_btn = tk.Button(parent, text="Temizle", font=(self.ui.font_main[0], 8), bg=self.ui.bg_secondary, fg=self.ui.text_secondary, bd=1, relief="raised", activebackground=self.ui.border_color, cursor="hand2", command=clear_cmd)
+        clear_btn = tk.Button(parent, text="Temizle", font=self.ui.font_small, bg=self.ui.bg_secondary, fg=self.ui.text_secondary, bd=1, relief="raised", activebackground=self.ui.border_color, cursor="hand2", command=clear_cmd)
         clear_btn.grid(row=1, column=2, padx=8, sticky="nsew", pady=(4, 8))
 
     def _build_info_label(self, parent: tk.Frame, default_msg: str, pad_y: Tuple[int, int] = (16, 0)) -> tk.Label:
@@ -69,8 +77,54 @@ class BaseToolWidget(tk.Frame):
         self.info_lbl.pack(pady=pad_y)
         return self.info_lbl
 
+    def _make_label_clickable(self, lbl: tk.Label) -> None:
+        lbl.config(cursor="hand2")
+        lbl.bind('<Button-1>', lambda e, l=lbl: self.copy_to_clipboard(l.cget("text")))
+
+    def _build_result_labels(self, parent: tk.Frame, items: List[Tuple[str, str]], padx: int = 24) -> Dict[str, tk.Label]:
+        for i, (text, key) in enumerate(items):
+            tk.Label(parent, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=i, column=0, sticky="w", pady=4)
+            lbl = tk.Label(parent, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_secondary)
+            lbl.grid(row=i, column=1, sticky="w", padx=padx)
+            self._make_label_clickable(lbl)
+            self.result_labels[key] = lbl
+        return self.result_labels
+
+    def _get_numbers(self, entry: tk.Entry) -> List[float]:
+        return MatematikMotoru.metinden_sayilari_ayikla(entry.get().strip())
+
+    def _handle_text_focus_in(self, widget: tk.Text, placeholder: str, event: Optional[tk.Event] = None) -> Optional[str]:
+        is_placeholder = (widget.get("1.0", "end-1c") == placeholder)
+        if is_placeholder:
+            widget.delete("1.0", tk.END)
+            widget.config(fg=self.ui.fg_color)
+            widget.mark_set("insert", "1.0")
+        if is_placeholder and event and event.type == tk.EventType.ButtonPress:
+            return "break"
+
+    def _handle_text_focus_out(self, widget: tk.Text, placeholder: str, event: Optional[tk.Event] = None) -> None:
+        if getattr(self.ui, 'context_menu_open', False): return
+        if not widget.get("1.0", tk.END).strip():
+            widget.delete("1.0", tk.END)
+            widget.insert("1.0", placeholder)
+            widget.config(fg=self.ui.text_placeholder)
+
+    def _setup_entry_placeholder(self, entry: tk.Entry, placeholder: str) -> None:
+        entry.bind('<FocusIn>', lambda e: self._handle_entry_focus_in(entry, placeholder))
+        entry.bind('<FocusOut>', lambda e: self._handle_entry_focus_out(entry, placeholder))
+
+    def _handle_entry_focus_in(self, entry: tk.Entry, placeholder: str) -> None:
+        if entry.get() == placeholder:
+            entry.delete(0, tk.END)
+            entry.config(fg=self.ui.fg_color)
+
+    def _handle_entry_focus_out(self, entry: tk.Entry, placeholder: str) -> None:
+        if getattr(self.ui, 'context_menu_open', False): return
+        if not entry.get().strip():
+            entry.insert(0, placeholder)
+            entry.config(fg=self.ui.text_placeholder)
+
     def reset_defaults(self) -> None:
-        """Kayıtlı tüm form elemanlarını varsayılan değerlerine döndürür."""
         for entry, def_val in self.default_inputs.items():
             entry.delete(0, tk.END)
             entry.insert(0, def_val)
@@ -78,7 +132,6 @@ class BaseToolWidget(tk.Frame):
             self.info_lbl.config(text=self.default_info_msg, fg=self.ui.text_secondary)
 
     def copy_to_clipboard(self, result_text: str) -> None:
-        """Sonucu panoya kopyalar ve bilgi etiketini (info_lbl) geçici olarak günceller."""
         if not result_text or result_text == "-": return
         self.ui.root.clipboard_clear()
         self.ui.root.clipboard_append(result_text)
