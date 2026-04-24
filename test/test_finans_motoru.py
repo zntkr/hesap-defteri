@@ -104,5 +104,12 @@ class TestFinansMotoru(unittest.TestCase):
         self.assertTrue(math.isinf(FinansMotoru._temiz_sayi(sonsuz)))
         self.assertTrue(math.isnan(FinansMotoru._temiz_sayi(nan_deger)))
 
+    def test_temiz_sayi_cok_buyuk_sayi(self):
+        # Decimal'in precision limitini (varsayılan 28) aşıp InvalidOperation hatasına
+        # düşecek ve fallback (round) bloğunu çalıştıracak devasa sayıların testi.
+        cok_buyuk_sayi = 1e300
+        sonuc = FinansMotoru._temiz_sayi(cok_buyuk_sayi)
+        self.assertEqual(sonuc, 1e300)
+
 if __name__ == '__main__':
     unittest.main()
