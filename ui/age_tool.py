@@ -10,23 +10,23 @@ class AgeToolWidget(BaseToolWidget):
     def build_ui(self) -> None:
         self._build_header(self, "Örn: 15.05.1990 girerek doğduğunuz günü, tam yaşınızı ve sonraki doğum gününüze kalan süreyi bulun.")
         age_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        age_frame.pack(fill="x", pady=5)
+        age_frame.pack(fill="x", pady=8)
         
         self.age_year_entry = self._build_input_row(age_frame, 0, "Doğum Tarihi:", self.ui.date_placeholder)
         self.age_year_entry.config(fg=self.ui.text_placeholder)
         self._build_action_buttons(age_frame, self.calculate_age, self.clear_data)
         
         age_res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        age_res_frame.pack(fill="x", pady=(15, 0))
+        age_res_frame.pack(fill="x", pady=(16, 0))
         
         self.age_res_txt = tk.Text(age_res_frame, font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_secondary, cursor="hand2", wrap="word", bd=0, highlightthickness=0, height=10)
-        self.age_res_txt.pack(anchor="w", fill="x", padx=5, pady=5)
+        self.age_res_txt.pack(anchor="w", fill="x", padx=8, pady=8)
         self.age_res_txt.tag_configure("bold", font=self.ui.font_bold)
         self.age_res_txt.insert("1.0", "-")
         self.age_res_txt.config(state="disabled")
         self.age_res_txt.bind('<Button-1>', lambda e: self.copy_to_clipboard(self.age_res_txt.get("1.0", "end-1c").strip()))
             
-        self._build_info_label(self, "Yaş hesaplama raporu için doğum tarihinizi girin", pad_y=(15, 0))
+        self._build_info_label(self, "Yaş hesaplama raporu için doğum tarihinizi girin")
         
         self.age_year_entry.bind('<Return>', self.calculate_age)
         self.age_year_entry.bind('<FocusIn>', self._clear_age_placeholder)

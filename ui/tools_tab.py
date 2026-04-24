@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class ToolsTab(tk.Frame):
     """Tüm bağımsız araç bileşenlerini yöneten Orkestratör Sınıf."""
     def __init__(self, parent: tk.Misc, ui: 'MainUI') -> None:
-        super().__init__(parent, bg=ui.bg_color, padx=15, pady=15)
+        super().__init__(parent, bg=ui.bg_color, padx=16, pady=16)
         self.ui = ui
         self.build_ui()
 
@@ -35,10 +35,10 @@ class ToolsTab(tk.Frame):
                   foreground=[("selected", self.ui.accent_color)],
                   lightcolor=[("selected", self.ui.shadow_light)],
                   darkcolor=[("selected", self.ui.shadow_dark)],
-                  expand=[("selected", [1, 1, 1, 0])])
+                  expand=[("selected", [1, 1, 1, 2])])
         
         self.notebook = ttk.Notebook(self)
-        self.notebook.pack(fill="both", expand=True, padx=(5, 5), pady=(0, 10))
+        self.notebook.pack(fill="both", expand=True, padx=(8, 8), pady=(0, 8))
         self.notebook.bind("<<NotebookTabChanged>>", self.on_notebook_tab_changed)
         
         self.frames = {}
@@ -53,15 +53,15 @@ class ToolsTab(tk.Frame):
         for i, tool_cls in enumerate(tool_classes, start=1):
             paper_wrapper = tk.Frame(self.notebook, bg=self.ui.bg_secondary)
             
-            left_margin = tk.Frame(paper_wrapper, bg=self.ui.bg_secondary, width=25)
+            left_margin = tk.Frame(paper_wrapper, bg=self.ui.bg_secondary, width=40)
             left_margin.pack(side="left", fill="y")
             left_margin.pack_propagate(False)
             
-            red_line = tk.Frame(paper_wrapper, bg=self.ui.accent_color, width=2)
+            red_line = tk.Frame(paper_wrapper, bg=self.ui.accent_color, width=3)
             red_line.pack(side="left", fill="y")
             
             container = tk.Frame(paper_wrapper, bg=self.ui.bg_secondary)
-            container.pack(side="left", fill="both", expand=True)
+            container.pack(side="left", fill="both", expand=True, padx=(8, 0))
             
             tool_instance = tool_cls(container, self.ui, self)
             tool_instance.pack(fill="both", expand=True)

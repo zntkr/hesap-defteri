@@ -12,13 +12,12 @@ class AverageToolWidget(BaseToolWidget):
     def build_ui(self) -> None:
         self._build_header(self, "Metin içindeki sayıları ayıklayıp ortalamasını ve istatistiklerini hesaplar.")
         input_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        input_frame.pack(fill="x", pady=5)
+        input_frame.pack(fill="x", pady=8)
         
         text_wrapper = tk.Frame(input_frame, bg=self.ui.bg_secondary)
-        text_wrapper.grid(row=0, column=0, columnspan=2, rowspan=2, sticky="nsew", padx=(0, 10), pady=5)
+        text_wrapper.grid(row=0, column=0, columnspan=2, rowspan=3, sticky="nsew", padx=(0, 8), pady=8)
         input_frame.columnconfigure(0, weight=1)
-        input_frame.rowconfigure(0, weight=1)
-        input_frame.rowconfigure(1, weight=1)
+        input_frame.rowconfigure(2, weight=1)
         
         self.avg_char_count_lbl = tk.Label(text_wrapper, text="0 / 5.000", font=(self.ui.font_main[0], 8), fg=self.ui.text_disabled, bg=self.ui.bg_secondary)
         self.avg_char_count_lbl.pack(side="bottom", anchor="e")
@@ -43,7 +42,7 @@ class AverageToolWidget(BaseToolWidget):
 
         self._build_action_buttons(input_frame, self.calculate_average, lambda: self.clear_data(keep_input=False))
         
-        ttk.Separator(self, orient="horizontal").pack(fill="x", pady=(10, 5))
+        ttk.Separator(self, orient="horizontal").pack(fill="x", pady=(8, 8))
         
         res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
         res_frame.pack(fill="both", expand=True)
@@ -53,23 +52,23 @@ class AverageToolWidget(BaseToolWidget):
         
         tk.Label(top_res_frame, text="Ortalama:", fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=4)
         self.avg_result_lbl = tk.Label(top_res_frame, text="-", font=self.ui.font_title, fg=self.ui.fg_color, bg=self.ui.bg_secondary, cursor="hand2")
-        self.avg_result_lbl.grid(row=0, column=1, sticky="w", padx=20)
+        self.avg_result_lbl.grid(row=0, column=1, sticky="w", padx=24)
         self.avg_result_lbl.bind('<Button-1>', lambda e: self.copy_to_clipboard(self.avg_result_lbl.cget("text")))
         
         tk.Label(top_res_frame, text="Toplam:", fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=1, column=0, sticky="w", pady=4)
         self.avg_sum_lbl = tk.Label(top_res_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_secondary, cursor="hand2")
-        self.avg_sum_lbl.grid(row=1, column=1, sticky="w", padx=20)
+        self.avg_sum_lbl.grid(row=1, column=1, sticky="w", padx=24)
         self.avg_sum_lbl.bind('<Button-1>', lambda e: self.copy_to_clipboard(self.avg_sum_lbl.cget("text")))
         
         stats_frame = tk.Frame(res_frame, bg=self.ui.bg_secondary)
-        stats_frame.pack(fill="x", pady=(15, 0))
+        stats_frame.pack(fill="x", pady=(16, 0))
         
         self.avg_stats_labels = {}
         items = [("VERİ ADEDİ:", "adet"), ("MEDYAN:", "medyan"), ("EN BÜYÜK:", "en_buyuk"), ("AÇIKLIK (FARK):", "aciklik"), ("EN KÜÇÜK:", "en_kucuk"), ("STD. SAPMA:", "std_sapma")]
         
         for i, (text, key) in enumerate(items):
             row, col = i // 2, (i % 2) * 2
-            tk.Label(stats_frame, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=row, column=col, sticky="w", pady=4, padx=(30 if col == 2 else 0, 5))
+            tk.Label(stats_frame, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=row, column=col, sticky="w", pady=4, padx=(16 if col == 2 else 0, 8))
             lbl = tk.Label(stats_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_secondary, cursor="hand2")
             lbl.grid(row=row, column=col+1, sticky="w")
             lbl.bind('<Button-1>', lambda e, l=lbl: self.copy_to_clipboard(l.cget("text")))
@@ -77,7 +76,7 @@ class AverageToolWidget(BaseToolWidget):
 
 
         
-        self._build_info_label(self, "Sayıları yapıştırıp Enter'a basın", pad_y=(15, 0))
+        self._build_info_label(self, "Sayıları yapıştırıp Enter'a basın")
         self.primary_input = self.avg_text_input
 
     def clear_avg_placeholder(self, event: Optional[tk.Event] = None) -> Optional[str]:

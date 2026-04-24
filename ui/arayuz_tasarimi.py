@@ -25,7 +25,7 @@ class MainUI:
         self.date_placeholder = "GG.AA.YYYY"
         
         self.root.title(f"{self.app_name} - v{self.app_version}")
-        self.root.geometry("430x540") 
+        self.root.geometry("432x544") 
         self.root.resizable(False, False)
         
         # --- NEO-RETRO THEME VARIABLES ---
@@ -232,14 +232,14 @@ class MainUI:
         
         style.configure("TNotebook.Tab", 
                         background=self.bg_secondary, foreground=self.fg_color, font=self.font_main, 
-                        padding=[15, 5], borderwidth=2,
+                        padding=[16, 8], borderwidth=2,
                         lightcolor=self.shadow_light, darkcolor=self.shadow_dark,
                         focuscolor="", focusthickness=0)
         
         style.map("TNotebook.Tab", 
-                  background=[("selected", self.bg_color)], 
+                  background=[("selected", self.bg_secondary)], 
                   foreground=[("selected", self.accent_color)],
-                  expand=[("selected", [1, 1, 1, 0])]) 
+                  expand=[("selected", [1, 1, 1, 2])]) 
 
         self.main_view = ToolsTab(self.root, self)
         self.main_view.pack(expand=True, fill="both")
@@ -278,40 +278,40 @@ class MainUI:
         return modal
 
     def show_about(self) -> None:
-        about_win = self._create_centered_modal("Hakkında", 340, 210)
+        about_win = self._create_centered_modal("Hakkında", 344, 216)
 
-        tk.Label(about_win, text=self.app_name, font=(self.font_bold[0], 14, "bold"), fg=self.fg_color, bg=self.bg_color).pack(pady=(30, 2))
+        tk.Label(about_win, text=self.app_name, font=(self.font_bold[0], 14, "bold"), fg=self.fg_color, bg=self.bg_color).pack(pady=(32, 4))
         tk.Label(about_win, text=f"Versiyon {self.app_version} (Build {self.build_year})", font=self.font_main, fg=self.text_secondary, bg=self.bg_color).pack()
         
         copyright_text = f"Telif Hakkı © {self.build_year} | MIT Lisansı\nSıfır bloatware, maksimum odak."
-        tk.Label(about_win, text=copyright_text, font=(self.font_main[0], 8), fg=self.text_disabled, bg=self.bg_color, justify="center").pack(pady=(15, 15))
+        tk.Label(about_win, text=copyright_text, font=(self.font_main[0], 8), fg=self.text_disabled, bg=self.bg_color, justify="center").pack(pady=(16, 16))
 
         close_btn = tk.Button(about_win, text="TAMAM", font=self.font_bold, bg=self.accent_color, fg=self.shadow_light, 
                               bd=2, relief="raised", activebackground=self.accent_hover, activeforeground=self.shadow_light, cursor="hand2", command=about_win.destroy)
-        close_btn.pack(pady=(0, 20), ipadx=20, ipady=2)
+        close_btn.pack(pady=(0, 24), ipadx=24, ipady=4)
         
         about_win.deiconify()
 
     def show_guide(self) -> None:
-        guide_win = self._create_centered_modal("Kullanma Rehberi", 520, 500)
+        guide_win = self._create_centered_modal("Kullanma Rehberi", 520, 504)
 
         guide_title = "KULLANMA REHBERİ"
-        tk.Label(guide_win, text=guide_title, font=(self.font_bold[0], 13, "bold"), fg=self.accent_color, bg=self.bg_color).pack(anchor="w", padx=15, pady=(15, 5))
+        tk.Label(guide_win, text=guide_title, font=(self.font_bold[0], 13, "bold"), fg=self.accent_color, bg=self.bg_color).pack(anchor="w", padx=16, pady=(16, 8))
 
         # Butonu alta yerleştir (Önce paketlenir ki taşma durumunda kesilmesin)
         close_btn = tk.Button(guide_win, text="TAMAM", font=self.font_bold, bg=self.accent_color, fg=self.shadow_light, 
                               bd=2, relief="raised", activebackground=self.accent_hover, activeforeground=self.shadow_light, cursor="hand2", command=guide_win.destroy)
-        close_btn.pack(side="bottom", pady=(10, 15), ipadx=15, ipady=3)
+        close_btn.pack(side="bottom", pady=(8, 16), ipadx=16, ipady=4)
 
         text_frame = tk.Frame(guide_win, bg=self.bg_color)
-        text_frame.pack(fill="both", expand=True, padx=15, pady=(0, 10))
+        text_frame.pack(fill="both", expand=True, padx=16, pady=(0, 8))
         
         guide_text = tk.Text(text_frame, font=self.font_main, bg=self.bg_secondary, fg=self.text_secondary, 
-                             wrap="word", bd=1, relief="sunken", padx=15, pady=15, cursor="arrow")
+                             wrap="word", bd=1, relief="sunken", padx=16, pady=16, cursor="arrow")
         guide_text.pack(side="left", fill="both", expand=True)
 
         # Metin içi stil etiketleri (Tags)
-        guide_text.tag_configure("header", font=self.font_bold, foreground=self.accent_color, spacing1=10, spacing3=5)
+        guide_text.tag_configure("header", font=self.font_bold, foreground=self.accent_color, spacing1=8, spacing3=4)
         guide_text.tag_configure("highlight", font=self.font_bold, foreground=self.fg_color)
         guide_text.tag_configure("key", font=self.font_bold, foreground=self.shadow_light, background=self.accent_color)
         guide_text.tag_configure("bullet", foreground=self.accent_color, font=self.font_bold)
