@@ -25,7 +25,7 @@ class MainUI:
         self.date_placeholder = "GG.AA.YYYY"
         
         self.root.title(f"{self.app_name} - v{self.app_version}")
-        self.root.geometry("450x540") 
+        self.root.geometry("430x540") 
         self.root.resizable(False, False)
         
         # --- NEO-RETRO THEME VARIABLES ---

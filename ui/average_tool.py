@@ -15,8 +15,10 @@ class AverageToolWidget(BaseToolWidget):
         input_frame.pack(fill="x", pady=5)
         
         text_wrapper = tk.Frame(input_frame, bg=self.ui.bg_secondary)
-        text_wrapper.grid(row=0, column=0, columnspan=2, rowspan=2, sticky="nsew", padx=(0, 10))
+        text_wrapper.grid(row=0, column=0, columnspan=2, rowspan=2, sticky="nsew", padx=(0, 10), pady=5)
         input_frame.columnconfigure(0, weight=1)
+        input_frame.rowconfigure(0, weight=1)
+        input_frame.rowconfigure(1, weight=1)
         
         self.avg_char_count_lbl = tk.Label(text_wrapper, text="0 / 5.000", font=(self.ui.font_main[0], 8), fg=self.ui.text_disabled, bg=self.ui.bg_secondary)
         self.avg_char_count_lbl.pack(side="bottom", anchor="e")

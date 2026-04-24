@@ -29,7 +29,7 @@ class ToolsTab(tk.Frame):
         
         style = ttk.Style()
         style.configure("TNotebook", background=self.ui.bg_color)
-        style.configure("TNotebook.Tab", font=(self.ui.font_main[0], 9), padding=[8, 2], background=self.ui.shadow_dark, foreground=self.ui.text_secondary, width=11, anchor="center")
+        style.configure("TNotebook.Tab", font=(self.ui.font_main[0], 9), padding=[4, 2], background=self.ui.shadow_dark, foreground=self.ui.text_secondary, anchor="center")
         style.map("TNotebook.Tab",
                   background=[("selected", self.ui.bg_secondary)],
                   foreground=[("selected", self.ui.accent_color)],
@@ -38,7 +38,7 @@ class ToolsTab(tk.Frame):
                   expand=[("selected", [1, 1, 1, 0])])
         
         self.notebook = ttk.Notebook(self)
-        self.notebook.pack(fill="both", expand=True, padx=(5, 5), pady=(0, 5))
+        self.notebook.pack(fill="both", expand=True, padx=(5, 5), pady=(0, 10))
         self.notebook.bind("<<NotebookTabChanged>>", self.on_notebook_tab_changed)
         
         self.frames = {}
@@ -69,7 +69,12 @@ class ToolsTab(tk.Frame):
             if hasattr(tool_instance, 'set_page_badge'):
                 tool_instance.set_page_badge(i, total_tools)
                 
-            self.notebook.add(paper_wrapper, text=tool_instance.get_short_name())
+            # Kısa sekme isimlerinin (YAŞ, KDV) çok dar kalmaması için boşlukla destekliyoruz
+            tab_text = tool_instance.get_short_name()
+            if len(tab_text) < 7:
+                tab_text = tab_text.center(7)
+                
+            self.notebook.add(paper_wrapper, text=tab_text)
             self.frames[tool_instance.get_name()] = tool_instance
             self.tabs_list.append(tool_instance.get_name())
             

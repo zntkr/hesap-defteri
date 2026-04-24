@@ -53,7 +53,8 @@ class BaseToolWidget(tk.Frame):
         if default_val:
             entry.insert(0, default_val)
             self.default_inputs[entry] = default_val
-        entry.grid(row=row, column=1, padx=10, pady=5)
+        entry.grid(row=row, column=1, sticky="w", padx=10, pady=5)
+        parent.columnconfigure(1, weight=1)
         return entry
 
     def _build_action_buttons(self, parent: tk.Frame, calc_cmd: Callable[..., Any], clear_cmd: Callable[[], None]) -> None:
