@@ -20,6 +20,9 @@ class BaseToolWidget(tk.Frame):
     def get_name(self) -> str:
         raise NotImplementedError("Alt sınıf kendi adını tanımlamalıdır.")
 
+    def get_short_name(self) -> str:
+        return self.get_name()
+
     def build_ui(self) -> None:
         raise NotImplementedError("Alt sınıf arayüzünü (UI) tanımlamalıdır.")
 

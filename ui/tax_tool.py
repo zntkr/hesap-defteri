@@ -5,6 +5,7 @@ from core.finans_motoru import FinansMotoru
 from ui.base_tool import BaseToolWidget
 
 class TaxToolWidget(BaseToolWidget):
+    def get_short_name(self) -> str: return "KDV"
     def get_name(self) -> str: return "KDV Hesaplayıcı"
 
     def build_ui(self) -> None:

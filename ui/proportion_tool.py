@@ -5,6 +5,7 @@ from core.finans_motoru import FinansMotoru
 from ui.base_tool import BaseToolWidget
 
 class ProportionToolWidget(BaseToolWidget):
+    def get_short_name(self) -> str: return "ORANTI"
     def get_name(self) -> str: return "Orantı Hesaplayıcı"
 
     def build_ui(self) -> None:

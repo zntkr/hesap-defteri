@@ -5,6 +5,7 @@ from core.finans_motoru import FinansMotoru
 from ui.base_tool import BaseToolWidget
 
 class ChangeToolWidget(BaseToolWidget):
+    def get_short_name(self) -> str: return "DEĞİŞİM"
     def get_name(self) -> str: return "Değişiklik Hesaplayıcı"
 
     def build_ui(self) -> None:

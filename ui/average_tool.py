@@ -6,6 +6,7 @@ from core.matematik_motoru import MatematikMotoru
 from ui.base_tool import BaseToolWidget
 
 class AverageToolWidget(BaseToolWidget):
+    def get_short_name(self) -> str: return "ORTALAMA"
     def get_name(self) -> str: return "Ortalama Hesaplayıcı"
 
     def build_ui(self) -> None:

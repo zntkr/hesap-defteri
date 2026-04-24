@@ -5,6 +5,7 @@ from core.finans_motoru import FinansMotoru
 from ui.base_tool import BaseToolWidget
 
 class DiscountToolWidget(BaseToolWidget):
+    def get_short_name(self) -> str: return "İSKONTO"
     def get_name(self) -> str: return "İndirim Hesaplayıcı"
 
     def build_ui(self) -> None:

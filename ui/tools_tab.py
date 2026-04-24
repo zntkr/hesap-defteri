@@ -25,57 +25,51 @@ class ToolsTab(tk.Frame):
         self.build_ui()
 
     def build_ui(self) -> None:
-        header_frame = tk.Frame(self, bg=self.ui.bg_color)
-        header_frame.pack(fill="x", pady=(0, 15))
-        
-        tk.Label(header_frame, text="İŞLEM TİPİ SEÇİN:", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_color).pack(side="left")
-        
         self.tool_var = tk.StringVar()
-        self.tool_selector = ttk.Combobox(header_frame, textvariable=self.tool_var, state="readonly", font=self.ui.font_main, width=22)
-        self.tool_selector.pack(side="right", fill="x", expand=True, padx=(15, 0))
-        self.tool_selector.bind("<<ComboboxSelected>>", self.on_tool_change)
         
-        ttk.Separator(self, orient="horizontal").pack(fill="x", pady=(0, 15))
-
-        self.paper_wrapper = tk.Frame(self, bg=self.ui.bg_secondary)
-        self.paper_wrapper.pack(fill="both", expand=True, padx=(5, 5), pady=(0, 5))
+        style = ttk.Style()
+        style.configure("TNotebook", background=self.ui.bg_color)
+        style.configure("TNotebook.Tab", font=(self.ui.font_main[0], 9), padding=[8, 2], background=self.ui.shadow_dark, foreground=self.ui.text_secondary, width=11, anchor="center")
+        style.map("TNotebook.Tab", background=[("selected", self.ui.bg_secondary)], foreground=[("selected", self.ui.accent_color)])
         
-        # Kağıdın sol kenarı (ciltleme / delik boşluğu)
-        left_margin = tk.Frame(self.paper_wrapper, bg=self.ui.bg_secondary, width=25)
-        left_margin.pack(side="left", fill="y")
-        left_margin.pack_propagate(False)
+        self.notebook = ttk.Notebook(self)
+        self.notebook.pack(fill="both", expand=True, padx=(5, 5), pady=(0, 5))
+        self.notebook.bind("<<NotebookTabChanged>>", self.on_notebook_tab_changed)
         
-        # Kırmızı marj çizgisi
-        red_line = tk.Frame(self.paper_wrapper, bg=self.ui.accent_color, width=2)
-        red_line.pack(side="left", fill="y")
+        self.frames = {}
+        self.tabs_list = []
         
-        # Ana içerik alanı (Kağıdın geri kalanı)
-        self.container = tk.Frame(self.paper_wrapper, bg=self.ui.bg_secondary)
-        self.container.pack(side="left", fill="both", expand=True)
-        
-        # --- PLUGIN REGISTRY (Bileşen Kaydı) ---
-        tools_list = [
-            ChangeToolWidget(self.container, self.ui, self),
-            AverageToolWidget(self.container, self.ui, self),
-            TaxToolWidget(self.container, self.ui, self),
-            DiscountToolWidget(self.container, self.ui, self),
-            ProportionToolWidget(self.container, self.ui, self),
-            AgeToolWidget(self.container, self.ui, self)
+        tool_classes = [
+            ChangeToolWidget, AverageToolWidget, TaxToolWidget, 
+            DiscountToolWidget, ProportionToolWidget, AgeToolWidget
         ]
         
-        self.frames = {tool.get_name(): tool for tool in tools_list}
-        self.tool_selector['values'] = tuple(self.frames.keys())
-        
-        total_tools = len(tools_list)
-        for i, tool in enumerate(tools_list, start=1):
-            if hasattr(tool, 'set_page_badge'):
-                tool.set_page_badge(i, total_tools)
-        
-        # Başlangıç Aracı dinamik olarak (kayıtlı ilk araç) belirlenir
-        default_tool = list(self.frames.keys())[0]
+        total_tools = len(tool_classes)
+        for i, tool_cls in enumerate(tool_classes, start=1):
+            paper_wrapper = tk.Frame(self.notebook, bg=self.ui.bg_secondary)
+            
+            left_margin = tk.Frame(paper_wrapper, bg=self.ui.bg_secondary, width=25)
+            left_margin.pack(side="left", fill="y")
+            left_margin.pack_propagate(False)
+            
+            red_line = tk.Frame(paper_wrapper, bg=self.ui.accent_color, width=2)
+            red_line.pack(side="left", fill="y")
+            
+            container = tk.Frame(paper_wrapper, bg=self.ui.bg_secondary)
+            container.pack(side="left", fill="both", expand=True)
+            
+            tool_instance = tool_cls(container, self.ui, self)
+            tool_instance.pack(fill="both", expand=True)
+            
+            if hasattr(tool_instance, 'set_page_badge'):
+                tool_instance.set_page_badge(i, total_tools)
+                
+            self.notebook.add(paper_wrapper, text=tool_instance.get_short_name())
+            self.frames[tool_instance.get_name()] = tool_instance
+            self.tabs_list.append(tool_instance.get_name())
+            
+        default_tool = self.tabs_list[0]
         self.tool_var.set(default_tool)
-        self.current_frame = self.frames[default_tool]
-        self.current_frame.pack(fill="both", expand=True)
         self.ui.root.after(100, self._focus_active_tool)
 
     def _focus_active_tool(self) -> None:
@@ -84,21 +78,28 @@ class ToolsTab(tk.Frame):
             tool.primary_input.focus_set()
 
     def cycle_tools(self, event: Optional[tk.Event] = None) -> Optional[str]:
-        tools = self.tool_selector['values']
-        current_tool = self.tool_var.get()
-        current_idx = tools.index(current_tool) if current_tool in tools else -1
-        next_idx = (current_idx + 1) % len(tools)
-        self.tool_var.set(tools[next_idx])
-        self.on_tool_change()
+        current_idx = self.notebook.index(self.notebook.select())
+        next_idx = (current_idx + 1) % len(self.tabs_list)
+        self.notebook.select(next_idx)
         return "break"
 
-    def on_tool_change(self, event: Optional[tk.Event] = None) -> None:
-        self.current_frame.pack_forget()
-        self.current_frame = self.frames[self.tool_var.get()]
-        self.current_frame.pack(fill="both", expand=True)
+    def select_tab(self, tool_name: str) -> None:
+        if tool_name in self.tabs_list:
+            idx = self.tabs_list.index(tool_name)
+            self.notebook.select(idx)
+
+    def on_notebook_tab_changed(self, event: Optional[tk.Event] = None) -> None:
+        current_idx = self.notebook.index(self.notebook.select())
+        active_tool = self.tabs_list[current_idx]
+        self.tool_var.set(active_tool)
+        
         if hasattr(self.ui, 'active_tool_var'):
-            self.ui.active_tool_var.set(self.tool_var.get())
+            self.ui.active_tool_var.set(active_tool)
         self._focus_active_tool()
+
+    def on_tool_change(self, event: Optional[tk.Event] = None) -> None:
+        """Klavye kısayolları ve ana menü radyolarından tetiklendiğinde senkronize eder."""
+        self.select_tab(self.tool_var.get())
 
     def clear_data(self) -> None:
         active_tool = self.frames.get(self.tool_var.get())

@@ -25,11 +25,11 @@ class MainUI:
         self.date_placeholder = "GG.AA.YYYY"
         
         self.root.title(f"{self.app_name} - v{self.app_version}")
-        self.root.geometry("440x540") 
+        self.root.geometry("450x540") 
         self.root.resizable(False, False)
         
         # --- NEO-RETRO THEME VARIABLES ---
-        self.bg_color = "#F9F8F6"
+        self.bg_color = "#4A423A" # Koyu grimsi ahşap/deri masa
         self.fg_color = "#2D2D2D"
         self.accent_color = "#C85A47"
         self.accent_hover = "#A84534"
@@ -42,6 +42,8 @@ class MainUI:
         self.bg_secondary = "#EFEBE6"
         self.error_color = "#D32F2F"
         self.text_placeholder = "#888888"
+        self.text_inverse = "#D0CFCB" # Koyu arka planlar için açık krem/gri
+        self.tab_inactive_bg = "#5A524A" # Pasif sekmelerin masa üzerindeki gölgeli rengi
         
         # --- TYPOGRAPHY ---
         available_fonts = tkfont.families()
