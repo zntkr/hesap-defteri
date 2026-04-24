@@ -16,3 +16,6 @@ htmlcov/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Geliştirme Yardımcı Scriptleri (Production'a alınmaz)
+scratch_*.py
