@@ -30,7 +30,12 @@ class ToolsTab(tk.Frame):
         style = ttk.Style()
         style.configure("TNotebook", background=self.ui.bg_color)
         style.configure("TNotebook.Tab", font=(self.ui.font_main[0], 9), padding=[8, 2], background=self.ui.shadow_dark, foreground=self.ui.text_secondary, width=11, anchor="center")
-        style.map("TNotebook.Tab", background=[("selected", self.ui.bg_secondary)], foreground=[("selected", self.ui.accent_color)])
+        style.map("TNotebook.Tab",
+                  background=[("selected", self.ui.bg_secondary)],
+                  foreground=[("selected", self.ui.accent_color)],
+                  lightcolor=[("selected", self.ui.shadow_light)],
+                  darkcolor=[("selected", self.ui.shadow_dark)],
+                  expand=[("selected", [1, 1, 1, 0])])
         
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill="both", expand=True, padx=(5, 5), pady=(0, 5))
