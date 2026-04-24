@@ -28,8 +28,8 @@ class ToolsTab(tk.Frame):
         self.tool_var = tk.StringVar()
         
         style = ttk.Style()
-        style.configure("TNotebook", background=self.ui.bg_color, tabmargins=[0, 2, 2, 0], borderwidth=0)
-        style.configure("TNotebook.Tab", width=9, font=(self.ui.font_main[0], 9), padding=[4, 2], background=self.ui.shadow_dark, foreground=self.ui.text_secondary, anchor="center")
+        style.configure("TNotebook", background=self.ui.bg_color, tabmargins=[0, 2, 10, 0], borderwidth=0)
+        style.configure("TNotebook.Tab", width=9, font=(self.ui.font_main[0], 9), padding=[4, 2], background=self.ui.shadow_dark, foreground=self.ui.text_secondary, anchor="center", bordercolor=self.ui.shadow_dark)
         style.map("TNotebook.Tab",
                   background=[("selected", self.ui.bg_secondary)],
                   foreground=[("selected", self.ui.accent_color)],
@@ -38,7 +38,7 @@ class ToolsTab(tk.Frame):
                   expand=[("selected", [2, 2, 2, 2])])
         
         self.notebook = ttk.Notebook(self)
-        self.notebook.pack(fill="both", expand=True, padx=(8, 8), pady=(0, 8))
+        self.notebook.pack(fill="both", expand=True, padx=(8, 0), pady=(0, 0))
         self.notebook.bind("<<NotebookTabChanged>>", self.on_notebook_tab_changed)
         
         self.frames = {}
@@ -51,19 +51,39 @@ class ToolsTab(tk.Frame):
         
         total_tools = len(tool_classes)
         for i, tool_cls in enumerate(tool_classes, start=1):
-            paper_wrapper = tk.Frame(self.notebook, bg=self.ui.bg_secondary, bd=0)
+            # Masa rengindeki ana sarmalayıcı (Gölgeyi çizebilmek için)
+            paper_wrapper = tk.Frame(self.notebook, bg=self.ui.bg_color, bd=0)
             
-            # Özel 3D Kenarlıklar (Tkinter'ın kahverengi gölgelerini ezip kendi renklerimizi çiziyoruz)
-            tk.Frame(paper_wrapper, bg=self.ui.shadow_light, width=2).pack(side="left", fill="y")
-            tk.Frame(paper_wrapper, bg=self.ui.shadow_dark, width=2).pack(side="right", fill="y")
-            tk.Frame(paper_wrapper, bg=self.ui.shadow_dark, height=2).pack(side="bottom", fill="x")
+            # Alt Gölge (45 derece etkisi için soldan 8px boşluklu)
+            bottom_shadow = tk.Frame(paper_wrapper, bg=self.ui.bg_shadow, height=8)
+            bottom_shadow.pack(side="bottom", fill="x", padx=(8, 0))
             
-            content_frame = tk.Frame(paper_wrapper, bg=self.ui.bg_secondary)
+            middle_frame = tk.Frame(paper_wrapper, bg=self.ui.bg_color, bd=0)
+            middle_frame.pack(side="top", fill="both", expand=True)
+            
+            # Sağ Gölge (45 derece etkisi için üstten 8px boşluklu)
+            right_shadow = tk.Frame(middle_frame, bg=self.ui.bg_shadow, width=8)
+            right_shadow.pack(side="right", fill="y", pady=(8, 0))
+            
+            # Asıl Defter Sayfası
+            paper = tk.Frame(middle_frame, bg=self.ui.bg_secondary, bd=0)
+            paper.pack(side="left", fill="both", expand=True)
+            
+            # Özel 3D Kenarlıklar (Kağıt sınırları)
+            tk.Frame(paper, bg=self.ui.shadow_light, width=2).pack(side="left", fill="y")
+            tk.Frame(paper, bg=self.ui.shadow_dark, width=2).pack(side="right", fill="y")
+            tk.Frame(paper, bg=self.ui.shadow_dark, height=2).pack(side="bottom", fill="x")
+            
+            content_frame = tk.Frame(paper, bg=self.ui.bg_secondary)
             content_frame.pack(fill="both", expand=True)
             
             left_margin = tk.Frame(content_frame, bg=self.ui.bg_secondary, width=40)
             left_margin.pack(side="left", fill="y")
             left_margin.pack_propagate(False)
+            
+            # Zımba / Klasör Delikleri (Soft gölge, TR ofis standardı 2 delik)
+            for i in range(2):
+                tk.Frame(left_margin, bg=self.ui.shadow_dark, bd=1, relief="sunken", width=10, height=10).pack(pady=(160 if i == 0 else 80, 0))
             
             red_line = tk.Frame(content_frame, bg=self.ui.accent_color, width=3)
             red_line.pack(side="left", fill="y")

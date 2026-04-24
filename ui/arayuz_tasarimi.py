@@ -30,6 +30,7 @@ class MainUI:
         
         # --- NEO-RETRO THEME VARIABLES ---
         self.bg_color = "#4A423A" # Koyu grimsi ahşap/deri masa
+        self.bg_shadow = "#38322C" # Masaya düşen 45 derece solid gölge
         self.fg_color = "#2D2D2D"
         self.accent_color = "#C85A47"
         self.accent_hover = "#A84534"
@@ -40,6 +41,7 @@ class MainUI:
         self.text_secondary = "#666666"
         self.text_disabled = "#B0B0B0"
         self.bg_secondary = "#EFEBE6"
+        self.input_bg = "#F9F8F6" # Saf beyaz yerine defter kağıdından bir tık açık krem
         self.error_color = "#D32F2F"
         self.text_placeholder = "#888888"
         self.text_inverse = "#D0CFCB" # Koyu arka planlar için açık krem/gri
@@ -64,17 +66,12 @@ class MainUI:
         self.build_context_menu()
 
     def build_menu(self) -> None:
-        menubar = tk.Menu(self.root, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
+        menubar = tk.Menu(self.root, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color)
 
-        file_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
-        file_menu.add_command(label="Dışa Aktar (Çok Yakında)", state="disabled")
-        file_menu.add_separator()
+        file_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color)
         file_menu.add_command(label="Çıkış", command=self.root.quit, accelerator="Alt+F4")
 
-        self.edit_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light, postcommand=self._update_edit_menu)
-        self.edit_menu.add_command(label="Geri Al", command=lambda: self._trigger_os_event("<<Undo>>"), accelerator="Ctrl+Z")
-        self.edit_menu.add_command(label="Yeniden Yap", command=lambda: self._trigger_os_event("<<Redo>>"), accelerator="Ctrl+Y")
-        self.edit_menu.add_separator()
+        self.edit_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color, postcommand=self._update_edit_menu)
         self.edit_menu.add_command(label="Kes", command=lambda: self._trigger_os_event("<<Cut>>"), accelerator="Ctrl+X")
         self.edit_menu.add_command(label="Kopyala", command=lambda: self._trigger_os_event("<<Copy>>"), accelerator="Ctrl+C")
         self.edit_menu.add_command(label="Yapıştır", command=lambda: self._trigger_os_event("<<Paste>>"), accelerator="Ctrl+V")
@@ -83,17 +80,17 @@ class MainUI:
         self.edit_menu.add_separator()
         self.edit_menu.add_command(label="Tümünü Temizle", command=self.clear_all, accelerator="Esc")
 
-        tools_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
+        tools_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color)
         self.active_tool_var = tk.StringVar()
         for i, tool_name in enumerate(self.main_view.frames.keys(), start=1):
             accel = f"Ctrl+{i}"
             tools_menu.add_radiobutton(label=tool_name, variable=self.active_tool_var, value=tool_name, command=lambda name=tool_name: self.select_tool(name), accelerator=accel)
             self.root.bind(f"<Control-Key-{i}>", lambda e, name=tool_name: self.select_tool(name))
 
-        view_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
+        view_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color)
         view_menu.add_checkbutton(label="Her Zaman Üstte Tut", variable=self.always_on_top_var, command=self.toggle_always_on_top)
 
-        help_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
+        help_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color)
         help_menu.add_command(label="Kullanma Rehberi", command=self.show_guide, accelerator="F1")
         help_menu.add_separator()
         help_menu.add_command(label="Hakkında", command=self.show_about)
@@ -161,7 +158,7 @@ class MainUI:
 
     def build_context_menu(self) -> None:
         """Metin kutuları için sağ tık (bağlam) menüsünü oluşturur ve sisteme bağlar."""
-        self.context_menu = tk.Menu(self.root, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
+        self.context_menu = tk.Menu(self.root, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color)
         self.context_menu.add_command(label="Kes", command=lambda: self._trigger_os_event("<<Cut>>"))
         self.context_menu.add_command(label="Kopyala", command=lambda: self._trigger_os_event("<<Copy>>"))
         self.context_menu.add_command(label="Yapıştır", command=lambda: self._trigger_os_event("<<Paste>>"))
@@ -228,13 +225,14 @@ class MainUI:
                   selectbackground=[("readonly", self.accent_color), ("focus", self.accent_color)],
                   selectforeground=[("readonly", self.shadow_light), ("focus", self.shadow_light)])
         
-        style.configure("TNotebook", background=self.bg_color, borderwidth=0, tabmargins=[0, 2, 2, 0],
+        style.configure("TNotebook", background=self.bg_color, borderwidth=0, tabmargins=[0, 2, 10, 0],
                         lightcolor=self.shadow_light, darkcolor=self.shadow_dark)
         
         style.configure("TNotebook.Tab", 
                         background=self.bg_secondary, foreground=self.fg_color, font=self.font_main, 
                         padding=[16, 8], borderwidth=2,
                         lightcolor=self.shadow_light, darkcolor=self.shadow_dark,
+                        bordercolor=self.shadow_dark,
                         focuscolor="", focusthickness=0)
         
         style.map("TNotebook.Tab", 
@@ -280,35 +278,37 @@ class MainUI:
 
     def show_about(self) -> None:
         about_win = self._create_centered_modal("Hakkında", 344, 216)
+        about_win.config(bg=self.bg_secondary)
 
-        tk.Label(about_win, text=self.app_name, font=(self.font_bold[0], 14, "bold"), fg=self.fg_color, bg=self.bg_color).pack(pady=(32, 4))
-        tk.Label(about_win, text=f"Versiyon {self.app_version} (Build {self.build_year})", font=self.font_main, fg=self.text_secondary, bg=self.bg_color).pack()
+        tk.Label(about_win, text=self.app_name, font=(self.font_bold[0], 16, "bold"), fg=self.fg_color, bg=self.bg_secondary).pack(pady=(32, 4))
+        tk.Label(about_win, text=f"Versiyon {self.app_version} (Build {self.build_year})", font=self.font_main, fg=self.text_secondary, bg=self.bg_secondary).pack()
         
         copyright_text = f"Telif Hakkı © {self.build_year} | MIT Lisansı\nSıfır bloatware, maksimum odak."
-        tk.Label(about_win, text=copyright_text, font=(self.font_main[0], 8), fg=self.text_disabled, bg=self.bg_color, justify="center").pack(pady=(16, 16))
+        tk.Label(about_win, text=copyright_text, font=(self.font_main[0], 8), fg=self.text_disabled, bg=self.bg_secondary, justify="center").pack(pady=(16, 16))
 
         close_btn = tk.Button(about_win, text="TAMAM", font=self.font_bold, bg=self.accent_color, fg=self.shadow_light, 
                               bd=2, relief="raised", activebackground=self.accent_hover, activeforeground=self.shadow_light, cursor="hand2", command=about_win.destroy)
-        close_btn.pack(pady=(0, 24), ipadx=24, ipady=4)
+        close_btn.pack(pady=(0, 24), ipadx=24)
         
         about_win.deiconify()
 
     def show_guide(self) -> None:
-        guide_win = self._create_centered_modal("Kullanma Rehberi", 520, 504)
+        guide_win = self._create_centered_modal("Kullanma Rehberi", 480, 480)
+        guide_win.config(bg=self.bg_secondary)
 
-        guide_title = "KULLANMA REHBERİ"
-        tk.Label(guide_win, text=guide_title, font=(self.font_bold[0], 13, "bold"), fg=self.accent_color, bg=self.bg_color).pack(anchor="w", padx=16, pady=(16, 8))
+        guide_title = "KULLANMA KILAVUZU"
+        tk.Label(guide_win, text=guide_title, font=(self.font_bold[0], 16, "bold"), fg=self.accent_color, bg=self.bg_secondary).pack(anchor="w", padx=24, pady=(24, 8))
 
         # Butonu alta yerleştir (Önce paketlenir ki taşma durumunda kesilmesin)
         close_btn = tk.Button(guide_win, text="TAMAM", font=self.font_bold, bg=self.accent_color, fg=self.shadow_light, 
                               bd=2, relief="raised", activebackground=self.accent_hover, activeforeground=self.shadow_light, cursor="hand2", command=guide_win.destroy)
-        close_btn.pack(side="bottom", pady=(8, 16), ipadx=16, ipady=4)
+        close_btn.pack(side="bottom", pady=(8, 24), ipadx=24)
 
-        text_frame = tk.Frame(guide_win, bg=self.bg_color)
-        text_frame.pack(fill="both", expand=True, padx=16, pady=(0, 8))
+        text_frame = tk.Frame(guide_win, bg=self.bg_secondary)
+        text_frame.pack(fill="both", expand=True, padx=24, pady=(0, 8))
         
         guide_text = tk.Text(text_frame, font=self.font_main, bg=self.bg_secondary, fg=self.text_secondary, 
-                             wrap="word", bd=1, relief="sunken", padx=16, pady=16, cursor="arrow")
+                             wrap="word", bd=0, highlightthickness=0, padx=0, pady=8, cursor="arrow")
         guide_text.pack(side="left", fill="both", expand=True)
 
         # Metin içi stil etiketleri (Tags)
@@ -318,17 +318,16 @@ class MainUI:
         guide_text.tag_configure("bullet", foreground=self.accent_color, font=self.font_bold)
 
         content = [
-            ("ORTALAMA HESAPLAMA MOTORU\n", "header"),
-            ("• ", "bullet"), ("Agnostik Veri Girişi: ", "highlight"), ("Kopyaladığınız metinleri doğrudan yapıştırın. Sistem harfleri ve boşlukları yoksayarak içindeki sayıları (TR/US formatlı) otomatik ayıklar.\n", "normal"),
-            ("• ", "bullet"), ("Tek Tıkla Kopyalama: ", "highlight"), ("Hesaplanan Sayının üzerine tıklayarak değeri kopyalayabilirsiniz.\n", "normal"),
-            
-            ("ARAÇ KUTUSU\n", "header"),
-            ("• ", "bullet"), ("Geniş Yelpaze: ", "highlight"), ("Ofis ihtiyaçlarınız için programlanmış araçlara açılır menüden geçiş yapabilirsiniz.\n", "normal"),
+            ("HESAP DEFTERİ ARAÇLARI\n", "header"),
+            ("• ", "bullet"), ("Sekmeli Yapı: ", "highlight"), ("Hesaplama araçlarına (Ortalama, KDV, Yaş vb.) üst kısımdaki sekme kulaklarına tıklayarak anında geçiş yapabilirsiniz.\n", "normal"),
+            ("• ", "bullet"), ("Agnostik Veri Girişi: ", "highlight"), ("Metinleri doğrudan yapıştırın. Sistem harfleri yoksayarak içindeki sayıları (TR/US formatlı) otomatik ayıklar.\n", "normal"),
+            ("• ", "bullet"), ("Dokunsal Kopyalama: ", "highlight"), ("Hesaplanan bir sonucun üzerine tıkladığınızda değer anında panoya kopyalanır.\n", "normal"),
 
             ("KLAVYE KISAYOLLARI\n", "header"),
             (" [ Enter ] ", "key"), ("    Aktif araçta hesaplama talimatını verir.\n", "normal"),
             (" [ ESC ] ", "key"), ("      Verileri anında temizler ve işaretçiyi odaklar.\n", "normal"),
-            (" [ Ctrl+Tab ] ", "key"), (" Araçlar arasında hızlı geçiş yapar.\n", "normal"),
+            (" [ Ctrl+Tab ] ", "key"), (" Sekmeler (araçlar) arasında sırayla gezinir.\n", "normal"),
+            (" [ Ctrl+1..6 ] ", "key"),(" İstediğiniz araca doğrudan geçiş yapar.\n", "normal"),
             (" Sağ Tık ", "key"), ("      Standart Kes/Kopyala/Yapıştır menüsünü açar.\n", "normal"),
 
             ("DİĞER ÖZELLİKLER\n", "header"),

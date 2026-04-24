@@ -8,7 +8,7 @@ class AgeToolWidget(BaseToolWidget):
     def get_name(self) -> str: return "Yaş Hesaplayıcı"
 
     def build_ui(self) -> None:
-        self._build_header(self, "Örn: 15.05.1990 girerek doğduğunuz günü, tam yaşınızı ve sonraki doğum gününüze kalan süreyi bulun.")
+        self._build_header(self, "doğum tarihinizi girerek doğduğunuz günü, tam yaşınızı ve kalan süreyi bulun.")
         age_frame = tk.Frame(self, bg=self.ui.bg_secondary)
         age_frame.pack(fill="x", pady=8)
         
@@ -38,13 +38,13 @@ class AgeToolWidget(BaseToolWidget):
         
         if not date_str:
             self._set_result("-")
-            self.info_lbl.config(text="Lütfen doğum tarihinizi girin!", fg=self.ui.error_color)
+            if self.info_lbl: self.info_lbl.config(text="Lütfen doğum tarihinizi girin!", fg=self.ui.error_color)
             return "break"
             
         result = FinansMotoru.yas_hesapla(date_str)
         if "hata" in result:
             err_msg = "Gelecek bir tarih giremezsiniz!" if result["hata"] == "Gelecek tarih" else "Geçersiz format! Örn: 15.05.1990"
-            self.info_lbl.config(text=err_msg, fg=self.ui.error_color)
+            if self.info_lbl: self.info_lbl.config(text=err_msg, fg=self.ui.error_color)
             self._set_result("-")
             return "break"
             
@@ -69,7 +69,7 @@ class AgeToolWidget(BaseToolWidget):
         self.age_res_txt.insert(tk.END, " gün yaşadınız.")
         self.age_res_txt.config(state="disabled")
         
-        self.info_lbl.config(text="Hesaplandı • Kopyalamak için cevaba tıklayın", fg=self.ui.accent_color)
+        if self.info_lbl: self.info_lbl.config(text="Hesaplandı • Kopyalamak için cevaba tıklayın", fg=self.ui.accent_color)
         return "break"
 
     def _set_result(self, text: str) -> None:

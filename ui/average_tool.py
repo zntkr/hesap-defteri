@@ -25,7 +25,7 @@ class AverageToolWidget(BaseToolWidget):
         scrollbar = ttk.Scrollbar(text_wrapper)
         scrollbar.pack(side="right", fill="y")
         
-        self.avg_text_input = tk.Text(text_wrapper, height=3, width=10, font=self.ui.font_main, bg=self.ui.shadow_light, fg=self.ui.text_placeholder, bd=1, relief="solid", wrap="word", yscrollcommand=scrollbar.set, selectbackground=self.ui.accent_light, selectforeground=self.ui.shadow_light)
+        self.avg_text_input = tk.Text(text_wrapper, height=3, width=10, font=self.ui.font_main, bg=self.ui.input_bg, fg=self.ui.text_placeholder, bd=2, relief="sunken", wrap="word", yscrollcommand=scrollbar.set, selectbackground=self.ui.shadow_dark, selectforeground=self.ui.fg_color)
         self.avg_text_input.insert("1.0", self.ui.placeholder_text)
         self.avg_text_input.pack(side="left", fill="both", expand=True)
         self.avg_text_input.tag_configure("detected_number", font=self.ui.font_bold, foreground=self.ui.accent_color)
@@ -36,16 +36,14 @@ class AverageToolWidget(BaseToolWidget):
         self.avg_text_input.bind('<FocusIn>', self.clear_avg_placeholder)
         self.avg_text_input.bind('<FocusOut>', self.add_avg_placeholder)
         self.avg_text_input.bind('<KeyRelease>', self.update_avg_char_count)
-        self.avg_text_input.bind('<<Paste>>', lambda e: self.ui.root.after(10, self.update_avg_char_count))
+        self.avg_text_input.bind('<<Paste>>', self._handle_paste)
         self.avg_text_input.bind('<<Cut>>', lambda e: self.ui.root.after(10, self.update_avg_char_count))
         self.avg_text_input.bind('<Return>', self.calculate_average)
 
-        self._build_action_buttons(input_frame, self.calculate_average, lambda: self.clear_data(keep_input=False))
-        
-        ttk.Separator(self, orient="horizontal").pack(fill="x", pady=(8, 8))
+        self._build_action_buttons(input_frame, self.calculate_average, lambda: self.clear_data(keep_input=False), rowspan=3)
         
         res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        res_frame.pack(fill="both", expand=True)
+        res_frame.pack(fill="x")
         
         top_res_frame = tk.Frame(res_frame, bg=self.ui.bg_secondary)
         top_res_frame.pack(fill="x")
@@ -94,6 +92,44 @@ class AverageToolWidget(BaseToolWidget):
         color = self.ui.error_color if count > 5000 else self.ui.text_disabled
         self.avg_char_count_lbl.config(text=f"{count:,}".replace(",", ".") + " / 5.000", fg=color)
 
+    def _handle_paste(self, event: Optional[tk.Event] = None) -> Optional[str]:
+        try:
+            clipboard_text = self.ui.root.clipboard_get()
+        except tk.TclError:
+            return "break"
+            
+        current_text = self.avg_text_input.get("1.0", "end-1c")
+        is_placeholder = (current_text == self.ui.placeholder_text)
+        
+        try:
+            sel_start = self.avg_text_input.index(tk.SEL_FIRST)
+            sel_end = self.avg_text_input.index(tk.SEL_LAST)
+            sel_len = len(self.avg_text_input.get(sel_start, sel_end))
+        except tk.TclError:
+            sel_len = 0
+            
+        current_len = 0 if is_placeholder else len(current_text)
+        available_space = 5000 - (current_len - sel_len)
+        
+        if available_space <= 0:
+            if self.info_lbl: self.info_lbl.config(text="Limit aşıldı! En fazla 5.000 karakter girilebilir.", fg=self.ui.error_color)
+            return "break"
+            
+        if is_placeholder:
+            self.avg_text_input.delete("1.0", tk.END)
+            self.avg_text_input.config(fg=self.ui.fg_color)
+            
+        if len(clipboard_text) > available_space:
+            clipboard_text = clipboard_text[:available_space]
+            if self.info_lbl: self.info_lbl.config(text="Metin çok uzundu, 5.000 karaktere kırpılarak yapıştırıldı.", fg=self.ui.error_color)
+            
+        if sel_len > 0 and not is_placeholder:
+            self.avg_text_input.delete(tk.SEL_FIRST, tk.SEL_LAST)
+            
+        self.avg_text_input.insert(tk.INSERT, clipboard_text)
+        self.ui.root.after(10, self.update_avg_char_count)
+        return "break"
+
     def calculate_average(self, event: Optional[tk.Event] = None) -> Optional[str]:
         full_text = self.avg_text_input.get("1.0", "end-1c")
         if full_text == self.ui.placeholder_text: full_text = ""
@@ -105,7 +141,7 @@ class AverageToolWidget(BaseToolWidget):
         
         if len(raw_input) > 5000:
             self.clear_data(keep_input=True)
-            self.info_lbl.config(text="Limit aşıldı! En fazla 5.000 karakter girilebilir.", fg=self.ui.error_color)
+            if self.info_lbl: self.info_lbl.config(text="Limit aşıldı! En fazla 5.000 karakter girilebilir.", fg=self.ui.error_color)
             return "break"
 
         numbers = MatematikMotoru.metinden_sayilari_ayikla(raw_input)
@@ -114,7 +150,7 @@ class AverageToolWidget(BaseToolWidget):
         if analysis:
             self.avg_result_lbl.config(text=str(analysis["ortalama"]), fg=self.ui.fg_color)
             self.avg_sum_lbl.config(text=str(analysis['toplam']))
-            self.info_lbl.config(text=f"{analysis['adet']} sayı hesaplandı • Kopyalamak için rakama tıklayın", fg=self.ui.accent_color)
+            if self.info_lbl: self.info_lbl.config(text=f"{analysis['adet']} sayı hesaplandı • Kopyalamak için rakama tıklayın", fg=self.ui.accent_color)
             
             for key, lbl in self.avg_stats_labels.items():
                 if key in analysis: lbl.config(text=str(analysis[key]))
@@ -125,7 +161,7 @@ class AverageToolWidget(BaseToolWidget):
                 self.avg_text_input.tag_add("detected_number", f"1.0 + {match.start()} chars", f"1.0 + {match.end()} chars")
         else:
             self.clear_data(keep_input=True)
-            self.info_lbl.config(text="Sayı bulunamadı veya geçersiz veri girişi!", fg=self.ui.error_color)
+            if self.info_lbl: self.info_lbl.config(text="Sayı bulunamadı veya geçersiz veri girişi!", fg=self.ui.error_color)
             
         return "break"
 

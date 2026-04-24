@@ -36,11 +36,11 @@ class ChangeToolWidget(BaseToolWidget):
 
         if not old_nums or not new_nums:
             self.change_res_lbl.config(text="-")
-            self.info_lbl.config(text="Eski ve yeni değer eksik!", fg=self.ui.error_color)
+            if self.info_lbl: self.info_lbl.config(text="Eski ve yeni değer eksik!", fg=self.ui.error_color)
             return "break"
 
         result = FinansMotoru.degisim_orani_hesapla(old_nums[0], new_nums[0])
         oran = result["degisim_orani"]
         self.change_res_lbl.config(text=f"%{'+' if oran > 0 else ''}{oran}")
-        self.info_lbl.config(text=self._MSG_HESAPLANDI, fg=self.ui.accent_color)
+        if self.info_lbl: self.info_lbl.config(text=self._MSG_HESAPLANDI, fg=self.ui.accent_color)
         return "break"

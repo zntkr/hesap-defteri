@@ -1,4 +1,4 @@
-# Hesaplayıcı v1.0.0 🧮
+# Hesap Defteri v1.0.0 🧮
 
 ![Python Version](https://img.shields.io/badge/python-3.x-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
@@ -33,7 +33,7 @@ python main.py
 ### 2. Tek Dosya Halinde Derleme (.exe)
 Windows kullanıcıları için projeyi bağımsız, taşınabilir ve kurulum gerektirmeyen tek bir çalıştırılabilir dosya haline getirmek çok kolaydır:
 1. Proje dizinindeki `build.bat` dosyasına çift tıklayın. (Eğer sisteminizde PyInstaller yoksa otomatik kuracaktır).
-2. Tam karantina kurallarıyla derlenen `Hesaplayici.exe` dosyanız, işlem bittiğinde `dist/` klasörü içinde hazır olacaktır.
+2. Tam karantina kurallarıyla derlenen `HesapDefteri.exe` dosyanız, işlem bittiğinde `dist/` klasörü içinde hazır olacaktır.
 
 ## 🧪 Testleri Çalıştırma
 

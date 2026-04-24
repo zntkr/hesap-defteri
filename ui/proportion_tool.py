@@ -15,7 +15,7 @@ class ProportionToolWidget(BaseToolWidget):
         self.prop_a_entry = self._build_input_row(prop_frame, 0, "1. Değer (A):", width=12)
         self.prop_b_entry = self._build_input_row(prop_frame, 1, "Karşılığı (B):", width=12)
         self.prop_c_entry = self._build_input_row(prop_frame, 2, "3. Değer (C):", width=12)
-        self._build_action_buttons(prop_frame, self.calculate_proportion, self.clear_data)
+        self._build_action_buttons(prop_frame, self.calculate_proportion, self.clear_data, rowspan=3)
 
         prop_res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
         prop_res_frame.pack(fill="x", pady=(16, 0))
@@ -39,15 +39,15 @@ class ProportionToolWidget(BaseToolWidget):
 
         if not a_nums or not b_nums or not c_nums:
             self.prop_res_lbl.config(text="-")
-            self.info_lbl.config(text="Lütfen üç değeri de eksiksiz girin!", fg=self.ui.error_color)
+            if self.info_lbl: self.info_lbl.config(text="Lütfen üç değeri de eksiksiz girin!", fg=self.ui.error_color)
             return "break"
 
         result = FinansMotoru.oranti_hesapla(a_nums[0], b_nums[0], c_nums[0])
         if "hata" in result:
             self.prop_res_lbl.config(text="-")
-            self.info_lbl.config(text="1. Değer (A) sıfır olamaz!", fg=self.ui.error_color)
+            if self.info_lbl: self.info_lbl.config(text="1. Değer (A) sıfır olamaz!", fg=self.ui.error_color)
             return "break"
 
         self.prop_res_lbl.config(text=str(result["sonuc"]))
-        self.info_lbl.config(text=self._MSG_HESAPLANDI, fg=self.ui.accent_color)
+        if self.info_lbl: self.info_lbl.config(text=self._MSG_HESAPLANDI, fg=self.ui.accent_color)
         return "break"

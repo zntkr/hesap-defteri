@@ -44,42 +44,60 @@ class BaseToolWidget(tk.Frame):
         top_row = tk.Frame(desc_frame, bg=self.ui.bg_secondary)
         top_row.pack(fill="x")
 
-        tk.Label(top_row, text=self.get_name(), font=self.ui.font_bold, fg=self.ui.accent_color, bg=self.ui.bg_secondary).pack(side="left")
+        # Türkçe karakter sorununu (i -> İ, ı -> I) çözerek tüm başlıkları UPPERCASE yapıyoruz
+        title_text = self.get_name().replace('i', 'İ').replace('ı', 'I').upper()
+        tk.Label(top_row, text=title_text, font=self.ui.font_bold, fg=self.ui.accent_color, bg=self.ui.bg_secondary).pack(side="left")
 
         self.badge_lbl = tk.Label(top_row, text="", font=(self.ui.font_main[0], 9, "bold"), fg=self.ui.text_disabled, bg=self.ui.bg_secondary)
         self.badge_lbl.pack(side="right")
 
-        tk.Label(desc_frame, text=desc, font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, justify="left", wraplength=320).pack(anchor="w", pady=(4, 0))
+        tk.Label(desc_frame, text=desc, font=self.ui.font_main, fg=self.ui.text_disabled, bg=self.ui.bg_secondary, justify="left", wraplength=320, height=3, anchor="nw").pack(anchor="w", pady=(4, 0), fill="x")
 
     def set_page_badge(self, current: int, total: int) -> None:
         if hasattr(self, 'badge_lbl'):
             self.badge_lbl.config(text=f"[ {current:02d} / {total:02d} ]")
 
+    def _validate_entry_length(self, P: str) -> bool:
+        return len(P) <= 50
+
     def _build_input_row(self, parent: tk.Frame, row: int, label_text: str, default_val: str = "", width: int = 15) -> tk.Entry:
         tk.Label(parent, text=label_text, font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_secondary).grid(row=row, column=0, sticky="w", pady=8)
-        entry = tk.Entry(parent, font=self.ui.font_main, bg=self.ui.shadow_light, fg=self.ui.fg_color, bd=1, relief="solid", width=width)
+        
+        vcmd = (self.register(self._validate_entry_length), '%P')
+        entry = tk.Entry(parent, font=self.ui.font_main, bg=self.ui.input_bg, fg=self.ui.fg_color, bd=2, relief="sunken", width=width, validate="key", validatecommand=vcmd, selectbackground=self.ui.shadow_dark, selectforeground=self.ui.fg_color)
         if default_val:
             entry.insert(0, default_val)
             self.default_inputs[entry] = default_val
         entry.grid(row=row, column=1, sticky="w", padx=8, pady=8)
+        parent.columnconfigure(0, minsize=120)
         parent.columnconfigure(1, weight=1)
         return entry
 
-    def _build_action_buttons(self, parent: tk.Frame, calc_cmd: Callable[..., Any], clear_cmd: Callable[[], None]) -> None:
+    def _build_action_buttons(self, parent: tk.Frame, calc_cmd: Callable[..., Any], clear_cmd: Callable[[], None], rowspan: int = 2) -> None:
         calc_btn = tk.Button(parent, text="HESAPLA", font=self.ui.font_bold, bg=self.ui.accent_color, fg=self.ui.shadow_light, bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground=self.ui.shadow_light, cursor="hand2", command=calc_cmd)
-        calc_btn.grid(row=0, column=2, padx=8, sticky="nsew", pady=(8, 4), ipadx=8)
+        calc_btn.grid(row=0, column=2, rowspan=max(1, rowspan - 1), padx=8, sticky="nsew", pady=(8, 4), ipadx=8)
         clear_btn = tk.Button(parent, text="Temizle", font=self.ui.font_small, bg=self.ui.bg_secondary, fg=self.ui.text_secondary, bd=1, relief="raised", activebackground=self.ui.border_color, cursor="hand2", command=clear_cmd)
-        clear_btn.grid(row=1, column=2, padx=8, sticky="nsew", pady=(4, 8))
+        clear_btn.grid(row=rowspan - 1, column=2, padx=8, sticky="nsew", pady=(4, 8))
 
-    def _build_info_label(self, parent: tk.Frame, default_msg: str, pad_y: Tuple[int, int] = (16, 0)) -> tk.Label:
+    def _build_info_label(self, parent: tk.Frame, default_msg: str, pad_y: Tuple[int, int] = (16, 16)) -> tk.Label:
         self.default_info_msg = default_msg
-        self.info_lbl = tk.Label(parent, text=default_msg, font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, justify="center", wraplength=312)
-        self.info_lbl.pack(pady=pad_y)
+        self.info_lbl = tk.Label(parent, text=default_msg, font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, justify="left", wraplength=312)
+        self.info_lbl.pack(side="bottom", anchor="w", pady=pad_y)
         return self.info_lbl
 
     def _make_label_clickable(self, lbl: tk.Label) -> None:
-        lbl.config(cursor="hand2")
-        lbl.bind('<Button-1>', lambda e, l=lbl: self.copy_to_clipboard(l.cget("text")))
+        lbl.config(cursor="hand2", bd=2, relief="flat")
+        
+        def on_press(e: tk.Event, l: tk.Label = lbl) -> None:
+            if l.cget("text") not in ("", "-"):
+                l.config(relief="sunken", bg=self.ui.shadow_dark)
+                self.copy_to_clipboard(l.cget("text"))
+                
+        def on_release(e: tk.Event, l: tk.Label = lbl) -> None:
+            l.config(relief="flat", bg=self.ui.bg_secondary)
+            
+        lbl.bind('<Button-1>', on_press)
+        lbl.bind('<ButtonRelease-1>', on_release)
 
     def _build_result_labels(self, parent: tk.Frame, items: List[Tuple[str, str]], padx: int = 24) -> Dict[str, tk.Label]:
         for i, (text, key) in enumerate(items):
@@ -88,6 +106,7 @@ class BaseToolWidget(tk.Frame):
             lbl.grid(row=i, column=1, sticky="w", padx=padx)
             self._make_label_clickable(lbl)
             self.result_labels[key] = lbl
+        parent.columnconfigure(0, minsize=120)
         return self.result_labels
 
     def _get_numbers(self, entry: tk.Entry) -> List[float]:
@@ -138,4 +157,4 @@ class BaseToolWidget(tk.Frame):
         self.ui.root.update()
         if self.info_lbl:
             self.info_lbl.config(text="Kopyalandı!", fg=self.ui.accent_color)
-            self.ui.root.after(1500, lambda: self.info_lbl.config(text=self.default_info_msg, fg=self.ui.text_secondary))
+            self.ui.root.after(1500, lambda: self.info_lbl.config(text=self.default_info_msg, fg=self.ui.text_secondary) if self.info_lbl else None)

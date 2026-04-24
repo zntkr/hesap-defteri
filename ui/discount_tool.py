@@ -8,7 +8,7 @@ class DiscountToolWidget(BaseToolWidget):
     def get_name(self) -> str: return "İndirim Hesaplayıcı"
 
     def build_ui(self) -> None:
-        self._build_header(self, "Örn: 2.500 TL'lik bir malın %15 indirim yapıldığında net fiyatını ve indirim miktarını hesaplar.")
+        self._build_header(self, "Örn: 2.500 TL'lik bir malın %15 indirim yapıldığında indirimli fiyatını ve indirim miktarını hesaplar.")
         discount_frame = tk.Frame(self, bg=self.ui.bg_secondary)
         discount_frame.pack(fill="x", pady=8)
 
@@ -21,9 +21,11 @@ class DiscountToolWidget(BaseToolWidget):
 
         self._build_result_labels(discount_res_frame, [
             ("Fiyat:", "ham_tutar"),
-            ("İndirim Tutarı:", "indirim_tutari"),
-            ("Net Tutar:", "net_tutar"),
+            ("İndirim Miktarı:", "indirim_tutari"),
+            ("İndirimli Fiyat:", "net_tutar"),
         ])
+        
+        self.result_labels["net_tutar"].config(font=self.ui.font_title)
 
         self._build_info_label(self, "İndirim hesaplamak için tutarı girin")
         self.discount_amount_entry.bind('<Return>', self.calculate_discount)
@@ -36,10 +38,10 @@ class DiscountToolWidget(BaseToolWidget):
 
         if not amount_numbers:
             for lbl in self.result_labels.values(): lbl.config(text="-")
-            self.info_lbl.config(text="Geçersiz tutar!", fg=self.ui.error_color)
+            if self.info_lbl: self.info_lbl.config(text="Geçersiz tutar!", fg=self.ui.error_color)
             return "break"
 
         result = FinansMotoru.indirim_hesapla(amount_numbers[0], rate_numbers[0] if rate_numbers else 10.0)
         for key, lbl in self.result_labels.items(): lbl.config(text=str(result[key]))
-        self.info_lbl.config(text="İndirim hesaplandı", fg=self.ui.accent_color)
+        if self.info_lbl: self.info_lbl.config(text="İndirim hesaplandı", fg=self.ui.accent_color)
         return "break"

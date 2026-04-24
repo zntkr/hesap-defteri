@@ -24,6 +24,8 @@ class TaxToolWidget(BaseToolWidget):
             ("KDV Tutarı:", "kdv_tutari"),
             ("Toplam Tutar:", "toplam"),
         ])
+        
+        self.result_labels["toplam"].config(font=self.ui.font_title)
 
         self._build_info_label(self, "KDV hesaplamak için tutarı girin")
         self.tax_amount_entry.bind('<Return>', self.calculate_tax)
@@ -36,10 +38,10 @@ class TaxToolWidget(BaseToolWidget):
 
         if not amount_numbers:
             for lbl in self.result_labels.values(): lbl.config(text="-")
-            self.info_lbl.config(text="Geçersiz tutar!", fg=self.ui.error_color)
+            if self.info_lbl: self.info_lbl.config(text="Geçersiz tutar!", fg=self.ui.error_color)
             return "break"
 
         result = FinansMotoru.kdv_hesapla(amount_numbers[0], rate_numbers[0] if rate_numbers else 20.0)
         for key, lbl in self.result_labels.items(): lbl.config(text=str(result[key]))
-        self.info_lbl.config(text="KDV hesaplandı", fg=self.ui.accent_color)
+        if self.info_lbl: self.info_lbl.config(text="KDV hesaplandı", fg=self.ui.accent_color)
         return "break"
