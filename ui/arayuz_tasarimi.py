@@ -63,14 +63,14 @@ class MainUI:
         self.build_context_menu()
 
     def build_menu(self) -> None:
-        menubar = tk.Menu(self.root, font=self.font_main, bg=self.bg_color, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
-        
-        file_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_color, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
+        menubar = tk.Menu(self.root, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
+
+        file_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
         file_menu.add_command(label="Dışa Aktar (Çok Yakında)", state="disabled")
         file_menu.add_separator()
         file_menu.add_command(label="Çıkış", command=self.root.quit, accelerator="Alt+F4")
-        
-        self.edit_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_color, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light, postcommand=self._update_edit_menu)
+
+        self.edit_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light, postcommand=self._update_edit_menu)
         self.edit_menu.add_command(label="Geri Al", command=lambda: self._trigger_os_event("<<Undo>>"), accelerator="Ctrl+Z")
         self.edit_menu.add_command(label="Yeniden Yap", command=lambda: self._trigger_os_event("<<Redo>>"), accelerator="Ctrl+Y")
         self.edit_menu.add_separator()
@@ -82,17 +82,17 @@ class MainUI:
         self.edit_menu.add_separator()
         self.edit_menu.add_command(label="Tümünü Temizle", command=self.clear_all, accelerator="Esc")
 
-        tools_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_color, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
+        tools_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
         self.active_tool_var = tk.StringVar()
         for i, tool_name in enumerate(self.main_view.frames.keys(), start=1):
             accel = f"Ctrl+{i}"
             tools_menu.add_radiobutton(label=tool_name, variable=self.active_tool_var, value=tool_name, command=lambda name=tool_name: self.select_tool(name), accelerator=accel)
             self.root.bind(f"<Control-Key-{i}>", lambda e, name=tool_name: self.select_tool(name))
 
-        view_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_color, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
+        view_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
         view_menu.add_checkbutton(label="Her Zaman Üstte Tut", variable=self.always_on_top_var, command=self.toggle_always_on_top)
-        
-        help_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_color, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
+
+        help_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
         help_menu.add_command(label="Kullanma Rehberi", command=self.show_guide, accelerator="F1")
         help_menu.add_separator()
         help_menu.add_command(label="Hakkında", command=self.show_about)
@@ -160,7 +160,7 @@ class MainUI:
 
     def build_context_menu(self) -> None:
         """Metin kutuları için sağ tık (bağlam) menüsünü oluşturur ve sisteme bağlar."""
-        self.context_menu = tk.Menu(self.root, tearoff=0, font=self.font_main, bg=self.bg_color, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
+        self.context_menu = tk.Menu(self.root, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.accent_color, activeforeground=self.shadow_light)
         self.context_menu.add_command(label="Kes", command=lambda: self._trigger_os_event("<<Cut>>"))
         self.context_menu.add_command(label="Kopyala", command=lambda: self._trigger_os_event("<<Copy>>"))
         self.context_menu.add_command(label="Yapıştır", command=lambda: self._trigger_os_event("<<Paste>>"))
@@ -296,7 +296,7 @@ class MainUI:
         guide_win = self._create_centered_modal("Kullanma Rehberi", 520, 500)
 
         guide_title = "KULLANMA REHBERİ"
-        tk.Label(guide_win, text=guide_title, font=(self.font_bold[0], 13, "bold"), fg=self.fg_color, bg=self.bg_color).pack(anchor="w", padx=15, pady=(15, 5))
+        tk.Label(guide_win, text=guide_title, font=(self.font_bold[0], 13, "bold"), fg=self.accent_color, bg=self.bg_color).pack(anchor="w", padx=15, pady=(15, 5))
 
         # Butonu alta yerleştir (Önce paketlenir ki taşma durumunda kesilmesin)
         close_btn = tk.Button(guide_win, text="TAMAM", font=self.font_bold, bg=self.accent_color, fg=self.shadow_light, 
