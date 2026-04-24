@@ -1,21 +1,24 @@
-# Python Önbellek Dosyaları
+# Python
 __pycache__/
 *.py[cod]
-*$py.class
+*.pyo
 
-# PyInstaller Derleme (Build) Çıktıları
-build/
+# Dağıtım ve derleme
 dist/
+build/
+*.egg-info/
 *.spec
+HesapDefteri.exe
 
-# Test ve Kapsam (Coverage) Raporları
+# Test kapsamı
 .coverage
 htmlcov/
+coverage.xml
 
-# İşletim Sistemi Kalıntıları
-.DS_Store
-Thumbs.db
-Desktop.ini
+# IDE
+.vscode/
+.idea/
+*.swp
 
-# Geliştirme Yardımcı Scriptleri (Production'a alınmaz)
-scratch_*.py
+# Geliştirme taslakları
+scratch_canvas.py

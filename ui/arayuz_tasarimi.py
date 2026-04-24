@@ -22,11 +22,11 @@ class MainUI:
         # --- APP CONFIG ---
         self.app_name = "Hesap Defteri"
         self.app_version = "1.0.0"
-        self.build_year = "2026"
+        self.build_year = str(datetime.now().year)
         self.date_placeholder = "GG.AA.YYYY"
         
         self.root.title(f"{self.app_name} - v{self.app_version}")
-        self.root.geometry("432x544") 
+        self.root.geometry("424x544") 
         self.root.resizable(False, False)
         
         # --- NEO-RETRO THEME VARIABLES ---
@@ -47,7 +47,7 @@ class MainUI:
         self.error_color = "#D32F2F"
         self.text_placeholder = "#888888"
         self.text_inverse = "#D0CFCB" # Koyu arka planlar için açık krem/gri
-        self.tab_inactive_bg = "#5A524A" # Pasif sekmelerin masa üzerindeki gölgeli rengi
+        self.tab_inactive_bg = "#D3CFC8" # Kağıdın bir ton koyusu (Skeuomorphic gölge)
         
         # --- TYPOGRAPHY ---
         available_fonts = tkfont.families()
@@ -233,21 +233,6 @@ class MainUI:
                   selectbackground=[("readonly", self.accent_color), ("focus", self.accent_color)],
                   selectforeground=[("readonly", self.shadow_light), ("focus", self.shadow_light)])
         
-        style.configure("TNotebook", background=self.bg_color, borderwidth=0, tabmargins=[0, 2, 10, 0],
-                        lightcolor=self.shadow_light, darkcolor=self.shadow_dark)
-        
-        style.configure("TNotebook.Tab", 
-                        background=self.bg_secondary, foreground=self.fg_color, font=self.font_main, 
-                        padding=[16, 8], borderwidth=2,
-                        lightcolor=self.shadow_light, darkcolor=self.shadow_dark,
-                        bordercolor=self.shadow_dark,
-                        focuscolor="", focusthickness=0)
-        
-        style.map("TNotebook.Tab", 
-                  background=[("selected", self.bg_secondary)], 
-                  foreground=[("selected", self.accent_color)],
-                  expand=[("selected", [2, 2, 2, 2])]) 
-
         main_container = tk.Frame(self.root, bg=self.bg_color)
         main_container.pack(expand=True, fill="both")
         
@@ -268,10 +253,10 @@ class MainUI:
         x, y = self.root.winfo_x(), self.root.winfo_y()
         
         if is_open:
-            self.root.geometry(f"688x544+{x}+{y}")
+            self.root.geometry(f"680x544+{x}+{y}")
             self.tape_container.pack(side="right", fill="y", padx=(0, 16), pady=16, before=self.main_view)
         else:
-            self.root.geometry(f"432x544+{x}+{y}")
+            self.root.geometry(f"424x544+{x}+{y}")
             self.tape_container.pack_forget()
 
     def _build_paper_tape(self, parent: tk.Frame) -> None:
@@ -287,9 +272,10 @@ class MainUI:
         paper = tk.Frame(middle, bg=self.tape_bg, bd=0)
         paper.pack(side="left", fill="both", expand=True)
 
+        tk.Frame(paper, bg=self.shadow_light, height=2).pack(side="top", fill="x")
+        tk.Frame(paper, bg=self.shadow_dark, height=2).pack(side="bottom", fill="x")
         tk.Frame(paper, bg=self.shadow_light, width=2).pack(side="left", fill="y")
         tk.Frame(paper, bg=self.shadow_dark, width=2).pack(side="right", fill="y")
-        tk.Frame(paper, bg=self.shadow_dark, height=2).pack(side="bottom", fill="x")
 
         header_frame = tk.Frame(paper, bg=self.tape_bg)
         header_frame.pack(fill="x", pady=(16, 8))

@@ -17,7 +17,7 @@ class AverageToolWidget(BaseToolWidget):
         text_wrapper = tk.Frame(input_frame, bg=self.ui.bg_secondary)
         text_wrapper.grid(row=0, column=0, columnspan=2, rowspan=3, sticky="nsew", padx=(0, 8), pady=8)
         input_frame.columnconfigure(0, weight=1)
-        input_frame.rowconfigure(2, weight=1)
+        input_frame.rowconfigure(0, weight=1)
         
         self.avg_char_count_lbl = tk.Label(text_wrapper, text="0 / 5.000", font=self.ui.font_small, fg=self.ui.text_disabled, bg=self.ui.bg_secondary)
         self.avg_char_count_lbl.pack(side="bottom", anchor="e")
@@ -25,7 +25,7 @@ class AverageToolWidget(BaseToolWidget):
         scrollbar = ttk.Scrollbar(text_wrapper)
         scrollbar.pack(side="right", fill="y")
         
-        self.avg_text_input = tk.Text(text_wrapper, height=3, width=10, font=self.ui.font_main, bg=self.ui.input_bg, fg=self.ui.text_placeholder, bd=2, relief="sunken", wrap="word", yscrollcommand=scrollbar.set, selectbackground=self.ui.shadow_dark, selectforeground=self.ui.fg_color)
+        self.avg_text_input = tk.Text(text_wrapper, height=4, width=10, font=self.ui.font_main, bg=self.ui.input_bg, fg=self.ui.text_placeholder, bd=2, relief="sunken", wrap="word", yscrollcommand=scrollbar.set, selectbackground=self.ui.shadow_dark, selectforeground=self.ui.fg_color)
         self.avg_text_input.insert("1.0", self.ui.placeholder_text)
         self.avg_text_input.pack(side="left", fill="both", expand=True)
         self.avg_text_input.tag_configure("detected_number", font=self.ui.font_bold, foreground=self.ui.accent_color)

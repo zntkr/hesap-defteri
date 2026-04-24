@@ -1,12 +1,11 @@
 import tkinter as tk
-from tkinter import ttk
 import sys
 import os
+from typing import Optional, List, Dict, TYPE_CHECKING
 
-# Proje kök dizinini Python yoluna ekle (Pylance import hatalarını önlemek için)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from typing import Optional, TYPE_CHECKING
+from ui.animated_tab_bar import AnimatedTabBar
 from ui.change_tool import ChangeToolWidget
 from ui.average_tool import AverageToolWidget
 from ui.tax_tool import TaxToolWidget
@@ -16,127 +15,140 @@ from ui.age_tool import AgeToolWidget
 
 if TYPE_CHECKING:
     from ui.arayuz_tasarimi import MainUI
+    from ui.base_tool import BaseToolWidget
+
 
 class ToolsTab(tk.Frame):
     """Tüm bağımsız araç bileşenlerini yöneten Orkestratör Sınıf."""
-    def __init__(self, parent: tk.Misc, ui: 'MainUI') -> None:
+
+    def __init__(self, parent: tk.Misc, ui: "MainUI") -> None:
         super().__init__(parent, bg=ui.bg_color, padx=16, pady=16)
         self.ui = ui
+        self._active_idx: int = 0
+        self.frames: Dict[str, "BaseToolWidget"] = {}
+        self.tabs_list: List[str] = []
+        self._paper_wrappers: List[tk.Frame] = []
+        self.tool_var = tk.StringVar()
         self.build_ui()
 
     def build_ui(self) -> None:
-        self.tool_var = tk.StringVar()
-        
-        style = ttk.Style()
-        style.configure("TNotebook", background=self.ui.bg_color, tabmargins=[0, 2, 10, 0], borderwidth=0)
-        style.configure("TNotebook.Tab", width=9, font=(self.ui.font_main[0], 9), padding=[4, 2], background=self.ui.shadow_dark, foreground=self.ui.text_secondary, anchor="center", bordercolor=self.ui.shadow_dark)
-        style.map("TNotebook.Tab",
-                  background=[("selected", self.ui.bg_secondary)],
-                  foreground=[("selected", self.ui.accent_color)],
-                  lightcolor=[("selected", self.ui.shadow_light)],
-                  darkcolor=[("selected", self.ui.shadow_dark)],
-                  expand=[("selected", [2, 2, 2, 2])])
-        
-        self.notebook = ttk.Notebook(self)
-        self.notebook.pack(fill="both", expand=True, padx=(8, 0), pady=(0, 0))
-        self.notebook.bind("<<NotebookTabChanged>>", self.on_notebook_tab_changed)
-        
-        self.frames = {}
-        self.tabs_list = []
-        
         tool_classes = [
-            ChangeToolWidget, AverageToolWidget, TaxToolWidget, 
-            DiscountToolWidget, ProportionToolWidget, AgeToolWidget
+            ChangeToolWidget, AverageToolWidget, TaxToolWidget,
+            DiscountToolWidget, ProportionToolWidget, AgeToolWidget,
         ]
-        
-        total_tools = len(tool_classes)
-        for i, tool_cls in enumerate(tool_classes, start=1):
-            # Masa rengindeki ana sarmalayıcı (Gölgeyi çizebilmek için)
-            paper_wrapper = tk.Frame(self.notebook, bg=self.ui.bg_color, bd=0)
-            
-            # Alt Gölge (45 derece etkisi için soldan 8px boşluklu)
-            bottom_shadow = tk.Frame(paper_wrapper, bg=self.ui.bg_shadow, height=8)
-            bottom_shadow.pack(side="bottom", fill="x", padx=(8, 0))
-            
-            middle_frame = tk.Frame(paper_wrapper, bg=self.ui.bg_color, bd=0)
-            middle_frame.pack(side="top", fill="both", expand=True)
-            
-            # Sağ Gölge (45 derece etkisi için üstten 8px boşluklu)
-            right_shadow = tk.Frame(middle_frame, bg=self.ui.bg_shadow, width=8)
-            right_shadow.pack(side="right", fill="y", pady=(8, 0))
-            
-            # Asıl Defter Sayfası
-            paper = tk.Frame(middle_frame, bg=self.ui.bg_secondary, bd=0)
-            paper.pack(side="left", fill="both", expand=True)
-            
-            # Özel 3D Kenarlıklar (Kağıt sınırları)
-            tk.Frame(paper, bg=self.ui.shadow_light, width=2).pack(side="left", fill="y")
-            tk.Frame(paper, bg=self.ui.shadow_dark, width=2).pack(side="right", fill="y")
-            tk.Frame(paper, bg=self.ui.shadow_dark, height=2).pack(side="bottom", fill="x")
-            
-            content_frame = tk.Frame(paper, bg=self.ui.bg_secondary)
-            content_frame.pack(fill="both", expand=True)
-            
-            left_margin = tk.Frame(content_frame, bg=self.ui.bg_secondary, width=40)
-            left_margin.pack(side="left", fill="y")
-            left_margin.pack_propagate(False)
-            
-            # Zımba / Klasör Delikleri (Soft gölge, TR ofis standardı 2 delik)
-            for i in range(2):
-                tk.Frame(left_margin, bg=self.ui.shadow_dark, bd=1, relief="sunken", width=10, height=10).pack(pady=(160 if i == 0 else 80, 0))
-            
-            red_line = tk.Frame(content_frame, bg=self.ui.accent_color, width=3)
-            red_line.pack(side="left", fill="y")
-            
-            container = tk.Frame(content_frame, bg=self.ui.bg_secondary)
-            container.pack(side="left", fill="both", expand=True, padx=(8, 0))
-            
-            tool_instance = tool_cls(container, self.ui, self)
-            tool_instance.pack(fill="both", expand=True)
-            
-            if hasattr(tool_instance, 'set_page_badge'):
-                tool_instance.set_page_badge(i, total_tools)
-                
-            tab_text = tool_instance.get_short_name()
-            self.notebook.add(paper_wrapper, text=tab_text)
-            self.frames[tool_instance.get_name()] = tool_instance
-            self.tabs_list.append(tool_instance.get_name())
-            
-        default_tool = self.tabs_list[0]
-        self.tool_var.set(default_tool)
-        self.ui.root.after(100, self._focus_active_tool)
+        total = len(tool_classes)
 
-    def _focus_active_tool(self) -> None:
+        # İçerik çerçevesi: sekme çubuğundan önce oluştur, sonra paketle
+        self.content_host = tk.Frame(self, bg=self.ui.bg_color)
+
+        for i, cls in enumerate(tool_classes, start=1):
+            paper = self._build_paper(self.content_host, i, total, cls)
+            self._paper_wrappers.append(paper)
+
+        short_labels = [self.frames[name].get_short_name() for name in self.tabs_list]
+
+        self.tab_bar = AnimatedTabBar(self, self.ui, short_labels, self._on_tab_change)
+        self.tab_bar.pack(fill="x", padx=(0, 8))
+        self.content_host.pack(fill="both", expand=True)
+
+        self._show(0)
+        self.tool_var.set(self.tabs_list[0])
+
+        self.ui.root.bind("<Escape>", self.ui.clear_all)
+        self.ui.root.bind("<Control-Tab>", lambda e: self.cycle_tools(e))
+        self.ui.root.after(100, self._focus_active)
+
+    def _build_paper(self, host: tk.Frame, i: int, total: int, cls: type) -> tk.Frame:
+        """Defter sayfası görünümündeki sarmalayıcı çerçeveyi ve araç widget'ını oluşturur."""
+        paper_wrapper = tk.Frame(host, bg=self.ui.bg_color, bd=0)
+
+        # 45° gölge efekti: alt ve sağ kenar
+        tk.Frame(paper_wrapper, bg=self.ui.bg_shadow, height=8).pack(
+            side="bottom", fill="x", padx=(8, 0)
+        )
+        middle = tk.Frame(paper_wrapper, bg=self.ui.bg_color, bd=0)
+        middle.pack(side="top", fill="both", expand=True)
+        tk.Frame(middle, bg=self.ui.bg_shadow, width=8).pack(
+            side="right", fill="y", pady=(8, 0)
+        )
+
+        paper = tk.Frame(middle, bg=self.ui.bg_secondary, bd=0)
+        paper.pack(side="left", fill="both", expand=True)
+
+        # Fiziksel kağıt kenarları (3D highlight/shadow)
+        tk.Frame(paper, bg=self.ui.shadow_dark, height=2).pack(side="bottom", fill="x")
+        tk.Frame(paper, bg=self.ui.shadow_light, width=2).pack(side="left", fill="y")
+        tk.Frame(paper, bg=self.ui.shadow_dark, width=2).pack(side="right", fill="y")
+
+        content_frame = tk.Frame(paper, bg=self.ui.bg_secondary)
+        content_frame.pack(fill="both", expand=True)
+
+        # Sol kenar boşluğu — kırmızı çizgi skeuomorfizmi
+        left_margin = tk.Frame(content_frame, bg=self.ui.bg_secondary, width=40)
+        left_margin.pack(side="left", fill="y")
+        left_margin.pack_propagate(False)
+
+        # Zımba delikleri (j ile iç döngü; i araç numarasını gölgelemesin)
+        for j in range(2):
+            tk.Frame(
+                left_margin, bg=self.ui.shadow_dark,
+                bd=1, relief="sunken", width=10, height=10,
+            ).pack(pady=(160 if j == 0 else 80, 0))
+
+        tk.Frame(content_frame, bg=self.ui.accent_color, width=3).pack(side="left", fill="y")
+
+        container = tk.Frame(content_frame, bg=self.ui.bg_secondary)
+        container.pack(side="left", fill="both", expand=True, padx=(8, 0))
+
+        tool = cls(container, self.ui, self)
+        tool.pack(fill="both", expand=True)
+
+        if hasattr(tool, "set_page_badge"):
+            tool.set_page_badge(i, total)
+
+        self.frames[tool.get_name()] = tool
+        self.tabs_list.append(tool.get_name())
+        return paper_wrapper
+
+    def _show(self, idx: int) -> None:
+        """Yalnızca belirtilen sekmenin içerik çerçevesini gösterir."""
+        for i, wrapper in enumerate(self._paper_wrappers):
+            if i == idx:
+                wrapper.pack(fill="both", expand=True)
+            else:
+                wrapper.pack_forget()
+
+    def _on_tab_change(self, idx: int) -> None:
+        self._show(idx)
+        self._active_idx = idx
+        name = self.tabs_list[idx]
+        self.tool_var.set(name)
+        if hasattr(self.ui, "active_tool_var"):
+            self.ui.active_tool_var.set(name)
+        self._focus_active()
+
+    def _focus_active(self) -> None:
         tool = self.frames.get(self.tool_var.get())
         if tool and tool.primary_input:
             tool.primary_input.focus_set()
 
+    # --- Public API ---
+
     def cycle_tools(self, event: Optional[tk.Event] = None) -> Optional[str]:
-        current_idx = self.notebook.index(self.notebook.select())
-        next_idx = (current_idx + 1) % len(self.tabs_list)
-        self.notebook.select(next_idx)
+        next_idx = (self._active_idx + 1) % len(self.tabs_list)
+        self.tab_bar.select(next_idx)
         return "break"
 
     def select_tab(self, tool_name: str) -> None:
         if tool_name in self.tabs_list:
-            idx = self.tabs_list.index(tool_name)
-            self.notebook.select(idx)
+            self.tab_bar.select(self.tabs_list.index(tool_name))
 
-    def on_notebook_tab_changed(self, event: Optional[tk.Event] = None) -> None:
-        current_idx = self.notebook.index(self.notebook.select())
-        active_tool = self.tabs_list[current_idx]
-        self.tool_var.set(active_tool)
-        
-        if hasattr(self.ui, 'active_tool_var'):
-            self.ui.active_tool_var.set(active_tool)
-        self._focus_active_tool()
-
-    def on_tool_change(self, event: Optional[tk.Event] = None) -> None:
+    def on_tool_change(self) -> None:
         """Klavye kısayolları ve ana menü radyolarından tetiklendiğinde senkronize eder."""
         self.select_tab(self.tool_var.get())
 
     def clear_data(self) -> None:
-        active_tool = self.frames.get(self.tool_var.get())
-        if active_tool:
-            active_tool.clear_data()
-        self._focus_active_tool()
+        tool = self.frames.get(self.tool_var.get())
+        if tool:
+            tool.clear_data()
+        self._focus_active()

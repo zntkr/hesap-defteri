@@ -8,9 +8,28 @@ def get_resource_path(relative_path: str) -> str:
     base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
     return os.path.join(base_path, relative_path)
 
+def _apply_square_corners(root: tk.Tk) -> None:
+    """
+    Windows 11'in DWM yuvarlak köşe efektini devre dışı bırakır.
+    Eski Windows sürümlerinde sessizce başarısız olur.
+    """
+    try:
+        import ctypes
+        DWMWA_WINDOW_CORNER_PREFERENCE = 33
+        DONOTROUND = ctypes.c_int(1)
+        hwnd = ctypes.windll.user32.GetParent(root.winfo_id())
+        ctypes.windll.dwmapi.DwmSetWindowAttribute(
+            hwnd,
+            DWMWA_WINDOW_CORNER_PREFERENCE,
+            ctypes.byref(DONOTROUND),
+            ctypes.sizeof(DONOTROUND),
+        )
+    except Exception:
+        pass
+
 if __name__ == "__main__":
     root = tk.Tk()
-    
+
     # 1. PERDEYİ ANINDA KAPAT: İşletim sisteminin pencereyi anlık çizmesini (zıplamayı) engellemek için,
     # ikon yükleme gibi disk işlemlerinden bile ÖNCE yazılmalıdır.
     root.withdraw()
@@ -21,18 +40,21 @@ if __name__ == "__main__":
 
     # 2. DEKORU KUR: Arayuzu olustur
     app = MainUI(root)
-    
+
     # 3. HESAPLAMA YAP: Arka planda boyutları algıla ve ortayı bul
     root.update_idletasks()
-    
+
     # Gizli pencerenin boyutunu winfo_width() yanlış (örneğin 200px) verebilir.
     # Arayüz tasarımında belirlediğimiz 432x544 boyutunu (8-Point Grid) statik olarak alıp ekranın tam ortasını buluyoruz:
-    genislik, yukseklik = 432, 544
+    genislik, yukseklik = 424, 544
     x = (root.winfo_screenwidth() // 2) - (genislik // 2)
     y = (root.winfo_screenheight() // 2) - (yukseklik // 2)
     root.geometry(f"{genislik}x{yukseklik}+{x}+{y}")
-    
+
     # 4. PERDEYİ AÇ: Her şey hazır, pencereyi doğrudan hedeflenen yerde göster
     root.deiconify()
-    
+
+    # 5. KÖŞE EFEKTİ: Pencere görünür olduktan sonra DWM köşe yuvarlamasını kapat
+    _apply_square_corners(root)
+
     root.mainloop()
