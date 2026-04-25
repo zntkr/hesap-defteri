@@ -59,7 +59,13 @@ class ToolsTab(tk.Frame):
 
         self.ui.root.bind("<Escape>", self.ui.clear_all)
         self.ui.root.bind("<Control-Tab>", lambda e: self.cycle_tools(e))
-        self.ui.root.after(100, self._focus_active)
+        self._focus_job: Optional[str] = self.ui.root.after(100, self._focus_active)
+
+    def destroy(self) -> None:
+        if hasattr(self, "_focus_job") and self._focus_job:
+            self.ui.root.after_cancel(self._focus_job)
+            self._focus_job = None
+        super().destroy()
 
     def _build_paper(self, host: tk.Frame, i: int, total: int, cls: type) -> tk.Frame:
         """Defter sayfası görünümündeki sarmalayıcı çerçeveyi ve araç widget'ını oluşturur."""
@@ -87,7 +93,7 @@ class ToolsTab(tk.Frame):
         content_frame.pack(fill="both", expand=True)
 
         # Sol kenar boşluğu — kırmızı çizgi skeuomorfizmi
-        left_margin = tk.Frame(content_frame, bg=self.ui.bg_secondary, width=40)
+        left_margin = tk.Frame(content_frame, bg=self.ui.bg_secondary, width=self.ui.s(40))
         left_margin.pack(side="left", fill="y")
         left_margin.pack_propagate(False)
 

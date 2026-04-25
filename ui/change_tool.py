@@ -36,9 +36,17 @@ class ChangeToolWidget(BaseToolWidget):
         old_nums = self._get_numbers(self.old_val_entry)
         new_nums = self._get_numbers(self.new_val_entry)
 
-        if not old_nums or not new_nums:
+        if not old_nums and not new_nums:
             self.change_res_lbl.config(text="-")
-            if self.info_lbl: self.info_lbl.config(text=L["chng_info_error"], fg=self.ui.error_color)
+            self.show_message(L["chng_info_error"], "error")
+            return "break"
+        elif not old_nums:
+            self.change_res_lbl.config(text="-")
+            self.show_message(L["chng_info_err_old"], "error")
+            return "break"
+        elif not new_nums:
+            self.change_res_lbl.config(text="-")
+            self.show_message(L["chng_info_err_new"], "error")
             return "break"
 
         result = FinansMotoru.degisim_orani_hesapla(old_nums[0], new_nums[0])
@@ -48,7 +56,7 @@ class ChangeToolWidget(BaseToolWidget):
         oran_str = self.format_percentage(oran, isaret)
         self.change_res_lbl.config(text=oran_str)
         self.flash_result(self.change_res_lbl)
-        if self.info_lbl: self.info_lbl.config(text=self._MSG_HESAPLANDI, fg=self.ui.accent_color)
+        self.show_message(self._MSG_HESAPLANDI, "success", transient=True)
         self.ui.add_to_tape(
             L["chng_tape_title"],
             f"{L['chng_tape_old']}: {self.format_number(old_nums[0])}\n{L['chng_tape_new']}: {self.format_number(new_nums[0])}",

@@ -21,11 +21,21 @@ class TestFinansMotoru(unittest.TestCase):
         # Ondalıklı/Küsüratlı Test
         sonuc_ondalik = FinansMotoru.kdv_hesapla(150.50, 18)
         self.assertEqual(sonuc_ondalik["kdv_tutari"], 27.09)
+        
+        # Negatif oran testi (Tolerans / Gizli Özellik)
+        sonuc_negatif = FinansMotoru.kdv_hesapla(1000, -20)
+        self.assertEqual(sonuc_negatif["kdv_tutari"], -200.0)
+        self.assertEqual(sonuc_negatif["toplam"], 800.0)
 
     def test_indirim_hesapla(self):
         sonuc = FinansMotoru.indirim_hesapla(2000, 15)
         self.assertEqual(sonuc["indirim_tutari"], 300.0)
         self.assertEqual(sonuc["net_tutar"], 1700.0)
+        
+        # Negatif oran testi (İndirim yerine Zam/Sürşarj etkisi yaratmalı)
+        sonuc_negatif = FinansMotoru.indirim_hesapla(1000, -15)
+        self.assertEqual(sonuc_negatif["indirim_tutari"], -150.0)
+        self.assertEqual(sonuc_negatif["net_tutar"], 1150.0)
 
     def test_degisim_orani_hesapla(self):
         # Artış senaryosu

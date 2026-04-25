@@ -4,7 +4,7 @@ from tkinter import font as tkfont
 import os
 import sys
 from datetime import datetime
-from typing import Optional, Any
+from typing import Optional, Any, Union
 
 # Proje kök dizinini Python yoluna ekle (Pylance import hatalarını önlemek için)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -20,6 +20,7 @@ class MainUI:
     """
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
+        self.sf = root.winfo_fpixels('1i') / 96.0
 
         # --- APP CONFIG ---
         self.app_version = "1.0.0"
@@ -33,7 +34,7 @@ class MainUI:
         self.placeholder_text = self.lang["placeholder_text"]
 
         self.root.title(f"{self.lang['app_name']} - v{self.app_version}")
-        self.root.geometry("400x560")
+        self.root.geometry(f"{self.s(400)}x{self.s(560)}")
 
         # --- NEO-RETRO THEME VARIABLES ---
         self.bg_color = "#4A423A"
@@ -72,6 +73,10 @@ class MainUI:
         self.build_ui()
         self.build_menu()
         self.build_context_menu()
+        
+    def s(self, val: Union[int, float]) -> int:
+        """DPI ölçekleme çarpanına göre piksel değerlerini dinamik olarak net/vektörel büyütür."""
+        return int(val * self.sf)
 
     def _switch_language(self, lang_code: str) -> None:
         if lang_code == self.aktif_dil:
@@ -80,25 +85,36 @@ class MainUI:
         topmost_val = self.always_on_top_var.get()
         tape_val = self.show_tape_var.get()
 
-        self.aktif_dil = lang_code
-        self.lang = dil.LANGS[lang_code]
-        ayarlar.save({"lang": lang_code})
-        self.date_placeholder = self.lang["date_placeholder"]
-        self.placeholder_text = self.lang["placeholder_text"]
+        # withdraw/deiconify yerine alpha kullanılıyor: WM_SHOW sırasında Windows'un
+        # pencereyi beyaz sistem rengiyle silmesi (WM_ERASEBKGND) bu yöntemle tetiklenmiyor.
+        self.root.wm_attributes("-alpha", 0.0)
+        try:
+            self.aktif_dil = lang_code
+            self.lang = dil.LANGS[lang_code]
+            ayarlar.save({"lang": lang_code})
+            self.date_placeholder = self.lang["date_placeholder"]
+            self.placeholder_text = self.lang["placeholder_text"]
 
-        self.root.title(f"{self.lang['app_name']} - v{self.app_version}")
+            self.root.title(f"{self.lang['app_name']} - v{self.app_version}")
 
-        for widget in self.root.winfo_children():
-            widget.destroy()
+            self._print_queue = []
+            self._is_printing = False
+            self.root["menu"] = ""
+            for widget in self.root.winfo_children():
+                widget.destroy()
 
-        self.always_on_top_var = tk.BooleanVar(value=topmost_val)
-        self.show_tape_var = tk.BooleanVar(value=tape_val)
+            self.always_on_top_var = tk.BooleanVar(value=topmost_val)
+            self.show_tape_var = tk.BooleanVar(value=tape_val)
 
-        self.build_ui()
-        self.build_menu()
-        self.build_context_menu()
+            self.build_ui()
+            self.build_menu()
+            self.build_context_menu()
 
-        self.root.wm_attributes("-topmost", topmost_val)
+            self.root.wm_attributes("-topmost", topmost_val)
+            self.root.update_idletasks()
+            self.toggle_tape()
+        finally:
+            self.root.wm_attributes("-alpha", 1.0)
 
     def build_menu(self) -> None:
         L = self.lang
@@ -251,16 +267,15 @@ class MainUI:
                   selectforeground=[("readonly", self.shadow_light), ("focus", self.shadow_light)])
 
         # Sabit boyutlu konteyner ile Off-Screen Rendering (Clipping) modeli:
-        # Çekmece asla silinmez, her zaman burada 656px genişliğinde bekler (400 Main + 240 Tape + 16 Sağ Boşluk).
-        main_container = tk.Frame(self.root, bg=self.bg_color, width=656, height=560)
-        main_container.place(x=0, y=0, width=656, height=560)
+        main_container = tk.Frame(self.root, bg=self.bg_color, width=self.s(656), height=self.s(560))
+        main_container.place(x=0, y=0, width=self.s(656), height=self.s(560))
 
         self.main_view = ToolsTab(main_container, self)
-        self.main_view.place(x=0, y=0, width=400, height=560)
+        self.main_view.place(x=0, y=0, width=self.s(400), height=self.s(560))
 
         self.tape_container = tk.Frame(main_container, bg=self.bg_color)
         self.tape_container.pack_propagate(False)
-        self.tape_container.place(x=400, y=16, width=240, height=528)
+        self.tape_container.place(x=self.s(400), y=self.s(16), width=self.s(240), height=self.s(528))
         self._build_paper_tape(self.tape_container)
 
     def toggle_tape(self, event: Optional[tk.Event] = None) -> None:
@@ -271,9 +286,9 @@ class MainUI:
         x, y = self.root.winfo_x(), self.root.winfo_y()
 
         if is_open:
-            self.root.geometry(f"656x560+{x}+{y}")
+            self.root.geometry(f"{self.s(656)}x{self.s(560)}+{x}+{y}")
         else:
-            self.root.geometry(f"400x560+{x}+{y}")
+            self.root.geometry(f"{self.s(400)}x{self.s(560)}+{x}+{y}")
 
     def _build_paper_tape(self, parent: tk.Frame) -> None:
         L = self.lang
@@ -295,14 +310,14 @@ class MainUI:
 
         header_frame = tk.Frame(paper, bg=self.tape_bg)
         header_frame.pack(fill="x", pady=(16, 8))
-        tk.Label(header_frame, text=L["tape_header"], font=(self.font_bold[0], 9, "bold"), fg=self.accent_color, bg=self.tape_bg).pack()
+        tk.Label(header_frame, text=L["tape_header"], font=self.font_bold, fg=self.accent_color, bg=self.tape_bg).pack()
         tk.Label(paper, text="- "*18, font=self.font_small, fg=self.shadow_dark, bg=self.tape_bg).pack(fill="x")
 
         self.tape_text = tk.Text(paper, font=self.font_small, bg=self.tape_bg, fg=self.fg_color, bd=0, highlightthickness=0, wrap="word", state="disabled", padx=16, pady=8)
         self.tape_text.pack(fill="both", expand=True)
 
         self.tape_text.tag_configure("header", foreground=self.text_secondary, font=(self.font_main[0], 8, "bold"))
-        self.tape_text.tag_configure("result", foreground=self.accent_color, font=(self.font_bold[0], 9, "bold"))
+        self.tape_text.tag_configure("result", foreground=self.accent_color, font=self.font_bold)
         self.tape_text.tag_configure("flash", background=self.shadow_dark)
 
         btn_frame = tk.Frame(paper, bg=self.tape_bg)
@@ -421,7 +436,7 @@ class MainUI:
 
     def show_about(self) -> None:
         L = self.lang
-        about_win = self._create_centered_modal(L["about_title"], 344, 216)
+        about_win = self._create_centered_modal(L["about_title"], self.s(344), self.s(216))
         about_win.config(bg=self.bg_secondary)
 
         tk.Label(about_win, text=L["app_name"], font=(self.font_bold[0], 16, "bold"), fg=self.fg_color, bg=self.bg_secondary).pack(pady=(32, 4))
@@ -438,7 +453,7 @@ class MainUI:
 
     def show_guide(self) -> None:
         L = self.lang
-        guide_win = self._create_centered_modal(L["guide_title"], 480, 480)
+        guide_win = self._create_centered_modal(L["guide_title"], self.s(480), self.s(480))
         guide_win.config(bg=self.bg_secondary)
 
         tk.Label(guide_win, text=L["guide_heading"], font=(self.font_bold[0], 16, "bold"), fg=self.accent_color, bg=self.bg_secondary).pack(anchor="w", padx=24, pady=(24, 8))

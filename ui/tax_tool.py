@@ -38,17 +38,25 @@ class TaxToolWidget(BaseToolWidget):
         amount_numbers = self._get_numbers(self.tax_amount_entry)
         rate_numbers = self._get_numbers(self.tax_rate_entry)
 
-        if not amount_numbers:
+        if not amount_numbers and not rate_numbers:
             for lbl in self.result_labels.values(): lbl.config(text="-")
-            if self.info_lbl: self.info_lbl.config(text=L["tax_info_error"], fg=self.ui.error_color)
+            self.show_message(L["tax_info_error"], "error")
+            return "break"
+        elif not amount_numbers:
+            for lbl in self.result_labels.values(): lbl.config(text="-")
+            self.show_message(L["tax_info_err_amount"], "error")
+            return "break"
+        elif not rate_numbers:
+            for lbl in self.result_labels.values(): lbl.config(text="-")
+            self.show_message(L["tax_info_err_rate"], "error")
             return "break"
 
-        rate = rate_numbers[0] if rate_numbers else 20.0
+        rate = rate_numbers[0]
         result = FinansMotoru.kdv_hesapla(amount_numbers[0], rate)
         for key, lbl in self.result_labels.items(): 
             lbl.config(text=self.format_number(result[key]))
             self.flash_result(lbl)
-        if self.info_lbl: self.info_lbl.config(text=L["tax_info_ok"], fg=self.ui.accent_color)
+        self.show_message(L["tax_info_ok"], "success", transient=True)
         self.ui.add_to_tape(
             L["tax_tape_title"],
             f"{L['tax_tape_amount']}: {self.format_number(amount_numbers[0])}\n{L['tax_tape_rate']}: {self.format_percentage(rate)}",

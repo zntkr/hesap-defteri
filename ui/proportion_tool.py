@@ -39,20 +39,32 @@ class ProportionToolWidget(BaseToolWidget):
         b_nums = self._get_numbers(self.prop_b_entry)
         c_nums = self._get_numbers(self.prop_c_entry)
 
-        if not a_nums or not b_nums or not c_nums:
+        if not a_nums and not b_nums and not c_nums:
             self.prop_res_lbl.config(text="-")
-            if self.info_lbl: self.info_lbl.config(text=L["prop_info_error_missing"], fg=self.ui.error_color)
+            self.show_message(L["prop_info_error_missing"], "error")
+            return "break"
+        elif not a_nums:
+            self.prop_res_lbl.config(text="-")
+            self.show_message(L["prop_info_err_a"], "error")
+            return "break"
+        elif not b_nums:
+            self.prop_res_lbl.config(text="-")
+            self.show_message(L["prop_info_err_b"], "error")
+            return "break"
+        elif not c_nums:
+            self.prop_res_lbl.config(text="-")
+            self.show_message(L["prop_info_err_c"], "error")
             return "break"
 
         result = FinansMotoru.oranti_hesapla(a_nums[0], b_nums[0], c_nums[0])
         if "hata" in result:
             self.prop_res_lbl.config(text="-")
-            if self.info_lbl: self.info_lbl.config(text=L["prop_info_error_zero"], fg=self.ui.error_color)
+            self.show_message(L["prop_info_error_zero"], "error")
             return "break"
 
         self.prop_res_lbl.config(text=self.format_number(result["sonuc"]))
         self.flash_result(self.prop_res_lbl)
-        if self.info_lbl: self.info_lbl.config(text=self._MSG_HESAPLANDI, fg=self.ui.accent_color)
+        self.show_message(self._MSG_HESAPLANDI, "success", transient=True)
         self.ui.add_to_tape(
             L["prop_tape_title"],
             f"A: {self.format_number(a_nums[0])}\nB: {self.format_number(b_nums[0])}\nC: {self.format_number(c_nums[0])}",

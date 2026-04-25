@@ -27,60 +27,42 @@ def _apply_square_corners(root: tk.Tk) -> None:
     except Exception:
         pass
 
-def _fade_in(root: tk.Tk, alpha: float = 0.0) -> None:
-    """Pencereyi yumuşak bir şekilde (fade-in) görünür yapar."""
-    alpha += 0.06  # Sektör standardı akıcılık: ~16 adımda (150-160ms) tamamlar
-    if alpha < 1.0:
-        root.attributes("-alpha", alpha)
-        root.after(10, lambda: _fade_in(root, alpha))
-    else:
-        root.attributes("-alpha", 1.0)
-
 if __name__ == "__main__":
     # Yüksek çözünürlüklü ekranlarda (High-DPI) ikon ve arayüz bulanıklığını önler
     try:
         import ctypes
+        # Temel DPI Farkındalığı (Aşırı mühendislikten arındırılmış, en stabil Tkinter standardı)
         ctypes.windll.shcore.SetProcessDpiAwareness(1)
     except Exception:
         pass
 
     root = tk.Tk()
 
-    # 1. PERDEYİ ANINDA KAPAT: İşletim sisteminin pencereyi anlık çizmesini (zıplamayı) engellemek için,
-    # ikon yükleme gibi disk işlemlerinden bile ÖNCE yazılmalıdır.
+    # 1. PERDEYİ KAPAT: Arayüz çizilirken ekranda titreme (flicker) olmaması için pencereyi gizle
     root.withdraw()
 
     icon_path = get_resource_path("app_icon.ico")
     if os.path.exists(icon_path):
         root.iconbitmap(icon_path)
 
-    # 2. DEKORU KUR: Arayuzu olustur
+    # 2. DEKORU KUR: Arayüzü oluştur
     app = MainUI(root)
 
-    # 3. GEOMETRİ HESABI: 400x560 (8-Point Grid - Fiziksel Defter Oranı) sabit boyutunu alıp ekran ortasını buluyoruz.
-    genislik, yukseklik = 400, 560
+    # 3. PENCERE AYARLARI: Boyutlandırmayı kilitle ve işletim sisteminin çizimleri bitirmesini bekle
+    root.resizable(False, False)
+    root.update_idletasks()
+
+    # 4. GEOMETRİ HESABI: Uygulamayı ekranın tam ortasına hizala
+    sf = root.winfo_fpixels('1i') / 96.0
+    genislik = int(400 * sf)
+    yukseklik = int(560 * sf)
     x = (root.winfo_screenwidth() // 2) - (genislik // 2)
     y = (root.winfo_screenheight() // 2) - (yukseklik // 2)
     root.geometry(f"{genislik}x{yukseklik}+{x}+{y}")
 
-    # 4. ŞEFFAFLIK AYARI: Pencere ekrana yansımadan önce tamamen şeffaf yapılır
-    root.attributes("-alpha", 0.0)
-
-    # 5. PERDEYİ AÇ: Saydam (görünmez) olarak OS seviyesinde oluştur
-    root.deiconify()
-    
-    # Windows Tkinter Bug Fix: Gizli pencerede resizable(False) yapılırsa iç alan (Client Area) 30-40px kırpılır.
-    # Boyut kilitleme işlemini pencere görünür olduktan SONRA (ama henüz şeffafken) yapıyoruz.
-    root.resizable(False, False)
-    
-    # 6. DWM & OS SYNC: Resizable işlemi pencere stilini değiştirir. 
-    # Bu değişimin yaratacağı görsel titremeyi (glitch) şeffafken absorbe etmek için ekranı zorla güncelliyoruz.
-    root.update()
-
-    # 7. KÖŞE EFEKTİ: DWM tamamen oturduktan sonra köşeleri kesiyoruz
     _apply_square_corners(root)
 
-    # 8. FADE-IN: İşletim sisteminin gölgeleri çizmesi için çok ufak bir avans (30ms) verip animasyonu başlatıyoruz
-    root.after(30, lambda: _fade_in(root))
+    # 5. PERDEYİ AÇ: Kusursuz bir şekilde ekranda göster
+    root.deiconify()
 
     root.mainloop()

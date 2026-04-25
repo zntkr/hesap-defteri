@@ -18,7 +18,7 @@ class AverageToolWidget(BaseToolWidget):
         text_wrapper = tk.Frame(input_frame, bg=self.ui.bg_secondary)
         text_wrapper.grid(row=0, column=0, columnspan=2, rowspan=3, sticky="nsew", padx=(0, 8), pady=8)
         input_frame.columnconfigure(0, weight=1)
-        input_frame.rowconfigure(2, weight=1)
+        input_frame.rowconfigure(0, weight=1)
 
         self.avg_char_count_lbl = tk.Label(text_wrapper, text="", font=self.ui.font_small, fg=self.ui.text_disabled, bg=self.ui.bg_secondary)
         self.avg_char_count_lbl.pack(side="bottom", anchor="e")
@@ -72,7 +72,7 @@ class AverageToolWidget(BaseToolWidget):
 
         for i, (text, key) in enumerate(items):
             row, col = i // 2, (i % 2) * 2
-            tk.Label(stats_frame, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=row, column=col, sticky="w", pady=4, padx=(8 if col == 2 else 0, 2))
+            tk.Label(stats_frame, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=row, column=col, sticky="w", pady=4, padx=(8 if col == 2 else 0, 4))
             lbl = tk.Label(stats_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_secondary)
             lbl.grid(row=row, column=col+1, sticky="w")
             self._make_label_clickable(lbl)
@@ -97,12 +97,21 @@ class AverageToolWidget(BaseToolWidget):
     def update_avg_char_count(self, event: Optional[tk.Event] = None) -> None:
         text = self.avg_text_input.get("1.0", "end-1c")
         count = len(text)
-        color = self.ui.error_color if count > 5000 else self.ui.text_disabled
         
-        if self.ui.aktif_dil == "en":
-            count_str = f"{count:,} / 5,000"
+        if count == 0:
+            self.avg_char_count_lbl.config(text="") # Zen Modu: Kutu boşsa sayacı gizle
+            return
+            
+        L = self.ui.lang
+        if count <= 4000:
+            color = self.ui.text_disabled
+            count_str = f"{count:,} / 5,000" if self.ui.aktif_dil == "en" else f"{count:,}".replace(",", ".") + " / 5.000"
+        elif count <= 5000:
+            color = self.ui.accent_color
+            count_str = L["avg_char_warning"].format(n=5000 - count)
         else:
-            count_str = f"{count:,}".replace(",", ".") + " / 5.000"
+            color = self.ui.error_color
+            count_str = L["avg_char_over"].format(n=count - 5000)
             
         self.avg_char_count_lbl.config(text=count_str, fg=color)
 
@@ -126,12 +135,12 @@ class AverageToolWidget(BaseToolWidget):
         available_space = 5000 - (current_len - sel_len)
 
         if available_space <= 0:
-            if self.info_lbl: self.info_lbl.config(text=L["avg_info_limit"], fg=self.ui.error_color)
+            self.show_message(L["avg_info_limit"], "error")
             return "break"
 
         if len(clipboard_text) > available_space:
             clipboard_text = clipboard_text[:available_space]
-            if self.info_lbl: self.info_lbl.config(text=L["avg_info_truncated"], fg=self.ui.error_color)
+            self.show_message(L["avg_info_truncated"], "error", transient=True)
 
         if sel_len > 0:
             self.avg_text_input.delete(tk.SEL_FIRST, tk.SEL_LAST)
@@ -150,7 +159,7 @@ class AverageToolWidget(BaseToolWidget):
 
         if len(raw_input) > 5000:
             self.clear_data(keep_input=True)
-            if self.info_lbl: self.info_lbl.config(text=L["avg_info_limit"], fg=self.ui.error_color)
+            self.show_message(L["avg_info_limit"], "error")
             return "break"
 
         numbers = MatematikMotoru.metinden_sayilari_ayikla(raw_input)
@@ -161,7 +170,7 @@ class AverageToolWidget(BaseToolWidget):
             self.flash_result(self.avg_result_lbl)
             self.avg_sum_lbl.config(text=self.format_number(analysis['toplam']))
             self.flash_result(self.avg_sum_lbl)
-            if self.info_lbl: self.info_lbl.config(text=L["avg_info_result"].format(count=self.format_number(analysis['adet'])), fg=self.ui.accent_color)
+            self.show_message(L["avg_info_result"].format(count=self.format_number(analysis['adet'])), "success", transient=True)
 
             for key, lbl in self.avg_stats_labels.items():
                 if key in analysis: 
@@ -178,7 +187,7 @@ class AverageToolWidget(BaseToolWidget):
             )
         else:
             self.clear_data(keep_input=True)
-            if self.info_lbl: self.info_lbl.config(text=L["avg_info_error"], fg=self.ui.error_color)
+            self.show_message(L["avg_info_error"], "error")
 
         return "break"
 

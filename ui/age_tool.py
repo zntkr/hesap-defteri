@@ -37,13 +37,13 @@ class AgeToolWidget(BaseToolWidget):
 
         if not date_str:
             self._set_result("-")
-            if self.info_lbl: self.info_lbl.config(text=L["age_info_error_empty"], fg=self.ui.error_color)
+            self.show_message(L["age_info_error_empty"], "error")
             return "break"
 
         result = FinansMotoru.yas_hesapla(date_str, lang=self.ui.aktif_dil)
         if "hata" in result:
             err_msg = L["age_info_error_future"] if result["hata"] == "Gelecek tarih" else L["age_info_error_format"]
-            if self.info_lbl: self.info_lbl.config(text=err_msg, fg=self.ui.error_color)
+            self.show_message(err_msg, "error")
             self._set_result("-")
             return "break"
 
@@ -73,7 +73,7 @@ class AgeToolWidget(BaseToolWidget):
         self.age_res_txt.config(state="disabled")
         self.flash_result(self.age_res_txt)
 
-        if self.info_lbl: self.info_lbl.config(text=L["age_info_ok"], fg=self.ui.accent_color)
+        self.show_message(L["age_info_ok"], "success", transient=True)
         self.ui.add_to_tape(
             L["age_tape_title"],
             f"{L['age_tape_born_label']}: {date_str}",

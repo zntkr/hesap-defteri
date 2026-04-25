@@ -56,14 +56,30 @@ class BaseToolWidget(tk.Frame):
             title_text = self.get_name().upper()
         tk.Label(top_row, text=title_text, font=self.ui.font_bold, fg=self.ui.accent_color, bg=self.ui.bg_secondary).pack(side="left")
 
-        self.badge_lbl = tk.Label(top_row, text="", font=(self.ui.font_main[0], 9, "bold"), fg=self.ui.text_disabled, bg=self.ui.bg_secondary)
-        self.badge_lbl.pack(side="right")
+        # Fiziksel Kaşe (Stamp) ve Tıklanabilir Navigasyon Rozeti
+        self.badge_frame = tk.Frame(top_row, bg=self.ui.bg_secondary, cursor="hand2", bd=0)
+        self.badge_frame.pack(side="right", ipadx=4, ipady=4)
+        
+        self.badge_cur_lbl = tk.Label(self.badge_frame, text="", font=(self.ui.font_main[0], 8, "bold"), fg=self.ui.text_secondary, bg=self.ui.bg_secondary, cursor="hand2", bd=0)
+        self.badge_cur_lbl.pack(side="left")
+        
+        self.badge_sep_lbl = tk.Label(self.badge_frame, text="/", font=(self.ui.font_main[0], 8, "bold"), fg=self.ui.text_disabled, bg=self.ui.bg_secondary, cursor="hand2", bd=0)
+        self.badge_sep_lbl.pack(side="left", padx=4)
+        
+        self.badge_tot_lbl = tk.Label(self.badge_frame, text="", font=(self.ui.font_main[0], 8, "bold"), fg=self.ui.text_disabled, bg=self.ui.bg_secondary, cursor="hand2", bd=0)
+        self.badge_tot_lbl.pack(side="left")
 
-        tk.Label(desc_frame, text=desc, font=self.ui.font_main, fg=self.ui.text_disabled, bg=self.ui.bg_secondary, justify="left", wraplength=320, height=3, anchor="nw").pack(anchor="w", pady=(4, 0), fill="x")
+        for w in (self.badge_frame, self.badge_cur_lbl, self.badge_sep_lbl, self.badge_tot_lbl):
+            w.bind("<Button-1>", lambda e: self.orchestrator.cycle_tools())
+            w.bind("<Enter>", lambda e: self.badge_frame.config(bg=self.ui.tab_inactive_bg) or [lbl.config(bg=self.ui.tab_inactive_bg) for lbl in (self.badge_cur_lbl, self.badge_sep_lbl, self.badge_tot_lbl)])
+            w.bind("<Leave>", lambda e: self.badge_frame.config(bg=self.ui.bg_secondary) or [lbl.config(bg=self.ui.bg_secondary) for lbl in (self.badge_cur_lbl, self.badge_sep_lbl, self.badge_tot_lbl)])
+
+        tk.Label(desc_frame, text=desc, font=self.ui.font_main, fg=self.ui.text_disabled, bg=self.ui.bg_secondary, justify="left", wraplength=self.ui.s(300), height=3, anchor="nw").pack(anchor="w", pady=(4, 0), fill="x")
 
     def set_page_badge(self, current: int, total: int) -> None:
-        if hasattr(self, 'badge_lbl'):
-            self.badge_lbl.config(text=f"[ {current:02d} / {total:02d} ]")
+        if hasattr(self, 'badge_cur_lbl'):
+            self.badge_cur_lbl.config(text=f"{current:02d}")
+            self.badge_tot_lbl.config(text=f"{total:02d}")
 
     def _validate_entry_length(self, P: str) -> bool:
         return len(P) <= 50
@@ -93,8 +109,10 @@ class BaseToolWidget(tk.Frame):
 
     def _build_info_label(self, parent: tk.Frame, default_msg: str, pad_y: Tuple[int, int] = (16, 16)) -> tk.Label:
         self.default_info_msg = default_msg
-        self.info_lbl = tk.Label(parent, text=default_msg, font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, justify="left", wraplength=312)
+        self.info_lbl = tk.Label(parent, text=default_msg, font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, justify="left", wraplength=self.ui.s(300))
         self.info_lbl.pack(side="bottom", anchor="w", pady=pad_y)
+        self._permanent_msg = (default_msg, self.ui.text_secondary)
+        self._msg_timer: Optional[str] = None
         return self.info_lbl
 
     def _make_clickable(self, widget: Union[tk.Label, tk.Text]) -> None:
@@ -122,7 +140,7 @@ class BaseToolWidget(tk.Frame):
             lbl.grid(row=i, column=1, sticky="w", padx=padx)
             self._make_label_clickable(lbl)
             self.result_labels[key] = lbl
-        parent.columnconfigure(0, minsize=120)
+        parent.columnconfigure(0, minsize=self.ui.s(120))
         return self.result_labels
 
     def _get_numbers(self, entry: tk.Entry) -> List[float]:
@@ -155,18 +173,40 @@ class BaseToolWidget(tk.Frame):
         widget.config(fg=self.ui.accent_color)
         self.ui.root.after(1000, lambda: widget.config(fg=self.ui.fg_color) if widget.winfo_exists() else None)
 
+    def show_message(self, text: str, msg_type: str = "info", transient: bool = False, duration: int = 1500) -> None:
+        """Akıllı Geri Bildirim Yöneticisi: Mesaj türüne göre renk atar ve geçici/kalıcı durumları hafızada tutarak yönetir."""
+        if not self.info_lbl: return
+        
+        timer_id = getattr(self, '_msg_timer', None)
+        if timer_id is not None:
+            self.ui.root.after_cancel(timer_id)
+            self._msg_timer = None
+            
+        color_map = {
+            "info": self.ui.text_secondary,
+            "success": self.ui.accent_color,
+            "error": self.ui.error_color
+        }
+        color = color_map.get(msg_type, self.ui.text_secondary)
+        self.info_lbl.config(text=text, fg=color)
+        
+        if not transient:
+            self._permanent_msg = (text, color)
+        else:
+            def restore() -> None:
+                if self.info_lbl and hasattr(self, '_permanent_msg'):
+                    self.info_lbl.config(text=self._permanent_msg[0], fg=self._permanent_msg[1])
+            self._msg_timer = self.ui.root.after(duration, restore)
+
     def reset_defaults(self) -> None:
         for entry, def_val in self.default_inputs.items():
             entry.delete(0, tk.END)
             entry.insert(0, def_val)
-        if self.info_lbl:
-            self.info_lbl.config(text=self.default_info_msg, fg=self.ui.text_secondary)
+        self.show_message(self.default_info_msg, "info")
 
     def copy_to_clipboard(self, result_text: str) -> None:
         if not result_text or result_text == "-": return
         self.ui.root.clipboard_clear()
         self.ui.root.clipboard_append(result_text)
         self.ui.root.update()
-        if self.info_lbl:
-            self.info_lbl.config(text=self.ui.lang["msg_copied"], fg=self.ui.accent_color)
-            self.ui.root.after(1500, lambda: self.info_lbl.config(text=self.default_info_msg, fg=self.ui.text_secondary) if self.info_lbl else None)
+        self.show_message(self.ui.lang["msg_copied"], "success", transient=True)

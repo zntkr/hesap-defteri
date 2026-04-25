@@ -14,8 +14,6 @@ class AnimatedTabBar(tk.Canvas):
     interpolasyonlanır; animasyon rapid tıklamalarda mevcut progress'ten devam eder.
     """
 
-    _H: int = 24        # sekme yüksekliği (px)
-    _CLIP: int = 5      # üst köşe kırpma (px)
     _STEPS: int = 8
     _INTERVAL_MS: int = 16   # ~62 fps → toplam ~130 ms geçiş
 
@@ -26,6 +24,9 @@ class AnimatedTabBar(tk.Canvas):
         labels: List[str],
         on_change: Callable[[int], None],
     ) -> None:
+        self.ui = ui
+        self._H: int = self.ui.s(24)
+        self._CLIP: int = self.ui.s(5)
         super().__init__(
             parent,
             height=self._H,
@@ -34,20 +35,18 @@ class AnimatedTabBar(tk.Canvas):
             bd=0,
             cursor="hand2",
         )
-        self.ui = ui
         self.labels = labels
         self.on_change = on_change
         self._current_idx: int = 0
         self._anim_job: Optional[str] = None
-        # Her sekme için activity seviyesi: 0.0 = tam pasif, 1.0 = tam aktif
-        self._progress: List[float] = [0.0] * len(labels)
+        # Sekme 0 başlangıçta aktif; after() gecikme olmadan ilk <Configure>'da doğru çizilir
+        self._progress: List[float] = [1.0 if i == 0 else 0.0 for i in range(len(labels))]
         self._tab_items: List[Dict[str, Any]] = []
         self._shelf_lines: List[int] = []
         self._last_width: int = 0
 
         self.bind("<Configure>", lambda e: self._redraw())
         self.bind("<Button-1>", self._on_click)
-        self.after(60, lambda: self.select(0, animate=False))
 
     @staticmethod
     def _lerp_color(c1: str, c2: str, t: float) -> str:
@@ -68,6 +67,12 @@ class AnimatedTabBar(tk.Canvas):
             idx = int(event.x / tw)
             if 0 <= idx < len(self.labels):
                 self.select(idx)
+
+    def destroy(self) -> None:
+        if self._anim_job:
+            self.after_cancel(self._anim_job)
+            self._anim_job = None
+        super().destroy()
 
     def select(self, idx: int, animate: bool = True) -> None:
         """Sekmeyi seç; gerekirse renk geçiş animasyonu başlat."""
@@ -197,9 +202,9 @@ class AnimatedTabBar(tk.Canvas):
         self.itemconfig(lines[9], fill=sh)
 
         font = (
-            (self.ui.font_main[0], 9, "bold")
+            (self.ui.font_main[0], 8, "bold")
             if activity > 0.5
-            else (self.ui.font_main[0], 9)
+            else self.ui.font_small
         )
         self.coords(items['text'], x + w / 2, h / 2)
         self.itemconfig(items['text'], text=label, fill=fg, font=font)
