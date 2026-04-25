@@ -2,6 +2,18 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/). Versiyon: [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] — 2026-04-25
+
+### Eklendi
+- Çoklu dil desteği (Türkçe / İngilizce), menüden anlık geçiş
+- Dil tercihi kalıcılığı: `core/ayarlar.py` — atomik yazma, whitelist doğrulama, graceful degradation
+- `core/ayarlar.py` için 15 birim testi (eksik dosya, bozuk JSON, geçersiz değer, OSError senaryoları)
+
+### İyileştirildi
+- `AnimatedTabBar`: Win98 çift katmanlı bevel kenarları (dış + iç highlight/shadow çizgisi), kırpık köşelerin arkasında Canvas arka planı görünmez
+- Pasif sekme rengi `bg_secondary`'den 15 birim karanlık — gerçek "bir ton koyusu" yerine shadow rengiyle özdeş değer kullanılıyordu
+- Windows 11 yuvarlak köşe efekti DWM API ile devre dışı bırakıldı (`DWMWA_WINDOW_CORNER_PREFERENCE`)
+
 ## [1.0.0] — 2026-04-25
 
 ### Eklendi

@@ -40,10 +40,13 @@ class ToolsTab(tk.Frame):
 
         # İçerik çerçevesi: sekme çubuğundan önce oluştur, sonra paketle
         self.content_host = tk.Frame(self, bg=self.ui.bg_color)
+        self.content_host.grid_rowconfigure(0, weight=1)
+        self.content_host.grid_columnconfigure(0, weight=1)
 
         for i, cls in enumerate(tool_classes, start=1):
             paper = self._build_paper(self.content_host, i, total, cls)
             self._paper_wrappers.append(paper)
+            paper.grid(row=0, column=0, sticky="nsew")
 
         short_labels = [self.frames[name].get_short_name() for name in self.tabs_list]
 
@@ -88,13 +91,6 @@ class ToolsTab(tk.Frame):
         left_margin.pack(side="left", fill="y")
         left_margin.pack_propagate(False)
 
-        # Zımba delikleri (j ile iç döngü; i araç numarasını gölgelemesin)
-        for j in range(2):
-            tk.Frame(
-                left_margin, bg=self.ui.shadow_dark,
-                bd=1, relief="sunken", width=10, height=10,
-            ).pack(pady=(160 if j == 0 else 80, 0))
-
         tk.Frame(content_frame, bg=self.ui.accent_color, width=3).pack(side="left", fill="y")
 
         container = tk.Frame(content_frame, bg=self.ui.bg_secondary)
@@ -112,11 +108,10 @@ class ToolsTab(tk.Frame):
 
     def _show(self, idx: int) -> None:
         """Yalnızca belirtilen sekmenin içerik çerçevesini gösterir."""
-        for i, wrapper in enumerate(self._paper_wrappers):
-            if i == idx:
-                wrapper.pack(fill="both", expand=True)
-            else:
-                wrapper.pack_forget()
+        # Tüm sekmeler halihazırda grid üzerinde üst üste (stack) duruyor.
+        # Sadece istenen sekmeyi Z-ekseninde en üste alıyoruz (tkraise).
+        # Böylece unmap/map kaynaklı anlık siyahlık/titreme (%100) yok edilir.
+        self._paper_wrappers[idx].tkraise()
 
     def _on_tab_change(self, idx: int) -> None:
         self._show(idx)

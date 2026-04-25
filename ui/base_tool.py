@@ -1,5 +1,5 @@
 import tkinter as tk
-from typing import Optional, Tuple, TYPE_CHECKING, Callable, Any, Dict, List
+from typing import Optional, Tuple, TYPE_CHECKING, Callable, Any, Dict, List, Union
 
 if TYPE_CHECKING:
     from ui.arayuz_tasarimi import MainUI
@@ -10,7 +10,9 @@ from core.matematik_motoru import MatematikMotoru
 class BaseToolWidget(tk.Frame):
     """Tüm araçların miras alacağı, ortak arayüz elemanlarını barındıran temel (Base) sınıf."""
 
-    _MSG_HESAPLANDI = "Hesaplandı • Kopyalamak için sonuca tıklayın"
+    @property
+    def _MSG_HESAPLANDI(self) -> str:
+        return self.ui.lang["msg_calculated"]
 
     def __init__(self, parent: tk.Widget, ui: 'MainUI', orchestrator: 'ToolsTab') -> None:
         super().__init__(parent, bg=ui.bg_secondary)
@@ -36,6 +38,10 @@ class BaseToolWidget(tk.Frame):
         self.reset_defaults()
         for lbl in self.result_labels.values():
             lbl.config(text="-")
+            
+        # Temizle işleminden sonra doğrudan veri girilebilmesi için odağı geri ver
+        if self.primary_input:
+            self.primary_input.focus_set()
 
     def _build_header(self, parent: tk.Frame, desc: str) -> None:
         desc_frame = tk.Frame(parent, bg=self.ui.bg_secondary, pady=8)
@@ -44,8 +50,10 @@ class BaseToolWidget(tk.Frame):
         top_row = tk.Frame(desc_frame, bg=self.ui.bg_secondary)
         top_row.pack(fill="x")
 
-        # Türkçe karakter sorununu (i -> İ, ı -> I) çözerek tüm başlıkları UPPERCASE yapıyoruz
-        title_text = self.get_name().replace('i', 'İ').replace('ı', 'I').upper()
+        if self.ui.aktif_dil == "tr":
+            title_text = self.get_name().replace('i', 'İ').replace('ı', 'I').upper()
+        else:
+            title_text = self.get_name().upper()
         tk.Label(top_row, text=title_text, font=self.ui.font_bold, fg=self.ui.accent_color, bg=self.ui.bg_secondary).pack(side="left")
 
         self.badge_lbl = tk.Label(top_row, text="", font=(self.ui.font_main[0], 9, "bold"), fg=self.ui.text_disabled, bg=self.ui.bg_secondary)
@@ -64,20 +72,24 @@ class BaseToolWidget(tk.Frame):
         tk.Label(parent, text=label_text, font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_secondary).grid(row=row, column=0, sticky="w", pady=8)
         
         vcmd = (self.register(self._validate_entry_length), '%P')
-        entry = tk.Entry(parent, font=self.ui.font_main, bg=self.ui.input_bg, fg=self.ui.fg_color, bd=2, relief="sunken", width=width, validate="key", validatecommand=vcmd, selectbackground=self.ui.shadow_dark, selectforeground=self.ui.fg_color)
+        entry = tk.Entry(parent, font=self.ui.font_main, bg=self.ui.input_bg, fg=self.ui.fg_color, bd=2, relief="sunken", highlightthickness=1, highlightbackground=self.ui.bg_secondary, highlightcolor=self.ui.accent_color, width=width, validate="key", validatecommand=vcmd, selectbackground=self.ui.shadow_dark, selectforeground=self.ui.fg_color)
         if default_val:
             entry.insert(0, default_val)
-            self.default_inputs[entry] = default_val
+        self.default_inputs[entry] = default_val
         entry.grid(row=row, column=1, sticky="w", padx=8, pady=8)
         parent.columnconfigure(0, minsize=120)
         parent.columnconfigure(1, weight=1)
         return entry
 
     def _build_action_buttons(self, parent: tk.Frame, calc_cmd: Callable[..., Any], clear_cmd: Callable[[], None], rowspan: int = 2) -> None:
-        calc_btn = tk.Button(parent, text="HESAPLA", font=self.ui.font_bold, bg=self.ui.accent_color, fg=self.ui.shadow_light, bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground=self.ui.shadow_light, cursor="hand2", command=calc_cmd)
+        calc_btn = tk.Button(parent, text=self.ui.lang["btn_calculate"], font=self.ui.font_bold, bg=self.ui.accent_color, fg=self.ui.shadow_light, bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground=self.ui.shadow_light, cursor="hand2", command=calc_cmd)
         calc_btn.grid(row=0, column=2, rowspan=max(1, rowspan - 1), padx=8, sticky="nsew", pady=(8, 4), ipadx=8)
-        clear_btn = tk.Button(parent, text="Temizle", font=self.ui.font_small, bg=self.ui.bg_secondary, fg=self.ui.text_secondary, bd=1, relief="raised", activebackground=self.ui.border_color, cursor="hand2", command=clear_cmd)
+        clear_btn = tk.Button(parent, text=self.ui.lang["btn_clear"], font=self.ui.font_small, bg=self.ui.bg_secondary, fg=self.ui.text_secondary, bd=1, relief="raised", activebackground=self.ui.tab_inactive_bg, cursor="hand2", command=clear_cmd)
         clear_btn.grid(row=rowspan - 1, column=2, padx=8, sticky="nsew", pady=(4, 8))
+
+        for btn in (calc_btn, clear_btn):
+            btn.bind("<Button-1>", lambda e, b=btn: b.config(relief="sunken"))
+            btn.bind("<ButtonRelease-1>", lambda e, b=btn: b.config(relief="raised"))
 
     def _build_info_label(self, parent: tk.Frame, default_msg: str, pad_y: Tuple[int, int] = (16, 16)) -> tk.Label:
         self.default_info_msg = default_msg
@@ -85,19 +97,23 @@ class BaseToolWidget(tk.Frame):
         self.info_lbl.pack(side="bottom", anchor="w", pady=pad_y)
         return self.info_lbl
 
-    def _make_label_clickable(self, lbl: tk.Label) -> None:
-        lbl.config(cursor="hand2", bd=2, relief="flat")
+    def _make_clickable(self, widget: Union[tk.Label, tk.Text]) -> None:
+        widget.config(cursor="hand2", bd=2, relief="flat")
         
-        def on_press(e: tk.Event, l: tk.Label = lbl) -> None:
-            if l.cget("text") not in ("", "-"):
-                l.config(relief="sunken", bg=self.ui.shadow_dark)
-                self.copy_to_clipboard(l.cget("text"))
+        def on_press(e: tk.Event, w: Union[tk.Label, tk.Text] = widget) -> None:
+            text = w.get("1.0", "end-1c").strip() if isinstance(w, tk.Text) else w.cget("text")
+            if text not in ("", "-"):
+                w.config(relief="sunken", bg=self.ui.shadow_dark, fg=self.ui.accent_color)
+                self.copy_to_clipboard(text)
                 
-        def on_release(e: tk.Event, l: tk.Label = lbl) -> None:
-            l.config(relief="flat", bg=self.ui.bg_secondary)
+        def on_release(e: tk.Event, w: Union[tk.Label, tk.Text] = widget) -> None:
+            w.config(relief="flat", bg=self.ui.bg_secondary, fg=self.ui.fg_color)
             
-        lbl.bind('<Button-1>', on_press)
-        lbl.bind('<ButtonRelease-1>', on_release)
+        widget.bind('<Button-1>', on_press)
+        widget.bind('<ButtonRelease-1>', on_release)
+
+    def _make_label_clickable(self, lbl: tk.Label) -> None:
+        self._make_clickable(lbl)
 
     def _build_result_labels(self, parent: tk.Frame, items: List[Tuple[str, str]], padx: int = 24) -> Dict[str, tk.Label]:
         for i, (text, key) in enumerate(items):
@@ -112,36 +128,32 @@ class BaseToolWidget(tk.Frame):
     def _get_numbers(self, entry: tk.Entry) -> List[float]:
         return MatematikMotoru.metinden_sayilari_ayikla(entry.get().strip())
 
-    def _handle_text_focus_in(self, widget: tk.Text, placeholder: str, event: Optional[tk.Event] = None) -> Optional[str]:
-        is_placeholder = (widget.get("1.0", "end-1c") == placeholder)
-        if is_placeholder:
-            widget.delete("1.0", tk.END)
-            widget.config(fg=self.ui.fg_color)
-            widget.mark_set("insert", "1.0")
-        if is_placeholder and event and event.type == tk.EventType.ButtonPress:
-            return "break"
+    def format_number(self, val: Union[int, float, str], max_len: int = 14) -> str:
+        if isinstance(val, str): return val
+        
+        if isinstance(val, float) and not val.is_integer():
+            formatted = f"{val:,.4f}".rstrip('0').rstrip('.')
+        else:
+            formatted = f"{int(val):,}"
+            
+        # Arayüz taşımasını önlemek için "Bilimsel Gösterim" (Scientific Notation) geçişi
+        if len(formatted) > max_len:
+            formatted = f"{val:.4e}"
+            
+        if getattr(self.ui, 'aktif_dil', 'tr') == "tr":
+            formatted = formatted.replace(',', 'X').replace('.', ',').replace('X', '.')
+        return formatted
 
-    def _handle_text_focus_out(self, widget: tk.Text, placeholder: str, event: Optional[tk.Event] = None) -> None:
-        if getattr(self.ui, 'context_menu_open', False): return
-        if not widget.get("1.0", tk.END).strip():
-            widget.delete("1.0", tk.END)
-            widget.insert("1.0", placeholder)
-            widget.config(fg=self.ui.text_placeholder)
+    def format_percentage(self, val: Union[int, float, str], isaret: str = "") -> str:
+        formatted_val = self.format_number(val)
+        if getattr(self.ui, 'aktif_dil', 'tr') == "en":
+            return f"{isaret}{formatted_val}%"
+        return f"%{isaret}{formatted_val}"
 
-    def _setup_entry_placeholder(self, entry: tk.Entry, placeholder: str) -> None:
-        entry.bind('<FocusIn>', lambda e: self._handle_entry_focus_in(entry, placeholder))
-        entry.bind('<FocusOut>', lambda e: self._handle_entry_focus_out(entry, placeholder))
-
-    def _handle_entry_focus_in(self, entry: tk.Entry, placeholder: str) -> None:
-        if entry.get() == placeholder:
-            entry.delete(0, tk.END)
-            entry.config(fg=self.ui.fg_color)
-
-    def _handle_entry_focus_out(self, entry: tk.Entry, placeholder: str) -> None:
-        if getattr(self.ui, 'context_menu_open', False): return
-        if not entry.get().strip():
-            entry.insert(0, placeholder)
-            entry.config(fg=self.ui.text_placeholder)
+    def flash_result(self, widget: Union[tk.Label, tk.Text]) -> None:
+        """Hesaplama sonucunun güncellendiğini vurgulamak için metin rengini geçici olarak kiremit rengine boyar."""
+        widget.config(fg=self.ui.accent_color)
+        self.ui.root.after(1000, lambda: widget.config(fg=self.ui.fg_color) if widget.winfo_exists() else None)
 
     def reset_defaults(self) -> None:
         for entry, def_val in self.default_inputs.items():
@@ -156,5 +168,5 @@ class BaseToolWidget(tk.Frame):
         self.ui.root.clipboard_append(result_text)
         self.ui.root.update()
         if self.info_lbl:
-            self.info_lbl.config(text="Kopyalandı!", fg=self.ui.accent_color)
+            self.info_lbl.config(text=self.ui.lang["msg_copied"], fg=self.ui.accent_color)
             self.ui.root.after(1500, lambda: self.info_lbl.config(text=self.default_info_msg, fg=self.ui.text_secondary) if self.info_lbl else None)

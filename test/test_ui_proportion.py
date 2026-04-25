@@ -2,24 +2,28 @@ import unittest
 import tkinter as tk
 import sys
 import os
+from unittest.mock import patch
 
 # Proje kök dizinini Python yoluna ekle
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from ui.arayuz_tasarimi import MainUI
+import core.dil as dil
+from ui.proportion_tool import ProportionToolWidget
 
 class TestUIProportionTool(unittest.TestCase):
     def setUp(self):
         """Her testten önce sanal bir pencere (Tk) oluşturulur."""
         self.root = tk.Tk()
-        # Test sırasında pencerenin ekranda zıplayıp bizi rahatsız etmemesi için gizliyoruz
-        self.root.withdraw() 
-        
-        # Ana arayüzü başlat
-        self.app = MainUI(self.root)
-        
-        # MainUI içindeki orkestratörden (ToolsTab) Orantı aracını bul
-        self.tool = self.app.main_view.frames["Orantı Hesaplayıcı"]
+        self.root.withdraw()
+
+        # Kayıtlı dil tercihinden bağımsız, her ortamda Türkçe başlat
+        with patch("core.ayarlar.load", return_value={"lang": "tr"}):
+            self.app = MainUI(self.root)
+
+        tool_widget = self.app.main_view.frames[dil.TR["prop_name"]]
+        assert isinstance(tool_widget, ProportionToolWidget)
+        self.tool = tool_widget
 
     def tearDown(self):
         """Her testten sonra pencereyi ve hafızayı temizler."""
@@ -43,9 +47,10 @@ class TestUIProportionTool(unittest.TestCase):
         
         # 3. Sonuç etiketinde (Label) doğru sayının yazıp yazmadığını (cget("text") ile) kontrol ediyoruz
         sonuc_metni = self.tool.prop_res_lbl.cget("text")
-        self.assertEqual(sonuc_metni, "2250")
+        self.assertEqual(sonuc_metni, "2.250")
         
         # 4. Bilgi mesajının renginin ve metninin başarıyla güncellendiğini kontrol ediyoruz
+        assert self.tool.info_lbl is not None
         self.assertEqual(self.tool.info_lbl.cget("text"), "Hesaplandı • Kopyalamak için sonuca tıklayın")
 
 if __name__ == '__main__':

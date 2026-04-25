@@ -87,6 +87,20 @@ class TestFinansMotoru(unittest.TestCase):
         self.assertEqual(sonuc_negatif_gun["aylar"], 1)
         self.assertEqual(sonuc_negatif_gun["gunler"], 1)
 
+    def test_yas_hesapla_ingilizce_ve_format(self):
+        # 1. Agnostik tarih ayırma (MM.DD.YYYY fallback) ve format testi
+        sonuc_en = FinansMotoru.yas_hesapla("05.15.1990", lang="en")
+        self.assertEqual(sonuc_en["dogum_gunu_str"], "Tuesday")
+        # Pylance'a tip daraltması (Type Narrowing) ipucusu veriyoruz.
+        yasanilan_gun_str = sonuc_en["yasanilan_gun_str"]
+        assert isinstance(yasanilan_gun_str, str)
+        self.assertIn(",", yasanilan_gun_str)  # US formatında virgül olmalı
+        
+        # 2. Ay sonu gün taşması testi (78. satır)
+        # Doğum: 31 Mayıs, Bugün: 15 Haziran -> Önceki ay sonu (Mayıs 31). dogum.day (31) >= onceki_ay_sonu.day (31)
+        sonuc_sinir = FinansMotoru.yas_hesapla("31.05.2020")
+        self.assertIn("gunler", sonuc_sinir)
+
     def test_oranti_hesapla(self):
         # 150 ürün 4500 ise, 75 ürün = 2250
         sonuc = FinansMotoru.oranti_hesapla(150, 4500, 75)

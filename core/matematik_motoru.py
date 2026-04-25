@@ -9,7 +9,7 @@ class MatematikMotoru:
     Metin içindeki sayıları format (US/TR) bağımsız olarak bulur ve istatistiklerini hesaplar.
     """
 
-    SAYI_PATERNI = r"[-+]?(?:\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?|[.,]\d+)"
+    SAYI_PATERNI = re.compile(r"[-+]?(?:\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?|[.,]\d+)(?!\d)(?:[eE][-+]?\d+)?")
 
     @staticmethod
     def metinden_sayilari_ayikla(metin: str) -> List[float]:
@@ -22,36 +22,34 @@ class MatematikMotoru:
         Returns:
             List[float]: Ayıklanmış ve float tipine dönüştürülmüş sayılar listesi.
         """
-        # 1. Grup: 1,500,000.50 veya 1.500.000,50 gibi binlik ayırıcılı formatlar
-        # 2. Grup: 15.5 veya 15,5 gibi standart ondalıklı tam sayılar
-        # 3. Grup: .5 veya ,5 gibi doğrudan ondalıkla başlayanlar
-        eslesmeler = re.findall(MatematikMotoru.SAYI_PATERNI, metin)
+        eslesmeler = MatematikMotoru.SAYI_PATERNI.findall(metin)
         
         sayilar = []
         for s in eslesmeler:
             isaret = -1 if s.startswith('-') else 1
             temiz_s = s.lstrip('+-')
             
-            son_virgul = temiz_s.rfind(',')
-            son_nokta = temiz_s.rfind('.')
-            
-            # İkisi de varsa: En sağdaki (en sondaki) her zaman ondalık ayırıcıdır!
-            if son_virgul != -1 and son_nokta != -1:
-                if son_virgul > son_nokta:   # Örn: 1.500.000,50 (TR Format)
-                    temiz_s = temiz_s.replace('.', '').replace(',', '.')
-                else:                        # Örn: 1,500,000.50 (US Format)
-                    temiz_s = temiz_s.replace(',', '')
-            # Sadece virgül varsa
-            elif son_virgul != -1:
-                if temiz_s.count(',') > 1 or len(temiz_s) - son_virgul == 4:   # Örn: 1,500,000 veya 1,000 (Sadece binlik US)
-                    temiz_s = temiz_s.replace(',', '') 
-                else:                        # Örn: 15,5 (Standart TR ondalık)
-                    temiz_s = temiz_s.replace(',', '.') 
-            # Sadece nokta varsa
-            elif son_nokta != -1:
-                if temiz_s.count('.') > 1 or len(temiz_s) - son_nokta == 4:   # Örn: 1.500.000 veya 1.000 (Sadece binlik TR)
-                    temiz_s = temiz_s.replace('.', '')
-                # Tek nokta varsa ve sonrasında 3 rakam yoksa standart float formatıdır (15.5), dokunmuyoruz.
+            if 'e' in temiz_s.lower():
+                # Bilimsel gösterimlerde binlik ayırıcı olmaz, doğrudan virgülü noktaya çeviririz.
+                temiz_s = temiz_s.replace(',', '.')
+            else:
+                son_virgul = temiz_s.rfind(',')
+                son_nokta = temiz_s.rfind('.')
+                
+                # TR/US format ambiguity resolution: right-most separator takes precedence
+                if son_virgul != -1 and son_nokta != -1:
+                    if son_virgul > son_nokta:
+                        temiz_s = temiz_s.replace('.', '').replace(',', '.')
+                    else:
+                        temiz_s = temiz_s.replace(',', '')
+                elif son_virgul != -1:
+                    if temiz_s.count(',') > 1 or len(temiz_s) - son_virgul == 4:
+                        temiz_s = temiz_s.replace(',', '') 
+                    else:
+                        temiz_s = temiz_s.replace(',', '.') 
+                elif son_nokta != -1:
+                    if temiz_s.count('.') > 1 or len(temiz_s) - son_nokta == 4:
+                        temiz_s = temiz_s.replace('.', '')
                 
             try:
                 sayilar.append(isaret * float(temiz_s))
@@ -84,7 +82,6 @@ class MatematikMotoru:
         if not sayi_listesi:
             return None
         
-        # Temel İstatistikler
         analiz = {
             "sayilar": [MatematikMotoru._temiz_sayi(s) for s in sayi_listesi],
             "ortalama": MatematikMotoru._temiz_sayi(sum(sayi_listesi) / len(sayi_listesi)),

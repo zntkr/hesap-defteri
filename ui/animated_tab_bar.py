@@ -1,5 +1,5 @@
 import tkinter as tk
-from typing import Callable, List, Optional, TYPE_CHECKING
+from typing import Callable, List, Optional, Dict, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ui.arayuz_tasarimi import MainUI
@@ -41,6 +41,9 @@ class AnimatedTabBar(tk.Canvas):
         self._anim_job: Optional[str] = None
         # Her sekme için activity seviyesi: 0.0 = tam pasif, 1.0 = tam aktif
         self._progress: List[float] = [0.0] * len(labels)
+        self._tab_items: List[Dict[str, Any]] = []
+        self._shelf_lines: List[int] = []
+        self._last_width: int = 0
 
         self.bind("<Configure>", lambda e: self._redraw())
         self.bind("<Button-1>", self._on_click)
@@ -97,34 +100,55 @@ class AnimatedTabBar(tk.Canvas):
                 lambda: self._step(from_idx, to_idx, n + 1),
             )
 
-    def _redraw(self) -> None:
+    def _build_items(self, n: int) -> None:
+        """Tuval objelerini (polygon, line, text) bir kereliğine yaratır."""
         self.delete("all")
+        self._tab_items = []
+        for _ in range(n):
+            poly = self.create_polygon([0, 0, 0, 0, 0, 0], outline="")
+            # Her sekme için 10 adet kenar/gölge/vurgu çizgisi
+            lines = [self.create_line(0, 0, 0, 0) for _ in range(10)]
+            text = self.create_text(0, 0, text="")
+            self._tab_items.append({'poly': poly, 'lines': lines, 'text': text})
+        
+        # 4 adet raf çizgisi (left_sh, left_hl, right_sh, right_hl)
+        self._shelf_lines = [self.create_line(0, 0, 0, 0) for _ in range(4)]
+
+    def _redraw(self) -> None:
         n = len(self.labels)
         w = self.winfo_width()
         h = self._H
         if w <= 1 or n == 0:
             return
+            
+        # Sadece ekran genişliği değiştiğinde veya ilk açılışta objeleri yarat
+        if w != self._last_width or len(self._tab_items) != n:
+            self._build_items(n)
+            self._last_width = w
+            
         tab_w = w / n
 
         for i, label in enumerate(self.labels):
-            self._draw_tab(i * tab_w, tab_w, h, label, self._progress[i])
+            self._update_tab(i, i * tab_w, tab_w, h, label, self._progress[i])
 
         # Raf çizgisi: sekme çubuğunu içerik alanından ayırır, aktif sekme altında kesilir.
-        # Tablar çizildikten SONRA çizilir → pasif sekmelerin alt bevel çizgilerinin üzerine gelir.
         ax1 = round(self._current_idx * tab_w)
         ax2 = round((self._current_idx + 1) * tab_w)
         hl, sh = self.ui.shadow_light, self.ui.shadow_dark
 
-        if ax1 > 0:                                          # sol segment
-            self.create_line(0,   h - 2, ax1, h - 2, fill=sh)
-            self.create_line(0,   h - 1, ax1, h - 1, fill=hl)
-        if ax2 < w:                                          # sağ segment
-            self.create_line(ax2, h - 2, w,   h - 2, fill=sh)
-            self.create_line(ax2, h - 1, w,   h - 1, fill=hl)
+        # Sol segment
+        self.coords(self._shelf_lines[0], 0, h - 2, ax1, h - 2)
+        self.itemconfig(self._shelf_lines[0], fill=sh if ax1 > 0 else "")
+        self.coords(self._shelf_lines[1], 0, h - 1, ax1, h - 1)
+        self.itemconfig(self._shelf_lines[1], fill=hl if ax1 > 0 else "")
+        
+        # Sağ segment
+        self.coords(self._shelf_lines[2], ax2, h - 2, w, h - 2)
+        self.itemconfig(self._shelf_lines[2], fill=sh if ax2 < w else "")
+        self.coords(self._shelf_lines[3], ax2, h - 1, w, h - 1)
+        self.itemconfig(self._shelf_lines[3], fill=hl if ax2 < w else "")
 
-    def _draw_tab(
-        self, x: float, w: float, h: int, label: str, activity: float
-    ) -> None:
+    def _update_tab(self, idx: int, x: float, w: float, h: int, label: str, activity: float) -> None:
         c = self._CLIP
         bg = self._lerp_color(self.ui.tab_inactive_bg, self.ui.bg_secondary, activity)
         fg = self._lerp_color(self.ui.text_secondary, self.ui.accent_color, activity)
@@ -143,28 +167,39 @@ class AnimatedTabBar(tk.Canvas):
             x1,     y2,
             x1,     y1 + c,
         ]
-        self.create_polygon(pts, fill=bg, outline="")
+        items = self._tab_items[idx]
+        self.coords(items['poly'], *pts)
+        self.itemconfig(items['poly'], fill=bg)
 
-        # Highlight çizgileri (üst ve sol kenar — parlak)
-        self.create_line(x1 + c, y1, x2 - c, y1, fill=hl)           # üst düz (dış)
-        self.create_line(x1 + c, y1 + 1, x2 - c, y1 + 1, fill=hl)   # üst düz (iç)
-        self.create_line(x1, y1 + c, x1 + c, y1, fill=hl)           # üst-sol diagonal (dış)
-        self.create_line(x1 + 1, y1 + c, x1 + c, y1 + 1, fill=hl)   # üst-sol diagonal (iç)
-        self.create_line(x1, y1 + c, x1, y2, fill=hl)               # sol kenar (dış)
-        self.create_line(x1 + 1, y1 + c, x1 + 1, y2, fill=hl)       # sol kenar (iç)
+        lines = items['lines']
+        # Highlight çizgileri
+        self.coords(lines[0], x1 + c, y1, x2 - c, y1)
+        self.itemconfig(lines[0], fill=hl)
+        self.coords(lines[1], x1 + c, y1 + 1, x2 - c, y1 + 1)
+        self.itemconfig(lines[1], fill=hl)
+        self.coords(lines[2], x1, y1 + c, x1 + c, y1)
+        self.itemconfig(lines[2], fill=hl)
+        self.coords(lines[3], x1 + 1, y1 + c, x1 + c, y1 + 1)
+        self.itemconfig(lines[3], fill=hl)
+        self.coords(lines[4], x1, y1 + c, x1, y2)
+        self.itemconfig(lines[4], fill=hl)
+        self.coords(lines[5], x1 + 1, y1 + c, x1 + 1, y2)
+        self.itemconfig(lines[5], fill=hl)
 
-        # Shadow çizgileri (sağ kenar — koyu)
-        self.create_line(x2 - c, y1, x2, y1 + c, fill=sh)           # üst-sağ diagonal (dış)
-        self.create_line(x2 - c, y1 + 1, x2 - 1, y1 + c, fill=sh)   # üst-sağ diagonal (iç)
-        self.create_line(x2, y1 + c, x2, y2, fill=self.ui.bg_color) # sağ kenar (dış) - Masayı gösteren fiziksel kesik
-        self.create_line(x2 - 1, y1 + c, x2 - 1, y2, fill=sh)       # sağ kenar (iç)
+        # Shadow çizgileri
+        self.coords(lines[6], x2 - c, y1, x2, y1 + c)
+        self.itemconfig(lines[6], fill=sh)
+        self.coords(lines[7], x2 - c, y1 + 1, x2 - 1, y1 + c)
+        self.itemconfig(lines[7], fill=sh)
+        self.coords(lines[8], x2, y1 + c, x2, y2)
+        self.itemconfig(lines[8], fill=self.ui.bg_color)
+        self.coords(lines[9], x2 - 1, y1 + c, x2 - 1, y2)
+        self.itemconfig(lines[9], fill=sh)
 
-        # Alt kenar _draw_tab'dan kaldırıldı — raf çizgisi _redraw'da toplu çizilir.
-
-        # Sekme etiketi
         font = (
             (self.ui.font_main[0], 9, "bold")
             if activity > 0.5
             else (self.ui.font_main[0], 9)
         )
-        self.create_text(x + w / 2, h / 2, text=label, fill=fg, font=font)
+        self.coords(items['text'], x + w / 2, h / 2)
+        self.itemconfig(items['text'], text=label, fill=fg, font=font)

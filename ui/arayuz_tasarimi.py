@@ -10,6 +10,8 @@ from typing import Optional, Any
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from ui.tools_tab import ToolsTab
+import core.dil as dil
+import core.ayarlar as ayarlar
 
 class MainUI:
     """
@@ -18,102 +20,139 @@ class MainUI:
     """
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
-        
+
         # --- APP CONFIG ---
-        self.app_name = "Hesap Defteri"
         self.app_version = "1.0.0"
         self.build_year = str(datetime.now().year)
-        self.date_placeholder = "GG.AA.YYYY"
-        
-        self.root.title(f"{self.app_name} - v{self.app_version}")
-        self.root.geometry("424x544") 
-        self.root.resizable(False, False)
-        
+
+        # --- LANGUAGE ---
+        self.aktif_dil = ayarlar.load()["lang"]
+        self.lang = dil.LANGS[self.aktif_dil]
+
+        self.date_placeholder = self.lang["date_placeholder"]
+        self.placeholder_text = self.lang["placeholder_text"]
+
+        self.root.title(f"{self.lang['app_name']} - v{self.app_version}")
+        self.root.geometry("400x560")
+
         # --- NEO-RETRO THEME VARIABLES ---
-        self.bg_color = "#4A423A" # Koyu grimsi ahşap/deri masa
-        self.bg_shadow = "#38322C" # Masaya düşen 45 derece solid gölge
+        self.bg_color = "#4A423A"
+        self.bg_shadow = "#38322C"
         self.fg_color = "#2D2D2D"
         self.accent_color = "#C85A47"
         self.accent_hover = "#A84534"
         self.accent_light = "#E08D7D"
         self.border_color = "#E0DCE3"
-        self.shadow_dark = "#D3CFC8"
+        self.shadow_dark = "#AFAFAF"
         self.shadow_light = "#FFFFFF"
         self.text_secondary = "#666666"
         self.text_disabled = "#B0B0B0"
         self.bg_secondary = "#EFEBE6"
-        self.tape_bg = "#F4F1EA" # Hesap şeridi (yazar kasa fişi) için sarımsı saman kağıdı
-        self.input_bg = "#F9F8F6" # Saf beyaz yerine defter kağıdından bir tık açık krem
+        self.tape_bg = "#F4F1EA"
+        self.input_bg = "#F9F8F6"
         self.error_color = "#D32F2F"
         self.text_placeholder = "#888888"
-        self.text_inverse = "#D0CFCB" # Koyu arka planlar için açık krem/gri
-        self.tab_inactive_bg = "#D3CFC8" # Kağıdın bir ton koyusu (Skeuomorphic gölge)
-        
+        self.text_inverse = "#D0CFCB"
+        self.tab_inactive_bg = "#E0DCD7" # bg_secondary'den 15 birim karanlık — bir ton koyusu
+
         # --- TYPOGRAPHY ---
         available_fonts = tkfont.families()
         preferred_fonts = ["IBM Plex Mono", "Consolas", "Courier New", "Courier"]
         selected_font = next((f for f in preferred_fonts if f in available_fonts), "Courier")
-        
+
         self.font_main = (selected_font, 10)
         self.font_bold = (selected_font, 10, "bold")
         self.font_small = (selected_font, 8)
         self.font_title = (selected_font, 24)
-        
-        self.placeholder_text = "Sayıları yazın veya bir liste yapıştırın...\nÖrn: 150  22.5  300  1.250,75"
+
         self.root.config(bg=self.bg_color)
         self.always_on_top_var = tk.BooleanVar(value=False)
         self.show_tape_var = tk.BooleanVar(value=False)
-        
+
         self.build_ui()
         self.build_menu()
         self.build_context_menu()
 
+    def _switch_language(self, lang_code: str) -> None:
+        if lang_code == self.aktif_dil:
+            return
+
+        topmost_val = self.always_on_top_var.get()
+        tape_val = self.show_tape_var.get()
+
+        self.aktif_dil = lang_code
+        self.lang = dil.LANGS[lang_code]
+        ayarlar.save({"lang": lang_code})
+        self.date_placeholder = self.lang["date_placeholder"]
+        self.placeholder_text = self.lang["placeholder_text"]
+
+        self.root.title(f"{self.lang['app_name']} - v{self.app_version}")
+
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.always_on_top_var = tk.BooleanVar(value=topmost_val)
+        self.show_tape_var = tk.BooleanVar(value=tape_val)
+
+        self.build_ui()
+        self.build_menu()
+        self.build_context_menu()
+
+        self.root.wm_attributes("-topmost", topmost_val)
+
     def build_menu(self) -> None:
+        L = self.lang
         menubar = tk.Menu(self.root, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color)
 
         file_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color)
-        file_menu.add_command(label="Çıkış", command=self.root.quit, accelerator="Alt+F4")
+        file_menu.add_command(label=L["menu_exit"], command=self.root.quit, accelerator="Alt+F4")
 
         self.edit_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color, postcommand=self._update_edit_menu)
-        self.edit_menu.add_command(label="Kes", command=lambda: self._trigger_os_event("<<Cut>>"), accelerator="Ctrl+X")
-        self.edit_menu.add_command(label="Kopyala", command=lambda: self._trigger_os_event("<<Copy>>"), accelerator="Ctrl+C")
-        self.edit_menu.add_command(label="Yapıştır", command=lambda: self._trigger_os_event("<<Paste>>"), accelerator="Ctrl+V")
+        self.edit_menu.add_command(label=L["menu_cut"], command=lambda: self._trigger_os_event("<<Cut>>"), accelerator="Ctrl+X")
+        self.edit_menu.add_command(label=L["menu_copy"], command=lambda: self._trigger_os_event("<<Copy>>"), accelerator="Ctrl+C")
+        self.edit_menu.add_command(label=L["menu_paste"], command=lambda: self._trigger_os_event("<<Paste>>"), accelerator="Ctrl+V")
         self.edit_menu.add_separator()
-        self.edit_menu.add_command(label="Tümünü Seç", command=self._select_all, accelerator="Ctrl+A")
+        self.edit_menu.add_command(label=L["menu_select_all"], command=self._select_all, accelerator="Ctrl+A")
         self.edit_menu.add_separator()
-        self.edit_menu.add_command(label="Tümünü Temizle", command=self.clear_all, accelerator="Esc")
+        self.edit_menu.add_command(label=L["menu_clear_all"], command=self.clear_all, accelerator="Esc")
 
         tools_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color)
         self.active_tool_var = tk.StringVar()
         for i, tool_name in enumerate(self.main_view.frames.keys(), start=1):
             accel = f"Ctrl+{i}"
             tools_menu.add_radiobutton(label=tool_name, variable=self.active_tool_var, value=tool_name, command=lambda name=tool_name: self.select_tool(name), accelerator=accel)
-            self.root.bind(f"<Control-Key-{i}>", lambda e, name=tool_name: self.select_tool(name))
+            self.root.bind(f"<Control-Key-{i}>", lambda _, name=tool_name: self.select_tool(name))
 
         view_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color)
-        view_menu.add_checkbutton(label="Her Zaman Üstte Tut", variable=self.always_on_top_var, command=self.toggle_always_on_top)
+        view_menu.add_checkbutton(label=L["menu_always_on_top"], variable=self.always_on_top_var, command=self.toggle_always_on_top)
         view_menu.add_separator()
-        view_menu.add_checkbutton(label="Hesap Şeridini Göster", variable=self.show_tape_var, command=self.toggle_tape, accelerator="Ctrl+H")
-        
+        view_menu.add_checkbutton(label=L["menu_show_tape"], variable=self.show_tape_var, command=self.toggle_tape, accelerator="Ctrl+H")
+
         self.root.bind("<Control-h>", self.toggle_tape)
         self.root.bind("<Control-H>", self.toggle_tape)
 
+        lang_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color)
+        self._lang_var = tk.StringVar(value=self.aktif_dil)
+        lang_menu.add_radiobutton(label=L["lang_tr"], variable=self._lang_var, value="tr", command=lambda: self._switch_language("tr"))
+        lang_menu.add_radiobutton(label=L["lang_en"], variable=self._lang_var, value="en", command=lambda: self._switch_language("en"))
+
         help_menu = tk.Menu(menubar, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color)
-        help_menu.add_command(label="Kullanma Rehberi", command=self.show_guide, accelerator="F1")
+        help_menu.add_command(label=L["menu_guide"], command=self.show_guide, accelerator="F1")
         help_menu.add_separator()
-        help_menu.add_command(label="Hakkında", command=self.show_about)
-        
-        menubar.add_cascade(label="Dosya", menu=file_menu)
-        menubar.add_cascade(label="Düzenle", menu=self.edit_menu)
-        menubar.add_cascade(label="Araçlar", menu=tools_menu)
-        menubar.add_cascade(label="Görünüş", menu=view_menu)
-        menubar.add_cascade(label="Yardım", menu=help_menu)
+        help_menu.add_command(label=L["menu_about"], command=self.show_about)
+
+        menubar.add_cascade(label=L["menu_file"], menu=file_menu)
+        menubar.add_cascade(label=L["menu_edit"], menu=self.edit_menu)
+        menubar.add_cascade(label=L["menu_tools"], menu=tools_menu)
+        menubar.add_cascade(label=L["menu_view"], menu=view_menu)
+        menubar.add_cascade(label=L["menu_language"], menu=lang_menu)
+        menubar.add_cascade(label=L["menu_help"], menu=help_menu)
         self.root.config(menu=menubar)
-        
-        self.root.bind("<F1>", lambda e: self.show_guide())
+
+        self.root.bind("<F1>", lambda _: self.show_guide())
 
     def _update_edit_menu(self) -> None:
-        """Düzenle menüsü açılmadan hemen önce tetiklenir ve öğelerin aktif/pasif durumunu belirler."""
+        L = self.lang
         widget = self.root.focus_get()
         has_selection = False
         try:
@@ -125,39 +164,35 @@ class MainUI:
             pass
 
         state = "normal" if has_selection else "disabled"
-        self.edit_menu.entryconfig("Kes", state=state)
-        self.edit_menu.entryconfig("Kopyala", state=state)
-        
-        # Yapıştır kontrolü (Pano boş mu dolu mu)
+        self.edit_menu.entryconfig(L["menu_cut"], state=state)
+        self.edit_menu.entryconfig(L["menu_copy"], state=state)
+
         try:
             clipboard = self.root.clipboard_get()
             paste_state = "normal" if clipboard else "disabled"
         except tk.TclError:
             paste_state = "disabled"
-            
-        self.edit_menu.entryconfig("Yapıştır", state=paste_state)
+
+        self.edit_menu.entryconfig(L["menu_paste"], state=paste_state)
 
     def select_tool(self, tool_name: str) -> None:
-        """Üst menüden seçilen aracı aktif eder ve Araçlar sekmesine geçer."""
         if hasattr(self, 'main_view'):
             self.active_tool_var.set(tool_name)
             self.main_view.tool_var.set(tool_name)
             self.main_view.on_tool_change()
 
     def _trigger_os_event(self, event_str: str) -> None:
-        """İşletim sisteminin yerleşik Kes/Kopyala/Yapıştır olaylarını (Virtual Events) tetikler."""
         try:
             widget = self.root.focus_get()
             if not isinstance(widget, (tk.Text, tk.Entry)):
                 widget = getattr(self, 'last_active_widget', None)
-                
+
             if widget:
                 widget.event_generate(event_str)
         except tk.TclError:
-            pass # Odaklanan widget (örn: buton) bu işlemi desteklemiyorsa sessizce yoksay
+            pass
 
     def _select_all(self) -> None:
-        """Aktif metin kutusundaki tüm içeriği seçer."""
         widget = self.root.focus_get()
         if isinstance(widget, tk.Text):
             widget.tag_add("sel", "1.0", "end")
@@ -165,41 +200,25 @@ class MainUI:
             widget.select_range(0, "end")
 
     def build_context_menu(self) -> None:
-        """Metin kutuları için sağ tık (bağlam) menüsünü oluşturur ve sisteme bağlar."""
+        L = self.lang
         self.context_menu = tk.Menu(self.root, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color)
-        self.context_menu.add_command(label="Kes", command=lambda: self._trigger_os_event("<<Cut>>"))
-        self.context_menu.add_command(label="Kopyala", command=lambda: self._trigger_os_event("<<Copy>>"))
-        self.context_menu.add_command(label="Yapıştır", command=lambda: self._trigger_os_event("<<Paste>>"))
+        self.context_menu.add_command(label=L["menu_cut"], command=lambda: self._trigger_os_event("<<Cut>>"))
+        self.context_menu.add_command(label=L["menu_copy"], command=lambda: self._trigger_os_event("<<Copy>>"))
+        self.context_menu.add_command(label=L["menu_paste"], command=lambda: self._trigger_os_event("<<Paste>>"))
         self.context_menu.add_separator()
-        self.context_menu.add_command(label="Tümünü Seç", command=self._select_all)
-        
-        # Tüm Entry ve Text widget'larına sağ tık menüsünü otomatik bağla
+        self.context_menu.add_command(label=L["menu_select_all"], command=self._select_all)
+
         self.root.bind_class("Text", "<Button-3>", self.show_context_menu)
         self.root.bind_class("Entry", "<Button-3>", self.show_context_menu)
 
-    def _check_and_restore_placeholder(self, widget: Any) -> None:
-        """Menü kapandıktan sonra kutu boş kalmışsa yer tutucuyu geri getirir."""
-        if isinstance(widget, tk.Text) and not widget.get("1.0", "end-1c").strip():
-            widget.event_generate("<FocusOut>")
-        elif isinstance(widget, tk.Entry) and not widget.get().strip():
-            widget.event_generate("<FocusOut>")
-
     def show_context_menu(self, event: tk.Event) -> None:
+        L = self.lang
         widget = event.widget
         widget.focus_set()
         self.last_active_widget = widget
-        
-        # Yer tutucuları sağ tıklandığı an güvenle temizle
-        if isinstance(widget, tk.Text) and widget.get("1.0", "end-1c") == self.placeholder_text:
-            widget.delete("1.0", tk.END)
-            widget.config(fg=self.fg_color)
-        elif isinstance(widget, tk.Entry) and widget.get() == self.date_placeholder:
-            widget.delete(0, tk.END)
-            widget.config(fg=self.fg_color)
-            
+
         self.context_menu_open = True
-        
-        # Metin seçili mi diye kontrol et
+
         has_selection = False
         try:
             if isinstance(widget, tk.Text):
@@ -209,58 +228,55 @@ class MainUI:
         except tk.TclError:
             pass
 
-        self.context_menu.entryconfig("Kes", state="normal" if has_selection else "disabled")
-        self.context_menu.entryconfig("Kopyala", state="normal" if has_selection else "disabled")
-        
+        self.context_menu.entryconfig(L["menu_cut"], state="normal" if has_selection else "disabled")
+        self.context_menu.entryconfig(L["menu_copy"], state="normal" if has_selection else "disabled")
+
         try:
             self.context_menu.tk_popup(event.x_root, event.y_root)
         finally:
             self.context_menu_open = False
-            self.root.after(50, lambda: self._check_and_restore_placeholder(widget))
 
     def toggle_always_on_top(self) -> None:
         self.root.wm_attributes("-topmost", self.always_on_top_var.get())
 
     def build_ui(self) -> None:
-        # Combobox'ın açılan listesindeki mavi işletim sistemi seçim rengini kiremit rengine ezme
         self.root.option_add('*TCombobox*Listbox.selectBackground', self.accent_color)
         self.root.option_add('*TCombobox*Listbox.selectForeground', self.shadow_light)
-        
+
         style = ttk.Style()
-        style.theme_use('classic') 
-        
-        style.map("TCombobox", 
+        style.theme_use('classic')
+
+        style.map("TCombobox",
                   selectbackground=[("readonly", self.accent_color), ("focus", self.accent_color)],
                   selectforeground=[("readonly", self.shadow_light), ("focus", self.shadow_light)])
-        
-        main_container = tk.Frame(self.root, bg=self.bg_color)
-        main_container.pack(expand=True, fill="both")
-        
-        self.tape_container = tk.Frame(main_container, bg=self.bg_color, width=240)
-        self.tape_container.pack_propagate(False)
-        self._build_paper_tape(self.tape_container)
-        
+
+        # Sabit boyutlu konteyner ile Off-Screen Rendering (Clipping) modeli:
+        # Çekmece asla silinmez, her zaman burada 656px genişliğinde bekler (400 Main + 240 Tape + 16 Sağ Boşluk).
+        main_container = tk.Frame(self.root, bg=self.bg_color, width=656, height=560)
+        main_container.place(x=0, y=0, width=656, height=560)
+
         self.main_view = ToolsTab(main_container, self)
-        self.main_view.pack(side="left", expand=True, fill="both")
-        
-        # --- KLAVYE KISAYOLLARI (KEYBOARD-FIRST) ---
+        self.main_view.place(x=0, y=0, width=400, height=560)
+
+        self.tape_container = tk.Frame(main_container, bg=self.bg_color)
+        self.tape_container.pack_propagate(False)
+        self.tape_container.place(x=400, y=16, width=240, height=528)
+        self._build_paper_tape(self.tape_container)
 
     def toggle_tape(self, event: Optional[tk.Event] = None) -> None:
         if event:
             self.show_tape_var.set(not self.show_tape_var.get())
-            
+
         is_open = self.show_tape_var.get()
         x, y = self.root.winfo_x(), self.root.winfo_y()
-        
+
         if is_open:
-            self.root.geometry(f"680x544+{x}+{y}")
-            self.tape_container.pack(side="right", fill="y", padx=(0, 16), pady=16, before=self.main_view)
+            self.root.geometry(f"656x560+{x}+{y}")
         else:
-            self.root.geometry(f"424x544+{x}+{y}")
-            self.tape_container.pack_forget()
+            self.root.geometry(f"400x560+{x}+{y}")
 
     def _build_paper_tape(self, parent: tk.Frame) -> None:
-        """Ekranın sağ tarafındaki fiziksel 'Hesap Şeridi'ni (Yazar Kasa Fişi) inşa eder."""
+        L = self.lang
         wrapper = tk.Frame(parent, bg=self.bg_color, bd=0)
         wrapper.pack(fill="both", expand=True)
 
@@ -279,21 +295,28 @@ class MainUI:
 
         header_frame = tk.Frame(paper, bg=self.tape_bg)
         header_frame.pack(fill="x", pady=(16, 8))
-        tk.Label(header_frame, text="HESAP ŞERİDİ", font=(self.font_bold[0], 9, "bold"), fg=self.accent_color, bg=self.tape_bg).pack()
+        tk.Label(header_frame, text=L["tape_header"], font=(self.font_bold[0], 9, "bold"), fg=self.accent_color, bg=self.tape_bg).pack()
         tk.Label(paper, text="- "*18, font=self.font_small, fg=self.shadow_dark, bg=self.tape_bg).pack(fill="x")
 
         self.tape_text = tk.Text(paper, font=self.font_small, bg=self.tape_bg, fg=self.fg_color, bd=0, highlightthickness=0, wrap="word", state="disabled", padx=16, pady=8)
         self.tape_text.pack(fill="both", expand=True)
-        
+
         self.tape_text.tag_configure("header", foreground=self.text_secondary, font=(self.font_main[0], 8, "bold"))
-        self.tape_text.tag_configure("result", foreground=self.fg_color, font=(self.font_bold[0], 9, "bold"))
+        self.tape_text.tag_configure("result", foreground=self.accent_color, font=(self.font_bold[0], 9, "bold"))
         self.tape_text.tag_configure("flash", background=self.shadow_dark)
-        
+
         btn_frame = tk.Frame(paper, bg=self.tape_bg)
         btn_frame.pack(fill="x", pady=16, padx=16)
+
+        copy_btn = tk.Button(btn_frame, text=L["tape_copy_btn"], font=self.font_small, bg=self.tape_bg, fg=self.text_secondary, bd=1, relief="raised", activebackground=self.tab_inactive_bg, cursor="hand2", command=self._copy_tape)
+        copy_btn.pack(side="left", fill="x", expand=True, padx=(0, 4))
         
-        tk.Button(btn_frame, text="Kopyala", font=self.font_small, bg=self.tape_bg, fg=self.fg_color, bd=1, relief="raised", cursor="hand2", command=self._copy_tape).pack(side="left", fill="x", expand=True, padx=(0, 4))
-        tk.Button(btn_frame, text="Temizle", font=self.font_small, bg=self.tape_bg, fg=self.text_secondary, bd=1, relief="raised", cursor="hand2", command=self._clear_tape).pack(side="left", fill="x", expand=True, padx=(4, 0))
+        clear_btn = tk.Button(btn_frame, text=L["tape_clear_btn"], font=self.font_small, bg=self.tape_bg, fg=self.text_secondary, bd=1, relief="raised", activebackground=self.tab_inactive_bg, cursor="hand2", command=self._clear_tape)
+        clear_btn.pack(side="left", fill="x", expand=True, padx=(4, 0))
+
+        for btn in (copy_btn, clear_btn):
+            btn.bind("<Button-1>", lambda e, b=btn: b.config(relief="sunken"))
+            btn.bind("<ButtonRelease-1>", lambda e, b=btn: b.config(relief="raised"))
 
     def _copy_tape(self) -> None:
         content = self.tape_text.get("1.0", tk.END).strip()
@@ -306,126 +329,142 @@ class MainUI:
         self.tape_text.config(state="normal")
         self.tape_text.delete("1.0", tk.END)
         self.tape_text.config(state="disabled")
+        if hasattr(self, '_print_queue'):
+            self._print_queue.clear()
 
     def add_to_tape(self, title: str, details: str, result: str) -> None:
         self.tape_text.config(state="normal")
-        
+
+        # Memory leak önlemi: Satır sayısı 500'ü aşarsa en eski kayıtları silerek RAM'i sabit tutar
+        num_lines = int(self.tape_text.index("end-1c").split(".")[0])
+        if num_lines > 500:
+            self.tape_text.delete("1.0", f"{num_lines - 450}.0")
+
         start_idx = self.tape_text.index("end-1c")
-        if start_idx != "1.0": 
+        if start_idx != "1.0":
             self.tape_text.insert(tk.END, "\n")
             start_idx = self.tape_text.index("end-1c")
-            
+
         saat = datetime.now().strftime("%H:%M:%S")
-        self.tape_text.insert(tk.END, f"{title} ({saat})\n", "header")
-        self.tape_text.insert(tk.END, f"{details}\n{'-'*24}\n", "normal")
-        self.tape_text.insert(tk.END, f"Sonuç: {result}\n", "result")
-        self.tape_text.insert(tk.END, f"{'='*24}\n", "normal")
         
-        self.tape_text.tag_add("flash", start_idx, tk.END)
-        self.root.after(800, lambda: self.tape_text.tag_remove("flash", "1.0", tk.END))
+        lines_to_print = [
+            (f"{title} ({saat})\n", "header"),
+            *[(f"{line}\n", "normal") for line in details.split('\n')],
+            (f"{'-'*24}\n", "normal"),
+            (f"{self.lang['tape_result_label']}: {result}\n", "result"),
+            (f"{'='*24}\n", "normal")
+        ]
+
+        if not hasattr(self, '_print_queue'):
+            self._print_queue = []
+            self._is_printing = False
+
+        # Her satırı (metin, etiket, başlangıç_indexi) olarak sıraya ekle
+        for item in lines_to_print:
+            self._print_queue.append((item[0], item[1], start_idx))
+
+        if self._is_printing:
+            return
+            
+        self._is_printing = True
         
-        self.tape_text.see(tk.END)
-        self.tape_text.config(state="disabled")
+        def print_next():
+            if not self._print_queue:
+                self._is_printing = False
+                # Yazdırma bittikten sonra şerit parlaklığını ana arayüzle senkron (600ms) olarak kaldır
+                self.root.after(600, lambda: self.tape_text.tag_remove("flash", "1.0", tk.END))
+                return
+                
+            self.tape_text.config(state="normal")
+            text, tag, flash_idx = self._print_queue.pop(0)
+            self.tape_text.insert(tk.END, text, tag)
+            self.tape_text.tag_add("flash", flash_idx, tk.END)
+            self.tape_text.see(tk.END)
+            self.tape_text.config(state="disabled")
+            
+            # Mekanik nokta vuruşlu yazıcı hissi için 30ms gecikme
+            self.root.after(30, print_next)
+
+        print_next()
         self.root.bind('<Escape>', self.clear_all)
         self.root.bind('<Control-Tab>', lambda e: self.main_view.cycle_tools(e))
 
-    def clear_all(self, event: Optional[tk.Event] = None) -> None:
+    def clear_all(self, _event: Optional[tk.Event] = None) -> None:
         if hasattr(self, 'main_view'):
             self.main_view.clear_data()
         if hasattr(self, 'tape_text'):
             self._clear_tape()
 
     def _create_centered_modal(self, title: str, width: int, height: int) -> tk.Toplevel:
-        """Yardımcı Metot: Belirtilen boyutlarda, ekranın ortasında açılan modal pencere üretir."""
         modal = tk.Toplevel(self.root)
         modal.withdraw()
-        
+
         base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
         icon_path = os.path.join(base_path, "app_icon.ico")
         if os.path.exists(icon_path):
             modal.iconbitmap(icon_path)
-            
+
         modal.title(title)
         modal.resizable(False, False)
         modal.config(bg=self.bg_color)
-        
+
         self.root.update_idletasks()
         x = self.root.winfo_x() + (self.root.winfo_width() // 2) - (width // 2)
         y = self.root.winfo_y() + (self.root.winfo_height() // 2) - (height // 2)
         modal.geometry(f"{width}x{height}+{x}+{y}")
-        
+
         modal.transient(self.root)
         modal.grab_set()
         modal.focus_set()
-        
+
         return modal
 
     def show_about(self) -> None:
-        about_win = self._create_centered_modal("Hakkında", 344, 216)
+        L = self.lang
+        about_win = self._create_centered_modal(L["about_title"], 344, 216)
         about_win.config(bg=self.bg_secondary)
 
-        tk.Label(about_win, text=self.app_name, font=(self.font_bold[0], 16, "bold"), fg=self.fg_color, bg=self.bg_secondary).pack(pady=(32, 4))
-        tk.Label(about_win, text=f"Versiyon {self.app_version} (Build {self.build_year})", font=self.font_main, fg=self.text_secondary, bg=self.bg_secondary).pack()
-        
-        copyright_text = f"Telif Hakkı © {self.build_year} | MIT Lisansı\nSıfır bloatware, maksimum odak."
+        tk.Label(about_win, text=L["app_name"], font=(self.font_bold[0], 16, "bold"), fg=self.fg_color, bg=self.bg_secondary).pack(pady=(32, 4))
+        tk.Label(about_win, text=f"v{self.app_version} (Build {self.build_year})", font=self.font_main, fg=self.text_secondary, bg=self.bg_secondary).pack()
+
+        copyright_text = L["about_copyright"].format(year=self.build_year)
         tk.Label(about_win, text=copyright_text, font=(self.font_main[0], 8), fg=self.text_disabled, bg=self.bg_secondary, justify="center").pack(pady=(16, 16))
 
-        close_btn = tk.Button(about_win, text="TAMAM", font=self.font_bold, bg=self.accent_color, fg=self.shadow_light, 
+        close_btn = tk.Button(about_win, text=L["about_ok"], font=self.font_bold, bg=self.accent_color, fg=self.shadow_light,
                               bd=2, relief="raised", activebackground=self.accent_hover, activeforeground=self.shadow_light, cursor="hand2", command=about_win.destroy)
         close_btn.pack(pady=(0, 24), ipadx=24)
-        
+
         about_win.deiconify()
 
     def show_guide(self) -> None:
-        guide_win = self._create_centered_modal("Kullanma Rehberi", 480, 480)
+        L = self.lang
+        guide_win = self._create_centered_modal(L["guide_title"], 480, 480)
         guide_win.config(bg=self.bg_secondary)
 
-        guide_title = "KULLANMA KILAVUZU"
-        tk.Label(guide_win, text=guide_title, font=(self.font_bold[0], 16, "bold"), fg=self.accent_color, bg=self.bg_secondary).pack(anchor="w", padx=24, pady=(24, 8))
+        tk.Label(guide_win, text=L["guide_heading"], font=(self.font_bold[0], 16, "bold"), fg=self.accent_color, bg=self.bg_secondary).pack(anchor="w", padx=24, pady=(24, 8))
 
-        # Butonu alta yerleştir (Önce paketlenir ki taşma durumunda kesilmesin)
-        close_btn = tk.Button(guide_win, text="TAMAM", font=self.font_bold, bg=self.accent_color, fg=self.shadow_light, 
+        close_btn = tk.Button(guide_win, text=L["guide_ok"], font=self.font_bold, bg=self.accent_color, fg=self.shadow_light,
                               bd=2, relief="raised", activebackground=self.accent_hover, activeforeground=self.shadow_light, cursor="hand2", command=guide_win.destroy)
         close_btn.pack(side="bottom", pady=(8, 24), ipadx=24)
 
         text_frame = tk.Frame(guide_win, bg=self.bg_secondary)
         text_frame.pack(fill="both", expand=True, padx=24, pady=(0, 8))
-        
-        guide_text = tk.Text(text_frame, font=self.font_main, bg=self.bg_secondary, fg=self.text_secondary, 
+
+        guide_text = tk.Text(text_frame, font=self.font_main, bg=self.bg_secondary, fg=self.text_secondary,
                              wrap="word", bd=0, highlightthickness=0, padx=0, pady=8, cursor="arrow")
         guide_text.pack(side="left", fill="both", expand=True)
 
-        # Metin içi stil etiketleri (Tags)
         guide_text.tag_configure("header", font=self.font_bold, foreground=self.accent_color, spacing1=8, spacing3=4)
         guide_text.tag_configure("highlight", font=self.font_bold, foreground=self.fg_color)
         guide_text.tag_configure("key", font=self.font_bold, foreground=self.shadow_light, background=self.accent_color)
         guide_text.tag_configure("bullet", foreground=self.accent_color, font=self.font_bold)
 
-        content = [
-            ("HESAP DEFTERİ ARAÇLARI\n", "header"),
-            ("• ", "bullet"), ("Sekmeli Yapı: ", "highlight"), ("Hesaplama araçlarına (Ortalama, KDV, Yaş vb.) üst kısımdaki sekme kulaklarına tıklayarak anında geçiş yapabilirsiniz.\n", "normal"),
-            ("• ", "bullet"), ("Agnostik Veri Girişi: ", "highlight"), ("Metinleri doğrudan yapıştırın. Sistem harfleri yoksayarak içindeki sayıları (TR/US formatlı) otomatik ayıklar.\n", "normal"),
-            ("• ", "bullet"), ("Dokunsal Kopyalama: ", "highlight"), ("Hesaplanan bir sonucun üzerine tıkladığınızda değer anında panoya kopyalanır.\n", "normal"),
-
-            ("KLAVYE KISAYOLLARI\n", "header"),
-            (" [ Enter ] ", "key"), ("    Aktif araçta hesaplama talimatını verir.\n", "normal"),
-            (" [ ESC ] ", "key"), ("      Verileri anında temizler ve işaretçiyi odaklar.\n", "normal"),
-            (" [ Ctrl+Tab ] ", "key"), (" Sekmeler (araçlar) arasında sırayla gezinir.\n", "normal"),
-            (" [ Ctrl+1..6 ] ", "key"),(" İstediğiniz araca doğrudan geçiş yapar.\n", "normal"),
-            (" Sağ Tık ", "key"), ("      Standart Kes/Kopyala/Yapıştır menüsünü açar.\n", "normal"),
-
-            ("DİĞER ÖZELLİKLER\n", "header"),
-            ("• ", "bullet"), ("Görünüş ", "highlight"), ("menüsünden pencereyi her zaman üstte tutabilirsiniz.\n", "normal"),
-        ]
-
-        for text, tag in content:
+        for text, tag in L["guide_content"]:
             guide_text.insert(tk.END, text, tag if tag != "normal" else "")
 
-        # Sadece klavye girdilerini engelleyerek metni salt okunur ancak seçilebilir/kopyalanabilir yapıyoruz
         guide_text.bind("<Key>", lambda e: "break" if e.keysym not in ("c", "C") or not (isinstance(e.state, int) and (e.state & 0x0004)) else None)
-        
-        # --- Klavye Kısayolları (Keyboard-First) ---
+
         guide_win.bind('<Escape>', lambda e: guide_win.destroy())
         guide_win.bind('<Return>', lambda e: guide_win.destroy())
-        
+
         guide_win.deiconify()

@@ -69,14 +69,19 @@ class FinansMotoru:
         }
 
     @staticmethod
-    def yas_hesapla(dogum_tarihi_str: str) -> Dict[str, Union[int, str]]:
+    def yas_hesapla(dogum_tarihi_str: str, lang: str = "tr") -> Dict[str, Union[int, str]]:
         """Verilen doğum tarihine (GG.AA.YYYY) göre detaylı bir yaş/doğum günü analizi yapar."""
+        # Kullanıcının "/" veya "-" girmesi ihtimaline karşı toleranslı (agnostik) temizleme
+        temiz_tarih = dogum_tarihi_str.replace('/', '.').replace('-', '.')
         try:
-            # Kullanıcının "/" veya "-" girmesi ihtimaline karşı toleranslı (agnostik) temizleme
-            temiz_tarih = dogum_tarihi_str.replace('/', '.').replace('-', '.')
+            # Dilden bağımsız olarak her zaman DD.MM.YYYY (Türkiye/Avrupa standardı) dener
             dogum = datetime.strptime(temiz_tarih, "%d.%m.%Y")
         except ValueError:
-            return {"hata": "Geçersiz format"}
+            try:
+                # Başarısız olursa (Örn: 05/25/1990) MM.DD.YYYY (US formatı) dener
+                dogum = datetime.strptime(temiz_tarih, "%m.%d.%Y")
+            except ValueError:
+                return {"hata": "Geçersiz format"}
             
         # Saat farkından doğacak sapmaları engellemek için bugünü gece yarısına sabitliyoruz
         bugun = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -102,8 +107,12 @@ class FinansMotoru:
             yillar -= 1
             aylar += 12
             
-        aylar_tr = ["", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
-        gunler_tr = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"]
+        if lang == "en":
+            aylar_isim = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+            gunler_isim = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        else:
+            aylar_isim = ["", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
+            gunler_isim = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"]
         
         # Artık yıl (29 Şubat) doğumlular için replace hatalarını yakalıyoruz
         son_dogum_gunu = FinansMotoru._guvenli_yil_degistir(dogum, bugun.year)
@@ -113,17 +122,28 @@ class FinansMotoru:
 
         sonraki_dogum_gunu = FinansMotoru._guvenli_yil_degistir(dogum, son_dogum_gunu.year + 1)
 
-        kalan_gun = (sonraki_dogum_gunu - bugun).days
+        if aylar == 0 and gunler == 0:
+            kalan_gun = 0
+        else:
+            kalan_gun = (sonraki_dogum_gunu - bugun).days
         yasanilan_gun = (bugun - dogum).days + 1
         
-        yasanilan_gun_str = f"{yasanilan_gun:,}".replace(",", ".")
+        # İngilizce için "1,500", Türkçe için "1.500" formatı
+        yasanilan_gun_str = f"{yasanilan_gun:,}"
+        if lang == "tr": yasanilan_gun_str = yasanilan_gun_str.replace(",", ".")
         
+        # İngilizce ve Türkçe için doğal tarih okunuşları
+        if lang == "en":
+            sonraki_tarih_str = f"{gunler_isim[sonraki_dogum_gunu.weekday()]}, {aylar_isim[sonraki_dogum_gunu.month]} {sonraki_dogum_gunu.day}, {sonraki_dogum_gunu.year}"
+        else:
+            sonraki_tarih_str = f"{sonraki_dogum_gunu.day} {aylar_isim[sonraki_dogum_gunu.month]} {sonraki_dogum_gunu.year} {gunler_isim[sonraki_dogum_gunu.weekday()]}"
+
         return {
             "yillar": yillar,
             "aylar": aylar,
             "gunler": gunler,
-            "dogum_gunu_str": gunler_tr[dogum.weekday()],
-            "sonraki_dogum_gunu_str": f"{sonraki_dogum_gunu.day} {aylar_tr[sonraki_dogum_gunu.month]} {sonraki_dogum_gunu.year} {gunler_tr[sonraki_dogum_gunu.weekday()]}",
+            "dogum_gunu_str": gunler_isim[dogum.weekday()],
+            "sonraki_dogum_gunu_str": sonraki_tarih_str,
             "kalan_gun": kalan_gun,
             "yasanilan_gun_str": yasanilan_gun_str
         }

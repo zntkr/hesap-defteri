@@ -62,6 +62,19 @@ class TestMatematikMotoru(unittest.TestCase):
         beklenen = [1500000.0]
         self.assertEqual(MatematikMotoru.metinden_sayilari_ayikla(metin), beklenen)
 
+    def test_sayilari_ayikla_bilimsel_gosterim(self):
+        # Uygulamanın kendi ürettiği bilimsel gösterimleri (1.23e+08, 1,23e+08 vb.) tanıması test edilir.
+        metin = "Sonuç 1.2e5 çıktı, diğeri -4.5E-5 ve TR formatlı 1,2345e+08 sayısı."
+        beklenen = [120000.0, -0.000045, 123450000.0]
+        self.assertEqual(MatematikMotoru.metinden_sayilari_ayikla(metin), beklenen)
+
+    def test_sayilari_ayikla_bolunmeme_sorunu(self):
+        # Regex'teki (?!\d) lookahead kuralının test edilmesi.
+        # 3.14159 (3'ten fazla basamaklı küsürat) ve 3,2412e+14 gibi sayılar ortadan bölünmemelidir.
+        metin = "Pi sayısı 3.14159 ve bilimsel 3,2412e+14 ile test edelim."
+        beklenen = [3.14159, 324120000000000.0]
+        self.assertEqual(MatematikMotoru.metinden_sayilari_ayikla(metin), beklenen)
+
     def test_detayli_analiz_yap_temel(self):
         sayilar = [10.0, 20.0, 30.0, 40.0, 50.0]
         analiz = MatematikMotoru.detayli_analiz_yap(sayilar)

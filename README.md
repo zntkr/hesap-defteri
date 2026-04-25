@@ -2,43 +2,79 @@
 
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://python.org)
+[![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://python.org)
 [![Dependencies](https://img.shields.io/badge/runtime%20dependencies-zero-brightgreen.svg)](requirements.txt)
+[![Tests](https://img.shields.io/badge/tests-39%20passing-success.svg)](test/)
 
-Türk ofis çalışanları için tasarlanmış finansal ve istatistiksel masaüstü hesap makinesi. Standart Python kütüphanesi dışında hiçbir bağımlılık yok — yalnızca `tkinter`, mühendislik sınırlarına kadar zorlunmuş.
+> A financial and statistical desktop calculator — built with pure `tkinter`, pushed to its engineering limits.
 
----
-
-## Teknik açıdan ilginç olan ne?
-
-**Özel animasyonlu sekme çubuğu** — Sekme navigasyonu sıfırdan inşa edildi: `tk.Button` dizisi ve `tk.Canvas` üzerinde ease-out cubic interpolasyonla kayan bir gösterge çizgisi. `after()` döngüsü, rapid tıklamalarda o anki görsel konumdan başlayarak animasyonu kesmeden sürdürür.
-
-**Agnostik sayı ayrıştırma** — Tek bir regex deseni, Türkçe (`1.500,50`) ve Amerikan (`1,500.50`) binlik ayırıcı formatlarını eş zamanlı tanır. Fatura, e-posta veya tablo içeriğini yapıştırın — motor format konfigürasyonu beklemeden sayıları çıkarır.
-
-**Decimal hassasiyetiyle finans** — Tüm finansal hesaplamalar Python'un `Decimal` sınıfıyla yapılır. Float'ın IEEE 754 birikimli yuvarlama hatası KDV zincirlerinde önemlidir.
-
-**8-point design grid** — Her dolgu, kenar boşluğu ve pencere boyutu 4 veya 8'in katıdır. Sistem bunu kodda zorunlu kılar; bu da görsel ritmi tutarlı yapar.
-
-**Üç katmanlı mimari** — `core/` modülü tkinter'dan tamamen izole saf fonksiyonlardan oluşur. Aynı dosyalar bir Flask API'sine veya CLI aracına olduğu gibi taşınabilir.
+<div align="center">
+  <img src="assets/demo.gif" alt="Animated tab switching and calculation demo" width="424">
+</div>
 
 ---
 
-## Araçlar
+## What makes this technically interesting
 
-| # | Sekme | Açıklama |
-|---|-------|----------|
-| 1 | DEĞİŞİM | İki değer arasındaki yüzdelik değişim |
-| 2 | ORTALAMA | Ham metinden istatistiksel analiz (ortalama, medyan, std. sapma, açıklık, adet) |
-| 3 | KDV | KDV hesaplama — brüt veya netten matrah ve KDV tutarı |
-| 4 | İNDİRİM | İndirim hesaplama |
-| 5 | ORAN | Oran / içler-dışlar orantısı |
-| 6 | YAŞ | Detaylı yaş raporu: tam yaş, doğum günü, yaşanılan gün sayısı, sonraki doğum günü |
+This is not a typical tkinter app. Every component that the platform couldn't render correctly was reimplemented from scratch in `tk.Canvas`.
 
-Tüm sonuçlar tıklanabilir — bir tıkla değer panoya kopyalanır.
+### Custom animated tab bar — `AnimatedTabBar`
+
+`ttk.Notebook` was replaced entirely. The replacement is a `tk.Canvas` subclass that draws all tabs as Windows 98–style beveled polygons: chamfered corners, double-layer highlight/shadow bevel edges, and a shelf line that breaks cleanly under the active tab.
+
+Color transitions run through a `_progress: List[float]` array — one float per tab — animated with **ease-out cubic** over an `after()` loop. Rapid tab switching continues from the current interpolated position rather than resetting.
+
+```python
+ease = 1.0 - (1.0 - t) ** 3          # ease-out cubic
+bg   = lerp(tab_inactive_bg, bg_secondary, activity)  # per-tab color
+```
+
+The canvas background matches the outer frame so clipped polygon corners are invisible — a detail `tk.Button` grids can never achieve.
+
+### Format-agnostic number parsing
+
+A single regex extracts numbers from free text without knowing the locale. Turkish (`1.500,50`) and US (`1,500.50`) thousand-separators are recognized simultaneously — paste a spreadsheet, an e-mail, or an invoice and the engine figures it out.
+
+### `Decimal`-precision finance
+
+All financial calculations use Python's `Decimal`. Float's IEEE 754 accumulation error is non-trivial in VAT chains; this is the right tool.
+
+### Windows 11 square corners via DWM API
+
+```python
+ctypes.windll.dwmapi.DwmSetWindowAttribute(
+    hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, byref(c_int(DONOTROUND)), sizeof(c_int)
+)
+```
+
+Called after `deiconify()` so DWM receives the correct HWND. Silently no-ops on older Windows versions.
+
+### Atomic settings persistence
+
+Language preference is written to `%APPDATA%\HesapDefteri\settings.json` via a `.tmp → rename` pattern — the same technique databases use for crash-safe writes. A corrupt or missing file falls back to defaults; unknown JSON keys are whitelisted out rather than forwarded.
+
+### Flicker-free startup
+
+`root.withdraw()` before any I/O, geometry calculated statically, `root.deiconify()` only when everything is ready. The window appears exactly where it should, at full size, on the first frame.
 
 ---
 
-## Hızlı başlangıç
+## Tools
+
+| # | Tab | Description |
+|---|-----|-------------|
+| 1 | CHANGE | Percentage change between two values |
+| 2 | AVERAGE | Statistical analysis from raw text (mean, median, std dev, range, count) |
+| 3 | VAT | VAT calculation — gross-up or net-down |
+| 4 | DISCOUNT | Discount / net price calculator |
+| 5 | RATIO | Cross-multiplication / proportion |
+| 6 | AGE | Exact age, days lived, next birthday countdown |
+
+All results are click-to-copy. Supports Turkish and English UI (`View → Language`; preference is persisted).
+
+---
+
+## Quick start
 
 ```bash
 git clone https://github.com/zntkr/hesapdefteri.git
@@ -46,91 +82,110 @@ cd hesapdefteri
 python main.py
 ```
 
-`pip install` yok. Sanal ortam kurulumu yok. Python 3.8+ yeterli.
+No `pip install`. No virtual environment. Python 3.8+ is sufficient.
 
-### Windows için bağımsız .exe oluşturma
+### Standalone Windows executable
 
 ```
 build.bat
 ```
 
-`build.bat`'a çift tıklayın. PyInstaller yoksa otomatik kurar. Çıktı: `dist/HesapDefteri.exe` — kurulum gerektirmeyen tek taşınabilir dosya.
+Double-click `build.bat`. Installs PyInstaller automatically if missing. Output: `dist/HesapDefteri.exe` — single portable file, no installer required.
 
 ---
 
-## Klavye kısayolları
+## Architecture
 
-| Kısayol | Eylem |
-|---------|-------|
-| `Ctrl+1` … `Ctrl+6` | Araca doğrudan geç |
-| `Ctrl+Tab` | Araçlar arasında sırayla dön |
-| `Enter` | Aktif araçta hesapla |
-| `Esc` | Aktif aracı temizle |
-| `Ctrl+H` | Hesap şeridini aç / kapat |
-| `F1` | Kullanma rehberini aç |
-
----
-
-## Mimari
+Three-layer modular monolith. Cross-layer leakage is a hard error.
 
 ```
 hesapdefteri/
-├── main.py                    # Boot: pencere başlatma, flicker önleme, kaynak yolları
+├── main.py                    # Boot: window init, flicker prevention, DWM corners
 ├── core/
-│   ├── matematik_motoru.py    # Durumsuz: sayı çıkarma + istatistik (4 ondalık, float)
-│   └── finans_motoru.py       # Durumsuz: KDV, indirim, yaş, oran (Decimal, 2 ondalık)
+│   ├── matematik_motoru.py    # Stateless: number extraction + statistics (float, 4 dp)
+│   ├── finans_motoru.py       # Stateless: VAT, discount, age, ratio (Decimal, 2 dp)
+│   ├── ayarlar.py             # Settings: atomic load/save, whitelist validation
+│   └── dil.py                 # Localisation: TR / EN string tables
 └── ui/
-    ├── arayuz_tasarimi.py     # MainUI: tema, menüler, klavye kısayolları
-    ├── tools_tab.py           # ToolsTab: çerçeve yönetimi + klavye yönlendirme
-    ├── animated_tab_bar.py    # AnimatedTabBar: özel kaydırmalı gösterge
-    ├── base_tool.py           # BaseToolWidget: ortak UI desenleri + pano
-    ├── average_tool.py        # Ortalama Hesaplayıcı
-    ├── tax_tool.py            # KDV Hesaplayıcı
-    ├── discount_tool.py       # İndirim Hesaplayıcı
-    ├── change_tool.py         # Değişiklik Hesaplayıcı
-    ├── proportion_tool.py     # Oran Hesaplayıcı
-    └── age_tool.py            # Yaş Hesaplayıcı
+    ├── arayuz_tasarimi.py     # MainUI: theme constants, menus, keyboard shortcuts
+    ├── tools_tab.py           # ToolsTab: frame switching, tab orchestration
+    ├── animated_tab_bar.py    # AnimatedTabBar: Win98-style custom Canvas tab widget
+    ├── base_tool.py           # BaseToolWidget: shared input/output patterns, clipboard
+    ├── change_tool.py
+    ├── average_tool.py
+    ├── tax_tool.py
+    ├── discount_tool.py
+    ├── proportion_tool.py
+    └── age_tool.py
 ```
 
-**Katman kuralları:**
-- `core/` → sıfır tkinter importu, saf hesaplama
-- `ui/` → sıfır iş mantığı, yalnızca sunum ve girdi
-- `main.py` → yalnızca pencere başlatma ve event loop
+**Layer contracts:**
+- `core/` → zero tkinter imports, pure functions, `None` on bad input
+- `ui/` → zero business logic, state visualisation only
+- `main.py` → window bootstrap and event loop only
 
 ---
 
-## Tasarım sistemi
+## Design system
 
-| Değişken | Renk | Rol |
-|----------|------|-----|
-| `bg_color` | `#4A423A` | Masa yüzeyi (koyu ceviz) |
-| `bg_secondary` | `#EFEBE6` | Kağıt yüzeyi |
-| `input_bg` | `#F9F8F6` | Giriş alanları |
-| `accent_color` | `#C85A47` | Kiremit — birincil eylem |
-| `fg_color` | `#2D2D2D` | Gövde metni |
-| `tape_bg` | `#F4F1EA` | Hesap şeridi (saman sarısı kağıt) |
+| Token | Value | Role |
+|-------|-------|------|
+| `bg_color` | `#4A423A` | Desk surface (dark walnut) |
+| `bg_secondary` | `#EFEBE6` | Paper surface |
+| `tab_inactive_bg` | `#E0DCD7` | Inactive tab — one shade darker than paper |
+| `input_bg` | `#F9F8F6` | Input fields |
+| `accent_color` | `#C85A47` | Terracotta — primary action |
+| `shadow_light` | `#FFFFFF` | Bevel highlight edge |
+| `shadow_dark` | `#D3CFC8` | Bevel shadow edge |
+| `tape_bg` | `#F4F1EA` | Calculator tape (straw paper) |
 
-**Tipografi** — IBM Plex Mono → Consolas → Courier New → Courier (monospace basamağı)
+**Typography** — IBM Plex Mono → Consolas → Courier New → Courier (monospace cascade)
 
-**Skeuomorfizm** — Kağıt sayfalar fiziksel 3D kenarlara sahip (`#FFFFFF` highlight / `#D3CFC8` gölge). 45° masa gölgesi kaydırılmış koyu çerçevelerle simüle edilir. Sol kenara cilt delikleri açılmıştır.
+**Skeuomorphism** — Paper pages have physical 3D bevel edges. A 45° desk shadow is simulated with offset dark frames. Binding holes are punched into the left margin. The tab bar is a hand-drawn Canvas, not a widget.
 
 ---
 
-## Testler
+## Keyboard shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+1` … `Ctrl+6` | Jump to tool directly |
+| `Ctrl+Tab` | Cycle through tools |
+| `Enter` | Calculate |
+| `Esc` | Clear active tool |
+| `Ctrl+H` | Toggle calculator tape |
+| `F1` | Open usage guide |
+
+---
+
+## Tests
 
 ```bash
-# Tüm testler
-python -m unittest discover
-
-# Tek modül
-python -m unittest test.test_matematik_motoru
-
-# Kapsam raporu (core/ için)
-python run_coverage.py
+python -m unittest discover     # 39 tests
+python run_coverage.py          # coverage report (core/ only)
 ```
 
-`core/` katmanı tam sınır testi kapsamına sahiptir: IEEE 754 hassasiyeti, artık yıl yaş hesaplaması (29 Şubat doğum tarihleri), TR/US format ayrımı, sıfıra bölme koruması.
+Test coverage includes: IEEE 754 precision edge cases, leap-year age calculation (Feb 29 birthdays), TR/US format ambiguity, division by zero, corrupt/missing settings file, `OSError` on save.
 
 ---
 
-> *"İşini yapar ve sistem kaynaklarını serbest bırakır."*
+<details>
+<summary>Türkçe</summary>
+
+Türk ofis çalışanları için finansal ve istatistiksel masaüstü hesap makinesi. Standart Python kütüphanesi dışında bağımlılık yok.
+
+**Araçlar:** Değişim oranı · Ortalama/istatistik · KDV · İndirim · Oran/orantı · Yaş hesaplama
+
+**Öne çıkan özellikler:**
+- TR ve US sayı formatlarını eş zamanlı tanır — yapıştır ve hesapla
+- `Decimal` tabanlı finansal hassasiyet
+- Animasyonlu Win98 tarzı özel sekme çubuğu (`tk.Canvas`)
+- Tüm sonuçlar tıkla-kopyala
+- TR/EN dil desteği, tercih kalıcı olarak kaydedilir
+- Windows 11 yuvarlak köşe efekti DWM API ile kapatılmıştır
+
+</details>
+
+---
+
+> *"Does the job and frees the system resources."*
