@@ -8,6 +8,21 @@ def get_resource_path(relative_path: str) -> str:
     base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
     return os.path.join(base_path, relative_path)
 
+def _fade_in(root: tk.Tk, duration_ms: int = 200, steps: int = 10) -> None:
+    try:
+        step_ms = max(1, duration_ms // steps)
+        delta = 1.0 / steps
+
+        def _tick(alpha: float) -> None:
+            nxt = min(alpha + delta, 1.0)
+            root.attributes('-alpha', nxt)
+            if nxt < 1.0:
+                root.after(step_ms, lambda: _tick(nxt))
+
+        root.after(step_ms, lambda: _tick(0.0))
+    except Exception:
+        pass
+
 def _apply_square_corners(root: tk.Tk) -> None:
     """
     Windows 11'in DWM yuvarlak köşe efektini devre dışı bırakır.
@@ -41,7 +56,7 @@ if __name__ == "__main__":
     # 1. PERDEYİ KAPAT: Arayüz çizilirken ekranda titreme (flicker) olmaması için pencereyi gizle
     root.withdraw()
 
-    icon_path = get_resource_path("app_icon.ico")
+    icon_path = get_resource_path(os.path.join("assets", "app_icon.ico"))
     if os.path.exists(icon_path):
         root.iconbitmap(icon_path)
 
@@ -63,7 +78,9 @@ if __name__ == "__main__":
     # Windows 11'in varsayılan yuvarlak köşelerine izin vermek için iptal edildi
     # _apply_square_corners(root)
 
-    # 5. PERDEYİ AÇ: Kusursuz bir şekilde ekranda göster
+    # 5. PERDEYİ AÇ: Şeffaf başlat, fade-in ile tam opaklığa getir
+    root.attributes('-alpha', 0.0)
     root.deiconify()
+    _fade_in(root)
 
     root.mainloop()

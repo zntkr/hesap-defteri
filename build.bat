@@ -25,7 +25,7 @@ echo     Bu islem bilgisayarinizin hizina bagli olarak 1-2 dakika surebilir.
 REM Gereksiz kutuphaneleri dislayarak .exe boyutunu kucultme (Optimization)
 set EXCLUDES=--exclude-module numpy --exclude-module pandas --exclude-module matplotlib --exclude-module PyQt5 --exclude-module PyQt6 --exclude-module PySide2 --exclude-module PySide6 --exclude-module unittest --exclude-module test --exclude-module pydoc --exclude-module lib2to3 --exclude-module xmlrpc --exclude-module http.server
 
-python -m PyInstaller --noconfirm --onefile --windowed --icon "app_icon.ico" %EXCLUDES% --name "HesapDefteri" "main.py"
+python -m PyInstaller --noconfirm --onefile --windowed --icon "assets\app_icon.ico" --add-data "assets\app_icon.ico;assets" %EXCLUDES% --name "HesapDefteri" "main.py"
 IF %ERRORLEVEL% NEQ 0 (
     echo.
     echo [!] KRITIK HATA: Derleme islemi (Build) basarisiz oldu!
