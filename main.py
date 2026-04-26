@@ -54,8 +54,8 @@ if __name__ == "__main__":
 
     # 4. GEOMETRİ HESABI: Uygulamayı ekranın tam ortasına hizala
     sf = root.winfo_fpixels('1i') / 96.0
-    genislik = int(400 * sf)
-    yukseklik = int(560 * sf)
+    genislik = int(376 * sf)
+    yukseklik = int(544 * sf)
     x = (root.winfo_screenwidth() // 2) - (genislik // 2)
     y = (root.winfo_screenheight() // 2) - (yukseklik // 2)
     root.geometry(f"{genislik}x{yukseklik}+{x}+{y}")

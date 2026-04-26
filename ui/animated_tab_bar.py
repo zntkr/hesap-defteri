@@ -25,8 +25,8 @@ class AnimatedTabBar(tk.Canvas):
         on_change: Callable[[int], None],
     ) -> None:
         self.ui = ui
-        self._H: int = self.ui.s(24)
-        self._CLIP: int = self.ui.s(5)
+        self._H: int = self.ui.s(21)
+        self._CLIP: int = self.ui.s(4)
         super().__init__(
             parent,
             height=self._H,

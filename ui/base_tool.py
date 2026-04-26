@@ -55,8 +55,8 @@ class BaseToolWidget(tk.Frame):
             self.primary_input.focus_set()
 
     def _build_header(self, parent: tk.Frame, desc: str) -> None:
-        desc_frame = tk.Frame(parent, bg=self.ui.bg_secondary, pady=8)
-        desc_frame.pack(fill="x", pady=(0, 16), padx=(0, 8))
+        desc_frame = tk.Frame(parent, bg=self.ui.bg_secondary)
+        desc_frame.pack(fill="x", pady=(5, 0), padx=(0, 8))
 
         top_row = tk.Frame(desc_frame, bg=self.ui.bg_secondary)
         top_row.pack(fill="x")
@@ -85,7 +85,7 @@ class BaseToolWidget(tk.Frame):
             w.bind("<Enter>", lambda e: self.badge_frame.config(bg=self.ui.tab_inactive_bg) or [lbl.config(bg=self.ui.tab_inactive_bg) for lbl in (self.badge_cur_lbl, self.badge_sep_lbl, self.badge_tot_lbl)])
             w.bind("<Leave>", lambda e: self.badge_frame.config(bg=self.ui.bg_secondary) or [lbl.config(bg=self.ui.bg_secondary) for lbl in (self.badge_cur_lbl, self.badge_sep_lbl, self.badge_tot_lbl)])
 
-        tk.Label(desc_frame, text=desc, font=self.ui.font_main, fg=self.ui.text_disabled, bg=self.ui.bg_secondary, justify="left", wraplength=self.ui.s(300), height=3, anchor="nw").pack(anchor="w", pady=(4, 0), fill="x")
+        tk.Label(desc_frame, text=desc, font=self.ui.font_main, fg=self.ui.text_disabled, bg=self.ui.bg_secondary, justify="left", wraplength=self.ui.s(264), height=2, anchor="nw").pack(anchor="w", pady=(2, 0), padx=(8, 0), fill="x")
 
     def set_page_badge(self, current: int, total: int) -> None:
         if hasattr(self, 'badge_cur_lbl'):
@@ -96,15 +96,14 @@ class BaseToolWidget(tk.Frame):
         return len(P) <= 50
 
     def _build_input_row(self, parent: tk.Frame, row: int, label_text: str, default_val: str = "", width: int = 15) -> tk.Entry:
-        tk.Label(parent, text=label_text, font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_secondary).grid(row=row, column=0, sticky="w", pady=8)
-        
+        tk.Label(parent, text=label_text, font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_secondary).grid(row=row, column=0, sticky="w", pady=3)
+
         vcmd = (self.register(self._validate_entry_length), '%P')
         entry = tk.Entry(parent, font=self.ui.font_main, bg=self.ui.input_bg, fg=self.ui.fg_color, bd=2, relief="sunken", highlightthickness=1, highlightbackground=self.ui.bg_secondary, highlightcolor=self.ui.accent_color, width=width, validate="key", validatecommand=vcmd, selectbackground=self.ui.shadow_dark, selectforeground=self.ui.fg_color)
         if default_val:
             entry.insert(0, default_val)
         self.default_inputs[entry] = default_val
-        entry.grid(row=row, column=1, sticky="ew", padx=8, pady=8)
-        parent.columnconfigure(0, minsize=self.ui.s(88))
+        entry.grid(row=row, column=1, sticky="ew", padx=8, pady=3)
         parent.columnconfigure(1, weight=1)
         return entry
 
@@ -137,9 +136,9 @@ class BaseToolWidget(tk.Frame):
             self.clear_btn.config(relief="sunken", bg=self.ui.tab_inactive_bg)
             self.ui.root.after(150, lambda: self.clear_btn.config(relief="raised", bg=self.ui.bg_secondary) if self.clear_btn.winfo_exists() else None)
 
-    def _build_info_label(self, parent: tk.Frame, default_msg: str, pad_y: Tuple[int, int] = (16, 16)) -> tk.Label:
+    def _build_info_label(self, parent: tk.Frame, default_msg: str, pad_y: Tuple[int, int] = (21, 21)) -> tk.Label:
         self.default_info_msg = default_msg
-        self.info_lbl = tk.Label(parent, text=default_msg, font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, justify="left", wraplength=self.ui.s(300))
+        self.info_lbl = tk.Label(parent, text=default_msg, font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, justify="left", wraplength=self.ui.s(264))
         self.info_lbl.pack(side="bottom", anchor="w", pady=pad_y)
         self._permanent_msg = (default_msg, self.ui.text_secondary)
         self._msg_timer: Optional[str] = None

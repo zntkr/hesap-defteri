@@ -17,7 +17,7 @@ class AgeToolWidget(BaseToolWidget):
         self._build_action_buttons(age_frame, self.calculate_age, self.clear_data)
 
         age_res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        age_res_frame.pack(fill="x", pady=(16, 0))
+        age_res_frame.pack(fill="x", pady=(13, 0))
 
         self.age_res_txt = tk.Text(age_res_frame, font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_secondary, cursor="hand2", wrap="word", bd=0, highlightthickness=0, height=13, selectbackground=self.ui.shadow_dark, selectforeground=self.ui.fg_color)
         self.age_res_txt.pack(anchor="w", fill="x", padx=8, pady=8)

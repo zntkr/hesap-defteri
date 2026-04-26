@@ -19,7 +19,7 @@ class ProportionToolWidget(BaseToolWidget):
         self._build_action_buttons(prop_frame, self.calculate_proportion, self.clear_data, rowspan=3)
 
         prop_res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        prop_res_frame.pack(fill="x", pady=(16, 0))
+        prop_res_frame.pack(fill="x", pady=(13, 0))
 
         tk.Label(prop_res_frame, text=L["prop_label_result"], fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=4)
         self.prop_res_lbl = tk.Label(prop_res_frame, text="-", font=self.ui.font_title, fg=self.ui.fg_color, bg=self.ui.bg_secondary)

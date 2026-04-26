@@ -18,7 +18,7 @@ class TaxToolWidget(BaseToolWidget):
         self._build_action_buttons(tax_frame, self.calculate_tax, self.clear_data)
 
         tax_res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        tax_res_frame.pack(fill="x", pady=(16, 0))
+        tax_res_frame.pack(fill="x", pady=(13, 0))
 
         self._build_result_labels(tax_res_frame, [
             (L["tax_label_gross"], "ham_tutar"),

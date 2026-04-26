@@ -18,7 +18,7 @@ class DiscountToolWidget(BaseToolWidget):
         self._build_action_buttons(discount_frame, self.calculate_discount, self.clear_data)
 
         discount_res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        discount_res_frame.pack(fill="x", pady=(16, 0))
+        discount_res_frame.pack(fill="x", pady=(13, 0))
 
         self._build_result_labels(discount_res_frame, [
             (L["disc_label_price"], "ham_tutar"),

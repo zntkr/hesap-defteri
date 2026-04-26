@@ -9,7 +9,7 @@ from typing import Optional, Any, Union
 # Proje kök dizinini Python yoluna ekle (Pylance import hatalarını önlemek için)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from ui.tools_tab import ToolsTab
+from ui.tools_tab import ToolsTab, PaperShadowCanvas
 import core.dil as dil
 import core.ayarlar as ayarlar
 
@@ -34,7 +34,7 @@ class MainUI:
         self.placeholder_text = self.lang["placeholder_text"]
 
         self.root.title(f"{self.lang['app_name']} - v{self.app_version}")
-        self.root.geometry(f"{self.s(400)}x{self.s(560)}")
+        self.root.geometry(f"{self.s(376)}x{self.s(544)}")
 
         # --- NEO-RETRO THEME VARIABLES ---
         self.bg_color = "#4A423A"
@@ -267,15 +267,15 @@ class MainUI:
                   selectforeground=[("readonly", self.shadow_light), ("focus", self.shadow_light)])
 
         # Sabit boyutlu konteyner ile Off-Screen Rendering (Clipping) modeli:
-        main_container = tk.Frame(self.root, bg=self.bg_color, width=self.s(656), height=self.s(560))
-        main_container.place(x=0, y=0, width=self.s(656), height=self.s(560))
+        main_container = tk.Frame(self.root, bg=self.bg_color, width=self.s(608), height=self.s(544))
+        main_container.place(x=0, y=0, width=self.s(608), height=self.s(544))
 
         self.main_view = ToolsTab(main_container, self)
-        self.main_view.place(x=0, y=0, width=self.s(400), height=self.s(560))
+        self.main_view.place(x=0, y=0, width=self.s(376), height=self.s(544))
 
         self.tape_container = tk.Frame(main_container, bg=self.bg_color)
         self.tape_container.pack_propagate(False)
-        self.tape_container.place(x=self.s(400), y=self.s(16), width=self.s(240), height=self.s(528))
+        self.tape_container.place(x=self.s(376), y=0, width=self.s(232), height=self.s(544))
         self._build_paper_tape(self.tape_container)
 
     def toggle_tape(self, event: Optional[tk.Event] = None) -> None:
@@ -286,22 +286,34 @@ class MainUI:
         x, y = self.root.winfo_x(), self.root.winfo_y()
 
         if is_open:
-            self.root.geometry(f"{self.s(656)}x{self.s(560)}+{x}+{y}")
+            self.root.geometry(f"{self.s(608)}x{self.s(544)}+{x}+{y}")
         else:
-            self.root.geometry(f"{self.s(400)}x{self.s(560)}+{x}+{y}")
+            self.root.geometry(f"{self.s(376)}x{self.s(544)}+{x}+{y}")
 
     def _build_paper_tape(self, parent: tk.Frame) -> None:
         L = self.lang
-        wrapper = tk.Frame(parent, bg=self.bg_color, bd=0)
-        wrapper.pack(fill="both", expand=True)
 
-        tk.Frame(wrapper, bg=self.bg_shadow, height=8).pack(side="bottom", fill="x", padx=(8, 0))
-        middle = tk.Frame(wrapper, bg=self.bg_color, bd=0)
-        middle.pack(side="top", fill="both", expand=True)
-        tk.Frame(middle, bg=self.bg_shadow, width=8).pack(side="right", fill="y", pady=(8, 0))
+        offset = self.s(8)
+        pad_16 = self.s(16)
+        pad_8 = self.s(8)
 
-        paper = tk.Frame(middle, bg=self.tape_bg, bd=0)
-        paper.pack(side="left", fill="both", expand=True)
+        tape_block = tk.Frame(parent, bg=self.bg_color, bd=0)
+        # Ana defterin sağ tarafında zaten 16px masa boşluğu olduğu için, 
+        # aradaki toplam boşluğun 16px olması adına şeridin sol padding'ini 0 yapıyoruz.
+        tape_block.pack(fill="both", expand=True, padx=(0, pad_8), pady=(pad_16, pad_16))
+
+        # 1. Katman: Kusursuz 45 derece gölge çizimi (Ana defterle aynı mantık)
+        shadow_canvas = PaperShadowCanvas(tape_block, self, offset=offset)
+        shadow_canvas.place(relx=0, rely=0, relwidth=1.0, relheight=1.0)
+
+        # 2. Katman: Hesap Şeridi Kağıdı
+        paper = tk.Frame(tape_block, bg=self.tape_bg, bd=0)
+        paper.pack(side="top", fill="both", expand=True, padx=(0, offset), pady=(0, offset))
+
+        # Yazar Kasa / Rulo Çıkış Yuvası Efekti (Kağıdın çıktığı yerdeki karanlık yarık)
+        slot_frame = tk.Frame(paper, bg=self.bg_shadow, height=self.s(6))
+        slot_frame.pack(side="top", fill="x")
+        tk.Frame(slot_frame, bg=self.shadow_dark, height=1).pack(side="bottom", fill="x")
 
         tk.Frame(paper, bg=self.shadow_light, height=2).pack(side="top", fill="x")
         tk.Frame(paper, bg=self.shadow_dark, height=2).pack(side="bottom", fill="x")
@@ -311,7 +323,7 @@ class MainUI:
         header_frame = tk.Frame(paper, bg=self.tape_bg)
         header_frame.pack(fill="x", pady=(16, 8))
         tk.Label(header_frame, text=L["tape_header"], font=self.font_bold, fg=self.accent_color, bg=self.tape_bg).pack()
-        tk.Label(paper, text="- "*18, font=self.font_small, fg=self.shadow_dark, bg=self.tape_bg).pack(fill="x")
+        tk.Label(paper, text="- "*13, font=self.font_small, fg=self.shadow_dark, bg=self.tape_bg).pack(fill="x")
 
         self.tape_text = tk.Text(paper, font=self.font_small, bg=self.tape_bg, fg=self.fg_color, bd=0, highlightthickness=0, wrap="word", state="disabled", padx=16, pady=8, selectbackground=self.shadow_dark, selectforeground=self.fg_color)
         self.tape_text.pack(fill="both", expand=True)
@@ -321,7 +333,7 @@ class MainUI:
         self.tape_text.tag_configure("flash", background=self.shadow_dark)
 
         btn_frame = tk.Frame(paper, bg=self.tape_bg)
-        btn_frame.pack(fill="x", pady=16, padx=16)
+        btn_frame.pack(fill="x", pady=(8, 16), padx=16)
 
         copy_btn = tk.Button(btn_frame, text=L["tape_copy_btn"], font=self.font_small, bg=self.tape_bg, fg=self.text_secondary, bd=1, relief="raised", activebackground=self.tab_inactive_bg, cursor="hand2", command=self._copy_tape)
         copy_btn.pack(side="left", fill="x", expand=True, padx=(0, 4))

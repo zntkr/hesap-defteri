@@ -58,7 +58,7 @@ class AverageToolWidget(BaseToolWidget):
         self._make_label_clickable(self.avg_sum_lbl)
 
         stats_frame = tk.Frame(res_frame, bg=self.ui.bg_secondary)
-        stats_frame.pack(fill="x", pady=(16, 0))
+        stats_frame.pack(fill="x", pady=(8, 0))
 
         self.avg_stats_labels = {}
         items = [
@@ -70,10 +70,11 @@ class AverageToolWidget(BaseToolWidget):
             (L["avg_stat_std"], "std_sapma"),
         ]
 
+        stat_val_font = (self.ui.font_main[0], 8, "bold")
         for i, (text, key) in enumerate(items):
             row, col = i // 2, (i % 2) * 2
-            tk.Label(stats_frame, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=row, column=col, sticky="w", pady=4, padx=(8 if col == 2 else 0, 4))
-            lbl = tk.Label(stats_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_secondary)
+            tk.Label(stats_frame, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_small).grid(row=row, column=col, sticky="w", pady=0, padx=(8 if col == 2 else 0, 4))
+            lbl = tk.Label(stats_frame, text="-", font=stat_val_font, fg=self.ui.fg_color, bg=self.ui.bg_secondary)
             lbl.grid(row=row, column=col+1, sticky="w")
             self._make_label_clickable(lbl)
             self.avg_stats_labels[key] = lbl

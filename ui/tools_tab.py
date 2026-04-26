@@ -18,11 +18,43 @@ if TYPE_CHECKING:
     from ui.base_tool import BaseToolWidget
 
 
+class PaperShadowCanvas(tk.Canvas):
+    """
+    Skeuomorfik 45 derece ışık açısını simüle etmek için özel çizim.
+    Frame tabanlı sert (hard-edge) gölgelerin köşelerde yarattığı 
+    üst üste binmeyi (overlapping) ve 90 derecelik kesintileri önlemek 
+    amacıyla tek bir tam boyutlu polygon olarak inşa edilmiştir.
+    """
+    def __init__(self, parent: tk.Misc, ui: "MainUI", offset: int, **kwargs) -> None:
+        super().__init__(parent, bg=ui.bg_color, highlightthickness=0, bd=0, **kwargs)
+        self.ui = ui
+        self.offset = offset
+        self._shadow_poly = self.create_polygon(0, 0, 0, 0, fill=self.ui.bg_shadow, outline="")
+        self.bind("<Configure>", self._on_resize)
+
+    def _on_resize(self, event: tk.Event) -> None:
+        w, h = event.width, event.height
+        o = self.offset
+        if w <= o or h <= o:
+            return
+        
+        # Işık sol üstten (top-left) vurur. Gölge sağa ve alta uzar.
+        pts = [
+            w - o, 0,       # 1. Kağıdın sağ üst köşesi
+            w, o,           # 2. Gölgenin dış sağ üst ucu (45 derece bağ)
+            w, h,           # 3. Gölgenin dış sağ alt köşesi
+            o, h,           # 4. Gölgenin dış sol alt ucu (45 derece bağ)
+            0, h - o,       # 5. Kağıdın sol alt köşesi
+            w - o, h - o    # 6. Kağıdın sağ alt köşesi (iç merkez)
+        ]
+        self.coords(self._shadow_poly, *pts)
+
+
 class ToolsTab(tk.Frame):
     """Tüm bağımsız araç bileşenlerini yöneten Orkestratör Sınıf."""
 
     def __init__(self, parent: tk.Misc, ui: "MainUI") -> None:
-        super().__init__(parent, bg=ui.bg_color, padx=16, pady=16)
+        super().__init__(parent, bg=ui.bg_color)
         self.ui = ui
         self._active_idx: int = 0
         self.frames: Dict[str, "BaseToolWidget"] = {}
@@ -51,8 +83,13 @@ class ToolsTab(tk.Frame):
         short_labels = [self.frames[name].get_short_name() for name in self.tabs_list]
 
         self.tab_bar = AnimatedTabBar(self, self.ui, short_labels, self._on_tab_change)
-        self.tab_bar.pack(fill="x", padx=(0, 8))
-        self.content_host.pack(fill="both", expand=True)
+        self.tab_bar.pack(fill="x", padx=(16, 24), pady=(16, 0))
+        self.content_host.pack(fill="both", expand=True, padx=(16, 16), pady=(0, 16))
+
+        # Sekme çubuğu hizasında sağ gölge şeridi — kağıt gölgesinin yukarıya uzantısı
+        tab_shadow = tk.Frame(self, bg=self.ui.bg_shadow)
+        tab_shadow.place(relx=1.0, x=-self.ui.s(24), y=self.ui.s(16) + self.ui.s(10),
+                         width=self.ui.s(8), height=self.ui.s(11))
 
         self._show(0)
         self.tool_var.set(self.tabs_list[0])
@@ -70,19 +107,16 @@ class ToolsTab(tk.Frame):
     def _build_paper(self, host: tk.Frame, i: int, total: int, cls: type) -> tk.Frame:
         """Defter sayfası görünümündeki sarmalayıcı çerçeveyi ve araç widget'ını oluşturur."""
         paper_wrapper = tk.Frame(host, bg=self.ui.bg_color, bd=0)
+        offset = self.ui.s(8)
 
-        # 45° gölge efekti: alt ve sağ kenar
-        tk.Frame(paper_wrapper, bg=self.ui.bg_shadow, height=8).pack(
-            side="bottom", fill="x", padx=(8, 0)
-        )
-        middle = tk.Frame(paper_wrapper, bg=self.ui.bg_color, bd=0)
-        middle.pack(side="top", fill="both", expand=True)
-        tk.Frame(middle, bg=self.ui.bg_shadow, width=8).pack(
-            side="right", fill="y", pady=(8, 0)
-        )
+        # 1. Katman: Kusursuz gölge çizimi (Tüm alanı kaplar, kağıdın altında kalır)
+        shadow_canvas = PaperShadowCanvas(paper_wrapper, self.ui, offset=offset)
+        shadow_canvas.place(relx=0, rely=0, relwidth=1.0, relheight=1.0)
 
-        paper = tk.Frame(middle, bg=self.ui.bg_secondary, bd=0)
-        paper.pack(side="left", fill="both", expand=True)
+        # 2. Katman: Fiziksel defter sayfası 
+        # (pack padding'i sağdan ve alttan boşluk bırakarak Canvas gölgesini açıkta bırakır)
+        paper = tk.Frame(paper_wrapper, bg=self.ui.bg_secondary, bd=0)
+        paper.pack(side="top", fill="both", expand=True, padx=(0, offset), pady=(0, offset))
 
         # Fiziksel kağıt kenarları (3D highlight/shadow)
         tk.Frame(paper, bg=self.ui.shadow_dark, height=2).pack(side="bottom", fill="x")
@@ -93,12 +127,12 @@ class ToolsTab(tk.Frame):
         content_frame.pack(fill="both", expand=True)
 
         # Sol kenar boşluğu — kırmızı çizgi skeuomorfizmi
-        left_margin = tk.Frame(content_frame, bg=self.ui.bg_secondary, width=self.ui.s(32))
+        left_margin = tk.Frame(content_frame, bg=self.ui.bg_secondary, width=self.ui.s(40))
         left_margin.pack(side="left", fill="y")
         left_margin.pack_propagate(False)
 
         # Easter Egg: Sol alt köşedeki gizli buton (Hesap Şeridini tetikler)
-        easter_egg = tk.Frame(left_margin, bg=self.ui.bg_secondary, height=self.ui.s(32), cursor="hand2")
+        easter_egg = tk.Frame(left_margin, bg=self.ui.bg_secondary, height=self.ui.s(40), cursor="hand2")
         easter_egg.pack(side="bottom", fill="x")
         easter_egg.bind("<Button-1>", lambda e: self.ui.toggle_tape(e))
 
