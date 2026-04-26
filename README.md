@@ -5,6 +5,7 @@
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://python.org)
 [![Dependencies](https://img.shields.io/badge/runtime%20dependencies-zero-brightgreen.svg)](requirements.txt)
 [![Tests](https://img.shields.io/badge/tests-45%20passing-success.svg)](test/)
+[![Release](https://img.shields.io/github/v/release/zntkr/hesap-defteri)](https://github.com/zntkr/hesap-defteri/releases/latest)
 
 > A financial and statistical desktop calculator — built with pure `tkinter`, pushed to its engineering limits.
 
@@ -20,7 +21,7 @@ This is not a typical tkinter app. Every component that the platform couldn't re
 
 ### Custom animated tab bar — `AnimatedTabBar`
 
-`ttk.Notebook` was replaced entirely. The replacement is a `tk.Canvas` subclass that draws all tabs as Windows 98–style beveled polygons: chamfered corners, double-layer highlight/shadow bevel edges, and a shelf line that breaks cleanly under the active tab.
+`ttk.Notebook` was replaced entirely. The replacement is a `tk.Canvas` subclass that draws all tabs as chamfered polygons with double-layer highlight/shadow bevel edges and a shelf line that breaks cleanly under the active tab.
 
 Color transitions run through a `_progress: List[float]` array — one float per tab — animated with **ease-out cubic** over an `after()` loop. Rapid tab switching continues from the current interpolated position rather than resetting.
 
@@ -39,23 +40,13 @@ A single regex extracts numbers from free text without knowing the locale. Turki
 
 All financial calculations use Python's `Decimal`. Float's IEEE 754 accumulation error is non-trivial in VAT chains; this is the right tool.
 
-### Windows 11 square corners via DWM API
+### Flicker-free startup
 
-```python
-ctypes.windll.dwmapi.DwmSetWindowAttribute(
-    hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, byref(c_int(DONOTROUND)), sizeof(c_int)
-)
-```
-
-Called after `deiconify()` so DWM receives the correct HWND. Silently no-ops on older Windows versions.
+`root.withdraw()` before any I/O, geometry calculated statically, `root.deiconify()` only when everything is ready. The window appears exactly where it should, at full size, on the first frame.
 
 ### Atomic settings persistence
 
 Language preference is written to `%APPDATA%\HesapDefteri\settings.json` via a `.tmp → rename` pattern — the same technique databases use for crash-safe writes. A corrupt or missing file falls back to defaults; unknown JSON keys are whitelisted out rather than forwarded.
-
-### Flicker-free startup
-
-`root.withdraw()` before any I/O, geometry calculated statically, `root.deiconify()` only when everything is ready. The window appears exactly where it should, at full size, on the first frame.
 
 ---
 
@@ -77,8 +68,8 @@ All results are click-to-copy. Supports Turkish and English UI (`View → Langua
 ## Quick start
 
 ```bash
-git clone https://github.com/zntkr/hesapdefteri.git
-cd hesapdefteri
+git clone https://github.com/zntkr/hesap-defteri.git
+cd hesap-defteri
 python main.py
 ```
 
@@ -92,6 +83,8 @@ build.bat
 
 Double-click `build.bat`. Installs PyInstaller automatically if missing. Output: `dist/HesapDefteri.exe` — single portable file, no installer required.
 
+Or download the latest pre-built binary from [Releases](https://github.com/zntkr/hesap-defteri/releases/latest).
+
 ---
 
 ## Architecture
@@ -100,7 +93,7 @@ Three-layer modular monolith. Cross-layer leakage is a hard error.
 
 ```
 hesapdefteri/
-├── main.py                    # Boot: window init, flicker prevention, DWM corners
+├── main.py                    # Boot: window init, DPI awareness, flicker prevention
 ├── core/
 │   ├── matematik_motoru.py    # Stateless: number extraction + statistics (float, 4 dp)
 │   ├── finans_motoru.py       # Stateless: VAT, discount, age, ratio (Decimal, 2 dp)
@@ -109,7 +102,7 @@ hesapdefteri/
 └── ui/
     ├── arayuz_tasarimi.py     # MainUI: theme constants, menus, keyboard shortcuts
     ├── tools_tab.py           # ToolsTab: frame switching, tab orchestration
-    ├── animated_tab_bar.py    # AnimatedTabBar: Win98-style custom Canvas tab widget
+    ├── animated_tab_bar.py    # AnimatedTabBar: custom Canvas tab widget
     ├── base_tool.py           # BaseToolWidget: shared input/output patterns, clipboard
     ├── change_tool.py
     ├── average_tool.py
@@ -142,7 +135,7 @@ hesapdefteri/
 
 **Typography** — IBM Plex Mono → Consolas → Courier New → Courier (monospace cascade)
 
-**Skeuomorphism** — Paper pages have physical 3D bevel edges. A 45° desk shadow is simulated with offset dark frames. Binding holes are punched into the left margin. The tab bar is a hand-drawn Canvas, not a widget.
+**Skeuomorphism** — Paper pages have physical 3D bevel edges. A 45° desk shadow is simulated with offset dark frames. The tab bar is a hand-drawn Canvas, not a widget.
 
 ---
 
@@ -163,7 +156,6 @@ hesapdefteri/
 
 ```bash
 python -m unittest discover     # 45 tests
-python run_coverage.py          # coverage report (core/ only)
 ```
 
 Test coverage includes: IEEE 754 precision edge cases, leap-year age calculation (Feb 29 birthdays), TR/US format ambiguity, division by zero, corrupt/missing settings file, `OSError` on save.
@@ -180,10 +172,9 @@ Türk ofis çalışanları için finansal ve istatistiksel masaüstü hesap maki
 **Öne çıkan özellikler:**
 - TR ve US sayı formatlarını eş zamanlı tanır — yapıştır ve hesapla
 - `Decimal` tabanlı finansal hassasiyet
-- Animasyonlu Win98 tarzı özel sekme çubuğu (`tk.Canvas`)
+- Animasyonlu özel sekme çubuğu (`tk.Canvas`)
 - Tüm sonuçlar tıkla-kopyala
 - TR/EN dil desteği, tercih kalıcı olarak kaydedilir
-- Windows 11 yuvarlak köşe efekti DWM API ile kapatılmıştır
 
 </details>
 
