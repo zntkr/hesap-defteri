@@ -133,7 +133,7 @@ hesapdefteri/
 | `error_color` | `#D32F2F` | Validation error state |
 | `tape_bg` | `#F4F1EA` | Calculator tape (straw paper) |
 
-**Typography** — IBM Plex Mono → Consolas → Courier New → Courier (monospace cascade)
+**Typography** — Consolas → Courier New → Courier (monospace cascade)
 
 **Skeuomorphism** — Paper pages have physical 3D bevel edges. A 45° desk shadow is simulated with offset dark frames. The tab bar is a hand-drawn Canvas, not a widget.
 

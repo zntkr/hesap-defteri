@@ -58,7 +58,7 @@ class MainUI:
 
         # --- TYPOGRAPHY ---
         available_fonts = tkfont.families()
-        preferred_fonts = ["IBM Plex Mono", "Consolas", "Courier New", "Courier"]
+        preferred_fonts = ["Consolas", "Courier New", "Courier"]
         selected_font = next((f for f in preferred_fonts if f in available_fonts), "Courier")
 
         self.font_main = (selected_font, 9)
