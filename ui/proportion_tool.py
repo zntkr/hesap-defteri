@@ -16,7 +16,7 @@ class ProportionToolWidget(BaseToolWidget):
         self.prop_a_entry = self._build_input_row(prop_frame, 0, L["prop_label_a"], width=12)
         self.prop_b_entry = self._build_input_row(prop_frame, 1, L["prop_label_b"], width=12)
         self.prop_c_entry = self._build_input_row(prop_frame, 2, L["prop_label_c"], width=12)
-        self._build_action_buttons(prop_frame, self.calculate_proportion, self.clear_data, rowspan=3)
+        self._build_action_buttons(prop_frame, self.calculate_proportion, self.clear_data)
 
         prop_res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
         prop_res_frame.pack(fill="x", pady=(13, 0))

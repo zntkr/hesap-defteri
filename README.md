@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://python.org)
 [![Dependencies](https://img.shields.io/badge/runtime%20dependencies-zero-brightgreen.svg)](requirements.txt)
-[![Tests](https://img.shields.io/badge/tests-39%20passing-success.svg)](test/)
+[![Tests](https://img.shields.io/badge/tests-45%20passing-success.svg)](test/)
 
 > A financial and statistical desktop calculator — built with pure `tkinter`, pushed to its engineering limits.
 
@@ -136,7 +136,8 @@ hesapdefteri/
 | `input_bg` | `#F9F8F6` | Input fields |
 | `accent_color` | `#C85A47` | Terracotta — primary action |
 | `shadow_light` | `#FFFFFF` | Bevel highlight edge |
-| `shadow_dark` | `#D3CFC8` | Bevel shadow edge |
+| `shadow_dark` | `#AFAFAF` | Bevel shadow edge |
+| `error_color` | `#D32F2F` | Validation error state |
 | `tape_bg` | `#F4F1EA` | Calculator tape (straw paper) |
 
 **Typography** — IBM Plex Mono → Consolas → Courier New → Courier (monospace cascade)
@@ -161,7 +162,7 @@ hesapdefteri/
 ## Tests
 
 ```bash
-python -m unittest discover     # 39 tests
+python -m unittest discover     # 45 tests
 python run_coverage.py          # coverage report (core/ only)
 ```
 

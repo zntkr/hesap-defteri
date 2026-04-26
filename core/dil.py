@@ -75,7 +75,7 @@ TR: Dict[str, Any] = {
     # Average tool
     "avg_short": "ORTALAMA",
     "avg_name": "Ortalama Hesaplayıcı",
-    "avg_desc": "Metin içindeki sayıları ayıklayıp ortalamasını ve istatistiklerini hesaplar. Sayıları aşağıdaki kutuya yapıştırın.",
+    "avg_desc": "Bir metinde bulunan sayıları ayıklayıp ortalamasını ve istatistiklerini hesaplar.",
     "avg_label_avg": "Ortalama:",
     "avg_label_sum": "Toplam:",
     "avg_stat_count": "VERİ ADEDİ:",

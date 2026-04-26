@@ -25,6 +25,45 @@ class PaperShadowCanvas(tk.Canvas):
     üst üste binmeyi (overlapping) ve 90 derecelik kesintileri önlemek 
     amacıyla tek bir tam boyutlu polygon olarak inşa edilmiştir.
     """
+    def __init__(self, parent: tk.Misc, ui: "MainUI", offset: int, top_diagonal: bool = True, **kwargs) -> None:
+        super().__init__(parent, bg=ui.bg_color, highlightthickness=0, bd=0, **kwargs)
+        self.ui = ui
+        self.offset = offset
+        self.top_diagonal = top_diagonal
+        self._shadow_poly = self.create_polygon(0, 0, 0, 0, fill=self.ui.bg_shadow, outline="")
+        self.bind("<Configure>", self._on_resize)
+
+    def _on_resize(self, event: tk.Event) -> None:
+        w, h = event.width, event.height
+        o = self.offset
+        if w <= o or h <= o:
+            return
+        
+        if self.top_diagonal:
+            # Hesap şeridi (Tape) gibi bağımsız nesneler için tam silüet (Yüzen kağıt / Neo-Brutalizm)
+            # 45 derecelik bağlar kaldırılarak nesnenin masadan koptuğu illüzyonu yaratıldı.
+            pts = [
+                o, o,
+                w, o,
+                w, h,
+                o, h
+            ]
+        else:
+            # Ana defter için (Üstünde sekme gölgesiyle birleşeceği için üst kısım y=0'dan başlar)
+            pts = [
+                o, 0,
+                w, 0,
+                w, h,
+                o, h,
+            ]
+        self.coords(self._shadow_poly, *pts)
+
+
+class TabShadowCanvas(tk.Canvas):
+    """
+    Sekme çubuğunun sağ kenarındaki silüet gölgesini (45 derece ışıkla) çizer.
+    Altındaki PaperShadowCanvas ile kusursuz birleşir.
+    """
     def __init__(self, parent: tk.Misc, ui: "MainUI", offset: int, **kwargs) -> None:
         super().__init__(parent, bg=ui.bg_color, highlightthickness=0, bd=0, **kwargs)
         self.ui = ui
@@ -35,17 +74,18 @@ class PaperShadowCanvas(tk.Canvas):
     def _on_resize(self, event: tk.Event) -> None:
         w, h = event.width, event.height
         o = self.offset
-        if w <= o or h <= o:
+        c = self.ui.s(4)  # Sekmelerdeki kırpık köşe yarıçapı
+        if w <= 0 or h <= 0:
             return
         
-        # Işık sol üstten (top-left) vurur. Gölge sağa ve alta uzar.
+        # Işık sol üstten (top-left) vuruyor. Sekme üstten (y=0) başlıyor, 
+        # silüeti ise aşağıya (y=o) kadar kayarak masaya düşüyor.
         pts = [
-            w - o, 0,       # 1. Kağıdın sağ üst köşesi
-            w, o,           # 2. Gölgenin dış sağ üst ucu (45 derece bağ)
-            w, h,           # 3. Gölgenin dış sağ alt köşesi
-            o, h,           # 4. Gölgenin dış sol alt ucu (45 derece bağ)
-            0, h - o,       # 5. Kağıdın sol alt köşesi
-            w - o, h - o    # 6. Kağıdın sağ alt köşesi (iç merkez)
+            0, o,             # Gölge sekmenin arkasından y=o noktasında belirir
+            o - c, o,         # Sekmenin düz üst kenarının gölgesi biter
+            o, o + c,         # Kırpık köşenin (clip) 45 derecelik gölgesi
+            o, h,             # Kağıt gölgesiyle birleşmek üzere dümdüz aşağı iner
+            0, h              # Sola dönerek sekmenin arkasına girer
         ]
         self.coords(self._shadow_poly, *pts)
 
@@ -86,10 +126,10 @@ class ToolsTab(tk.Frame):
         self.tab_bar.pack(fill="x", padx=(16, 24), pady=(16, 0))
         self.content_host.pack(fill="both", expand=True, padx=(16, 16), pady=(0, 16))
 
-        # Sekme çubuğu hizasında sağ gölge şeridi — kağıt gölgesinin yukarıya uzantısı
-        tab_shadow = tk.Frame(self, bg=self.ui.bg_shadow)
-        tab_shadow.place(relx=1.0, x=-self.ui.s(24), y=self.ui.s(16) + self.ui.s(10),
-                         width=self.ui.s(8), height=self.ui.s(11))
+        # Sekme çubuğu hizasında sağ gölge şeridi — sekmenin 45 derecelik silüet gölgesi
+        tab_shadow = TabShadowCanvas(self, self.ui, offset=self.ui.s(8))
+        tab_shadow.place(relx=1.0, x=-self.ui.s(24), y=self.ui.s(16),
+                         width=self.ui.s(8), height=self.ui.s(21))
 
         self._show(0)
         self.tool_var.set(self.tabs_list[0])
@@ -109,8 +149,8 @@ class ToolsTab(tk.Frame):
         paper_wrapper = tk.Frame(host, bg=self.ui.bg_color, bd=0)
         offset = self.ui.s(8)
 
-        # 1. Katman: Kusursuz gölge çizimi (Tüm alanı kaplar, kağıdın altında kalır)
-        shadow_canvas = PaperShadowCanvas(paper_wrapper, self.ui, offset=offset)
+        # 1. Katman: Kusursuz gölge çizimi (Tüm alanı kaplar, üst sekme gölgesiyle birleşir)
+        shadow_canvas = PaperShadowCanvas(paper_wrapper, self.ui, offset=offset, top_diagonal=False)
         shadow_canvas.place(relx=0, rely=0, relwidth=1.0, relheight=1.0)
 
         # 2. Katman: Fiziksel defter sayfası 

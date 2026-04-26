@@ -61,10 +61,10 @@ class MainUI:
         preferred_fonts = ["IBM Plex Mono", "Consolas", "Courier New", "Courier"]
         selected_font = next((f for f in preferred_fonts if f in available_fonts), "Courier")
 
-        self.font_main = (selected_font, 10)
-        self.font_bold = (selected_font, 10, "bold")
+        self.font_main = (selected_font, 9)
+        self.font_bold = (selected_font, 9, "bold")
         self.font_small = (selected_font, 8)
-        self.font_title = (selected_font, 24)
+        self.font_title = (selected_font, 16)
 
         self.root.config(bg=self.bg_color)
         self.always_on_top_var = tk.BooleanVar(value=False)
