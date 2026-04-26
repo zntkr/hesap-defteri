@@ -1,7 +1,9 @@
 import tkinter as tk
 import os
 import sys
+import core.logger as _logger
 from ui.arayuz_tasarimi import MainUI
+import core.ayarlar as _ayarlar
 
 def get_resource_path(relative_path: str) -> str:
     """PyInstaller --onefile ile derlendiğinde geçici klasördeki dosyaları bulur."""
@@ -23,6 +25,27 @@ def _fade_in(root: tk.Tk, duration_ms: int = 200, steps: int = 10) -> None:
     except Exception:
         pass
 
+def _load_bundled_fonts() -> None:
+    """
+    Proje içindeki font dosyalarını Windows'a geçici olarak kayıt eder.
+    Uygulama kapandığında sistem fontları etkilenmez.
+    Sadece Windows'ta çalışır; diğer platformlarda sessizce devredışı kalır.
+    """
+    try:
+        import ctypes
+        base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
+        font_dir = os.path.join(base_path, "assets", "fonts")
+        fonts = ["JetBrainsMono-Regular.ttf", "JetBrainsMono-Bold.ttf", "JetBrainsMono-SemiBold.ttf"]
+        FR_PRIVATE = 0x10
+        for fname in fonts:
+            fpath = os.path.join(font_dir, fname)
+            if os.path.exists(fpath):
+                ctypes.windll.gdi32.AddFontResourceExW(fpath, FR_PRIVATE, 0)
+    except AttributeError:
+        pass  # Windows dışı platform — beklenen davranış
+    except Exception:
+        _logger.logger.warning("Font yüklenemedi", exc_info=True)
+
 def _apply_square_corners(root: tk.Tk) -> None:
     """
     Windows 11'in DWM yuvarlak köşe efektini devre dışı bırakır.
@@ -43,6 +66,9 @@ def _apply_square_corners(root: tk.Tk) -> None:
         pass
 
 if __name__ == "__main__":
+    _logger.setup()
+    sys.excepthook = _logger.handle_exception
+
     # Yüksek çözünürlüklü ekranlarda (High-DPI) ikon ve arayüz bulanıklığını önler
     try:
         import ctypes
@@ -51,7 +77,10 @@ if __name__ == "__main__":
     except Exception:
         pass
 
+    _load_bundled_fonts()
+
     root = tk.Tk()
+    root.report_callback_exception = _logger.handle_exception
 
     # 1. PERDEYİ KAPAT: Arayüz çizilirken ekranda titreme (flicker) olmaması için pencereyi gizle
     root.withdraw()
@@ -68,7 +97,7 @@ if __name__ == "__main__":
     root.update_idletasks()
 
     # 4. GEOMETRİ HESABI: Uygulamayı ekranın tam ortasına hizala
-    sf = root.winfo_fpixels('1i') / 96.0
+    sf = root.winfo_fpixels('1i') / 96.0 * _ayarlar.load().get("ui_scale", 1.0)
     genislik = int(376 * sf)
     yukseklik = int(544 * sf)
     x = (root.winfo_screenwidth() // 2) - (genislik // 2)

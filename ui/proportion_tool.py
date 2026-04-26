@@ -11,7 +11,7 @@ class ProportionToolWidget(BaseToolWidget):
         L = self.ui.lang
         self._build_header(self, L["prop_desc"])
         prop_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        prop_frame.pack(fill="x", pady=8)
+        prop_frame.pack(fill="x", pady=self.ui.s(8))
 
         self.prop_a_entry = self._build_input_row(prop_frame, 0, L["prop_label_a"], width=12)
         self.prop_b_entry = self._build_input_row(prop_frame, 1, L["prop_label_b"], width=12)
@@ -19,11 +19,11 @@ class ProportionToolWidget(BaseToolWidget):
         self._build_action_buttons(prop_frame, self.calculate_proportion, self.clear_data)
 
         prop_res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        prop_res_frame.pack(fill="x", pady=(13, 0))
+        prop_res_frame.pack(fill="x", pady=(self.ui.s(13), 0))
 
-        tk.Label(prop_res_frame, text=L["prop_label_result"], fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=4)
+        tk.Label(prop_res_frame, text=L["prop_label_result"], fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=self.ui.s(4))
         self.prop_res_lbl = tk.Label(prop_res_frame, text="-", font=self.ui.font_title, fg=self.ui.fg_color, bg=self.ui.bg_secondary)
-        self.prop_res_lbl.grid(row=0, column=1, sticky="w", padx=24)
+        self.prop_res_lbl.grid(row=0, column=1, sticky="w", padx=self.ui.s(24))
         self._make_label_clickable(self.prop_res_lbl)
         self.result_labels["sonuc"] = self.prop_res_lbl
 

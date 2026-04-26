@@ -68,6 +68,15 @@ class MatematikMotoru:
         return int(v) if v.is_integer() else v
 
     @staticmethod
+    def _safe_stdev(sayi_listesi: List[Union[float, int]]) -> Union[float, int, str]:
+        if len(sayi_listesi) < 2:
+            return 0
+        try:
+            return MatematikMotoru._temiz_sayi(statistics.stdev(sayi_listesi))
+        except (ValueError, OverflowError):
+            return "-"
+
+    @staticmethod
     def detayli_analiz_yap(sayi_listesi: List[Union[float, int]]) -> Optional[Dict[str, Any]]:
         """
         Verilen sayı listesi üzerinden temel ve ileri düzey istatistiksel hesaplamaları yapar.
@@ -91,6 +100,6 @@ class MatematikMotoru:
             "medyan": MatematikMotoru._temiz_sayi(statistics.median(sayi_listesi)),
             "toplam": MatematikMotoru._temiz_sayi(sum(sayi_listesi)),
             "aciklik": MatematikMotoru._temiz_sayi(max(sayi_listesi) - min(sayi_listesi)),
-            "std_sapma": MatematikMotoru._temiz_sayi(statistics.stdev(sayi_listesi)) if len(sayi_listesi) > 1 else 0
+            "std_sapma": MatematikMotoru._safe_stdev(sayi_listesi)
         }
         return analiz

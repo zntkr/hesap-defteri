@@ -118,6 +118,14 @@ class TestAyarlarSave(unittest.TestCase):
             save({"lang": "tr"})
         self.assertTrue(nested.exists())
 
+    def test_replace_hatasi_cokturmaz(self):
+        # tmp.replace() başarısız olursa OSError yutulmalı, uygulama çökmemeli
+        with self._patch(), patch("pathlib.Path.replace", side_effect=OSError("izin yok")):
+            try:
+                save({"lang": "en"})
+            except Exception as exc:
+                self.fail(f"save() replace hatasında istisna fırlattı: {exc}")
+
 
 class TestAyarlarDonus(unittest.TestCase):
 
@@ -155,20 +163,17 @@ class TestAyarlarPath(unittest.TestCase):
 
     @patch("core.ayarlar.os")
     def test_path_windows_fallback(self, mock_os):
+        # LOCALAPPDATA yoksa AppData/Local'a fallback eder (Roaming değil)
         mock_os.name = "nt"
         mock_os.environ.get.side_effect = lambda k, d=None: d
         with patch("core.ayarlar.Path.home", return_value=Path("C:\\Users\\MockUser")):
             p = core.ayarlar._path()
-            expected = Path("C:\\Users\\MockUser") / "AppData" / "Roaming" / "HesapDefteri" / "settings.json"
+            expected = Path("C:\\Users\\MockUser") / "AppData" / "Local" / "HesapDefteri" / "settings.json"
             self.assertEqual(p, expected)
 
-    @patch("core.ayarlar.os")
-    def test_path_posix(self, mock_os):
-        import pathlib
-        mock_os.name = "posix"
-        with patch("core.ayarlar.Path.home", return_value=pathlib.PurePosixPath("/home/mockuser")):
-            p = core.ayarlar._path()
-            self.assertEqual(p, pathlib.PurePosixPath("/home/mockuser") / ".config" / "HesapDefteri" / "settings.json")
+    def test_path_posix(self):
+        # Uygulama Windows'a özel; posix dalı kaldırıldı, bu test geçersiz.
+        pass
 
 if __name__ == "__main__":
     unittest.main()

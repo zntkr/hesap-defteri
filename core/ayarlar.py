@@ -3,16 +3,18 @@ import os
 from pathlib import Path
 from typing import Any, Dict
 
-_DEFAULTS: Dict[str, Any] = {"lang": "tr"}
-_VALID: Dict[str, set] = {"lang": {"tr", "en"}}
+_DEFAULTS: Dict[str, Any] = {"lang": "tr", "ui_scale": 1.0}
+_VALID: Dict[str, set] = {"lang": {"tr", "en"}, "ui_scale": {1.0, 1.15, 1.25, 1.5}}
+
+
+def app_dir() -> Path:
+    """Uygulamaya ait kullanıcı veri klasörünü döner (settings + log buraya gider)."""
+    base = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
+    return base / "HesapDefteri"
 
 
 def _path() -> Path:
-    if os.name == "nt":
-        base = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"))
-    else:
-        base = Path.home() / ".config"
-    return base / "HesapDefteri" / "settings.json"
+    return app_dir() / "settings.json"
 
 
 def load() -> Dict[str, Any]:

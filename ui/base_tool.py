@@ -56,7 +56,7 @@ class BaseToolWidget(tk.Frame):
 
     def _build_header(self, parent: tk.Frame, desc: str) -> None:
         desc_frame = tk.Frame(parent, bg=self.ui.bg_secondary)
-        desc_frame.pack(fill="x", pady=(4, 0), padx=(0, 8))
+        desc_frame.pack(fill="x", pady=(self.ui.s(4), 0), padx=(0, self.ui.s(8)))
 
         top_row = tk.Frame(desc_frame, bg=self.ui.bg_secondary)
         top_row.pack(fill="x")
@@ -69,15 +69,15 @@ class BaseToolWidget(tk.Frame):
 
         # Fiziksel Kaşe (Stamp) ve Tıklanabilir Navigasyon Rozeti
         self.badge_frame = tk.Frame(top_row, bg=self.ui.bg_secondary, cursor="hand2", bd=0)
-        self.badge_frame.pack(side="right", ipadx=4, ipady=4)
-        
-        self.badge_cur_lbl = tk.Label(self.badge_frame, text="", font=(self.ui.font_main[0], 8, "bold"), fg=self.ui.text_secondary, bg=self.ui.bg_secondary, cursor="hand2", bd=0)
+        self.badge_frame.pack(side="right", ipadx=self.ui.s(4), ipady=self.ui.s(4))
+        _badge_font = (self.ui.font_small[0], self.ui.font_small[1], "bold")
+        self.badge_cur_lbl = tk.Label(self.badge_frame, text="", font=_badge_font, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, cursor="hand2", bd=0)
         self.badge_cur_lbl.pack(side="left")
-        
-        self.badge_sep_lbl = tk.Label(self.badge_frame, text="/", font=(self.ui.font_main[0], 8, "bold"), fg=self.ui.text_disabled, bg=self.ui.bg_secondary, cursor="hand2", bd=0)
-        self.badge_sep_lbl.pack(side="left", padx=4)
-        
-        self.badge_tot_lbl = tk.Label(self.badge_frame, text="", font=(self.ui.font_main[0], 8, "bold"), fg=self.ui.text_disabled, bg=self.ui.bg_secondary, cursor="hand2", bd=0)
+
+        self.badge_sep_lbl = tk.Label(self.badge_frame, text="/", font=_badge_font, fg=self.ui.text_disabled, bg=self.ui.bg_secondary, cursor="hand2", bd=0)
+        self.badge_sep_lbl.pack(side="left", padx=self.ui.s(4))
+
+        self.badge_tot_lbl = tk.Label(self.badge_frame, text="", font=_badge_font, fg=self.ui.text_disabled, bg=self.ui.bg_secondary, cursor="hand2", bd=0)
         self.badge_tot_lbl.pack(side="left")
 
         for w in (self.badge_frame, self.badge_cur_lbl, self.badge_sep_lbl, self.badge_tot_lbl):
@@ -96,22 +96,22 @@ class BaseToolWidget(tk.Frame):
         return len(P) <= 50
 
     def _build_input_row(self, parent: tk.Frame, row: int, label_text: str, default_val: str = "", width: int = 15) -> tk.Entry:
-        tk.Label(parent, text=label_text, font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_secondary).grid(row=row, column=0, sticky="w", pady=4)
+        tk.Label(parent, text=label_text, font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_secondary).grid(row=row, column=0, sticky="w", pady=self.ui.s(4))
 
         vcmd = (self.register(self._validate_entry_length), '%P')
         entry = tk.Entry(parent, font=self.ui.font_main, bg=self.ui.input_bg, fg=self.ui.fg_color, bd=2, relief="sunken", highlightthickness=1, highlightbackground=self.ui.bg_secondary, highlightcolor=self.ui.accent_color, width=width, validate="key", validatecommand=vcmd, selectbackground=self.ui.shadow_dark, selectforeground=self.ui.fg_color)
         if default_val:
             entry.insert(0, default_val)
         self.default_inputs[entry] = default_val
-        entry.grid(row=row, column=1, sticky="ew", padx=8, pady=4)
+        entry.grid(row=row, column=1, sticky="ew", padx=self.ui.s(8), pady=self.ui.s(4))
         parent.columnconfigure(1, weight=1)
         return entry
 
     def _build_action_buttons(self, parent: tk.Frame, calc_cmd: Callable[..., Any], clear_cmd: Callable[[], None]) -> None:
         self.calc_btn = tk.Button(parent, text=self.ui.lang["btn_calculate"], width=9, font=self.ui.font_bold, bg=self.ui.accent_color, fg=self.ui.shadow_light, bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground=self.ui.shadow_light, cursor="hand2", command=calc_cmd)
         self.clear_btn = tk.Button(parent, text=self.ui.lang["btn_clear"], width=9, font=self.ui.font_small, bg=self.ui.bg_secondary, fg=self.ui.text_secondary, bd=1, relief="raised", activebackground=self.ui.tab_inactive_bg, cursor="hand2", command=clear_cmd)
-        self.calc_btn.grid(row=0, column=2, sticky="ew", padx=(8, 16), pady=4)
-        self.clear_btn.grid(row=1, column=2, sticky="ew", padx=(8, 16), pady=4)
+        self.calc_btn.grid(row=0, column=2, sticky="ew", padx=(self.ui.s(8), self.ui.s(16)), pady=self.ui.s(4))
+        self.clear_btn.grid(row=1, column=2, sticky="ew", padx=(self.ui.s(8), self.ui.s(16)), pady=self.ui.s(4))
 
         for btn in (self.calc_btn, self.clear_btn):
             btn.bind("<Button-1>", lambda _, b=btn: b.config(relief="sunken"))
@@ -139,7 +139,7 @@ class BaseToolWidget(tk.Frame):
     def _build_info_label(self, parent: tk.Frame, default_msg: str, pad_y: Tuple[int, int] = (21, 21)) -> tk.Label:
         self.default_info_msg = default_msg
         self.info_lbl = tk.Label(parent, text=default_msg, font=self.ui.font_main, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, justify="left", wraplength=self.ui.s(264))
-        self.info_lbl.pack(side="bottom", anchor="w", pady=pad_y)
+        self.info_lbl.pack(side="bottom", anchor="w", pady=(self.ui.s(pad_y[0]), self.ui.s(pad_y[1])))
         self._permanent_msg = (default_msg, self.ui.text_secondary)
         self._msg_timer: Optional[str] = None
         return self.info_lbl
@@ -164,9 +164,9 @@ class BaseToolWidget(tk.Frame):
 
     def _build_result_labels(self, parent: tk.Frame, items: List[Tuple[str, str]], padx: int = 24) -> Dict[str, tk.Label]:
         for i, (text, key) in enumerate(items):
-            tk.Label(parent, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=i, column=0, sticky="w", pady=4)
+            tk.Label(parent, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=i, column=0, sticky="w", pady=self.ui.s(4))
             lbl = tk.Label(parent, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_secondary)
-            lbl.grid(row=i, column=1, sticky="w", padx=padx)
+            lbl.grid(row=i, column=1, sticky="w", padx=self.ui.s(padx))
             self._make_label_clickable(lbl)
             self.result_labels[key] = lbl
         parent.columnconfigure(0, minsize=self.ui.s(104))

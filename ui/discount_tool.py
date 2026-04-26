@@ -11,14 +11,14 @@ class DiscountToolWidget(BaseToolWidget):
         L = self.ui.lang
         self._build_header(self, L["disc_desc"])
         discount_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        discount_frame.pack(fill="x", pady=8)
+        discount_frame.pack(fill="x", pady=self.ui.s(8))
 
         self.discount_amount_entry = self._build_input_row(discount_frame, 0, L["disc_label_amount"])
         self.discount_rate_entry = self._build_input_row(discount_frame, 1, L["disc_label_rate"], "10")
         self._build_action_buttons(discount_frame, self.calculate_discount, self.clear_data)
 
         discount_res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        discount_res_frame.pack(fill="x", pady=(13, 0))
+        discount_res_frame.pack(fill="x", pady=(self.ui.s(13), 0))
 
         self._build_result_labels(discount_res_frame, [
             (L["disc_label_price"], "ham_tutar"),

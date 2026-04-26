@@ -138,18 +138,33 @@ class TestMatematikMotoru(unittest.TestCase):
         self.assertEqual(analiz["std_sapma"], 0.0707) # 4 basamak hassasiyet standardı
 
     def test_detayli_analiz_yap_sonsuz_ve_hata_sinirlari(self):
-        # Python float limitlerini aşan (Infinity) değerlerde uygulamanın çökmemesi test edilir.
-        sayilar = [1e308, 1e308]
+        # 1e999 gibi aşırı büyük bilimsel gösterim Python'da float('inf') üretir.
+        # statistics.stdev([inf, ...]) → ValueError; uygulama çökmemeli, "-" dönmeli.
+        sayilar = [float('inf'), 1.0, 2.0]
         analiz = MatematikMotoru.detayli_analiz_yap(sayilar)
         self.assertIsNotNone(analiz)
         assert isinstance(analiz, dict)
-        
-        self.assertTrue(math.isinf(analiz["toplam"]))
-        self.assertTrue(math.isinf(analiz["ortalama"]))
+
+        self.assertTrue(math.isinf(analiz["en_buyuk"]))
+        self.assertEqual(analiz["std_sapma"], "-")
 
     def test_detayli_analiz_yap_bos_liste(self):
         # Anayasaya göre sayi_listesi boşsa None dönmelidir
         self.assertIsNone(MatematikMotoru.detayli_analiz_yap([]))
+
+    def test_detayli_analiz_yap_tum_elemanlar_esit(self):
+        # Tüm değerler aynıysa aciklik=0, std_sapma=0 olmalı
+        sayilar = [7.0, 7.0, 7.0, 7.0]
+        analiz = MatematikMotoru.detayli_analiz_yap(sayilar)
+        assert isinstance(analiz, dict)
+        self.assertEqual(analiz["aciklik"], 0)
+        self.assertEqual(analiz["std_sapma"], 0)
+        self.assertEqual(analiz["ortalama"], 7.0)
+
+    def test_sayilari_ayikla_nan_kelimesi(self):
+        # "nan" kelimesi sayı olarak algılanmamalı
+        metin = "Sonuç nan çıktı, değer NaN"
+        self.assertEqual(MatematikMotoru.metinden_sayilari_ayikla(metin), [])
 
 if __name__ == '__main__':
     unittest.main()

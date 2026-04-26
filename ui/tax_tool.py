@@ -11,14 +11,14 @@ class TaxToolWidget(BaseToolWidget):
         L = self.ui.lang
         self._build_header(self, L["tax_desc"])
         tax_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        tax_frame.pack(fill="x", pady=8)
+        tax_frame.pack(fill="x", pady=self.ui.s(8))
 
         self.tax_amount_entry = self._build_input_row(tax_frame, 0, L["tax_label_amount"])
         self.tax_rate_entry = self._build_input_row(tax_frame, 1, L["tax_label_rate"], "20")
         self._build_action_buttons(tax_frame, self.calculate_tax, self.clear_data)
 
         tax_res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        tax_res_frame.pack(fill="x", pady=(13, 0))
+        tax_res_frame.pack(fill="x", pady=(self.ui.s(13), 0))
 
         self._build_result_labels(tax_res_frame, [
             (L["tax_label_gross"], "ham_tutar"),

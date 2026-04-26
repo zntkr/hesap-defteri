@@ -123,8 +123,8 @@ class ToolsTab(tk.Frame):
         short_labels = [self.frames[name].get_short_name() for name in self.tabs_list]
 
         self.tab_bar = AnimatedTabBar(self, self.ui, short_labels, self._on_tab_change)
-        self.tab_bar.pack(fill="x", padx=(16, 24), pady=(16, 0))
-        self.content_host.pack(fill="both", expand=True, padx=(16, 16), pady=(0, 16))
+        self.tab_bar.pack(fill="x", padx=(self.ui.s(16), self.ui.s(24)), pady=(self.ui.s(16), 0))
+        self.content_host.pack(fill="both", expand=True, padx=(self.ui.s(16), self.ui.s(16)), pady=(0, self.ui.s(16)))
 
         # Sekme çubuğu hizasında sağ gölge şeridi — sekmenin 45 derecelik silüet gölgesi
         tab_shadow = TabShadowCanvas(self, self.ui, offset=self.ui.s(8))
@@ -179,7 +179,7 @@ class ToolsTab(tk.Frame):
         tk.Frame(content_frame, bg=self.ui.accent_color, width=3).pack(side="left", fill="y")
 
         container = tk.Frame(content_frame, bg=self.ui.bg_secondary)
-        container.pack(side="left", fill="both", expand=True, padx=(8, 0))
+        container.pack(side="left", fill="both", expand=True, padx=(self.ui.s(8), 0))
 
         tool = cls(container, self.ui, self)
         tool.pack(fill="both", expand=True)

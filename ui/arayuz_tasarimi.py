@@ -20,7 +20,7 @@ class MainUI:
     """
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
-        self.sf = root.winfo_fpixels('1i') / 96.0
+        self.sf = root.winfo_fpixels('1i') / 96.0 * ayarlar.load().get("ui_scale", 1.0)
 
         # --- APP CONFIG ---
         self.app_version = "1.0.0"
@@ -55,16 +55,10 @@ class MainUI:
         self.text_placeholder = "#888888"
         self.text_inverse = "#D0CFCB"
         self.tab_inactive_bg = "#E0DCD7" # bg_secondary'den 15 birim karanlık — bir ton koyusu
+        self.color_scientific = "#9C6644"
 
         # --- TYPOGRAPHY ---
-        available_fonts = tkfont.families()
-        preferred_fonts = ["Consolas", "Courier New", "Courier"]
-        selected_font = next((f for f in preferred_fonts if f in available_fonts), "Courier")
-
-        self.font_main = (selected_font, 9)
-        self.font_bold = (selected_font, 9, "bold")
-        self.font_small = (selected_font, 8)
-        self.font_title = (selected_font, 16)
+        self._init_fonts()
 
         self.root.config(bg=self.bg_color)
         self.always_on_top_var = tk.BooleanVar(value=False)
@@ -77,6 +71,15 @@ class MainUI:
     def s(self, val: Union[int, float]) -> int:
         """DPI ölçekleme çarpanına göre piksel değerlerini dinamik olarak net/vektörel büyütür."""
         return int(val * self.sf)
+
+    def _init_fonts(self) -> None:
+        available_fonts = tkfont.families()
+        preferred_fonts = ["JetBrains Mono", "Consolas", "Courier New", "Courier"]
+        selected_font = next((f for f in preferred_fonts if f in available_fonts), "Courier")
+        self.font_main  = (selected_font, -int(12 * self.sf))
+        self.font_bold  = (selected_font, -int(12 * self.sf), "bold")
+        self.font_small = (selected_font, -int(11 * self.sf))
+        self.font_title = (selected_font, -int(21 * self.sf))
 
     def _switch_language(self, lang_code: str) -> None:
         if lang_code == self.aktif_dil:
@@ -91,7 +94,7 @@ class MainUI:
         try:
             self.aktif_dil = lang_code
             self.lang = dil.LANGS[lang_code]
-            ayarlar.save({"lang": lang_code})
+            _s = ayarlar.load(); _s["lang"] = lang_code; ayarlar.save(_s)
             self.date_placeholder = self.lang["date_placeholder"]
             self.placeholder_text = self.lang["placeholder_text"]
 
@@ -109,6 +112,43 @@ class MainUI:
             self.build_ui()
             self.build_menu()
             self.build_context_menu()
+
+            self.root.wm_attributes("-topmost", topmost_val)
+            self.root.update_idletasks()
+            self.toggle_tape()
+        finally:
+            self.root.wm_attributes("-alpha", 1.0)
+
+    def _switch_scale(self, scale: float) -> None:
+        if scale == ayarlar.load().get("ui_scale", 1.0):
+            return
+
+        topmost_val = self.always_on_top_var.get()
+        tape_val = self.show_tape_var.get()
+
+        self.root.wm_attributes("-alpha", 0.0)
+        try:
+            self.sf = self.root.winfo_fpixels('1i') / 96.0 * scale
+            self._init_fonts()
+
+            _s = ayarlar.load(); _s["ui_scale"] = scale; ayarlar.save(_s)
+
+            self.root["menu"] = ""
+            for widget in self.root.winfo_children():
+                widget.destroy()
+
+            self.always_on_top_var = tk.BooleanVar(value=topmost_val)
+            self.show_tape_var = tk.BooleanVar(value=tape_val)
+
+            self.build_ui()
+            self.build_menu()
+            self.build_context_menu()
+
+            genislik = self.s(376)
+            yukseklik = self.s(544)
+            x = (self.root.winfo_screenwidth() // 2) - (genislik // 2)
+            y = (self.root.winfo_screenheight() // 2) - (yukseklik // 2)
+            self.root.geometry(f"{genislik}x{yukseklik}+{x}+{y}")
 
             self.root.wm_attributes("-topmost", topmost_val)
             self.root.update_idletasks()
@@ -143,6 +183,12 @@ class MainUI:
         view_menu.add_checkbutton(label=L["menu_always_on_top"], variable=self.always_on_top_var, command=self.toggle_always_on_top)
         view_menu.add_separator()
         view_menu.add_checkbutton(label=L["menu_show_tape"], variable=self.show_tape_var, command=self.toggle_tape, accelerator="Ctrl+H")
+        view_menu.add_separator()
+        scale_menu = tk.Menu(view_menu, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color)
+        self._scale_var = tk.DoubleVar(value=ayarlar.load().get("ui_scale", 1.0))
+        for _lbl, _val in [("100%", 1.0), ("115%", 1.15), ("125%", 1.25), ("150%", 1.5)]:
+            scale_menu.add_radiobutton(label=_lbl, variable=self._scale_var, value=_val, command=lambda v=_val: self._switch_scale(v))
+        view_menu.add_cascade(label=L["menu_scale"], menu=scale_menu)
 
         self.root.bind("<Control-h>", self.toggle_tape)
         self.root.bind("<Control-H>", self.toggle_tape)
@@ -330,25 +376,25 @@ class MainUI:
         tk.Frame(paper, bg=self.shadow_dark, width=2).pack(side="right", fill="y")
 
         header_frame = tk.Frame(paper, bg=self.tape_bg)
-        header_frame.pack(fill="x", pady=(16, 8))
+        header_frame.pack(fill="x", pady=(self.s(16), self.s(8)))
         tk.Label(header_frame, text=L["tape_header"], font=self.font_bold, fg=self.accent_color, bg=self.tape_bg).pack()
         tk.Label(paper, text="- "*13, font=self.font_small, fg=self.shadow_dark, bg=self.tape_bg).pack(fill="x")
 
-        self.tape_text = tk.Text(paper, font=self.font_small, bg=self.tape_bg, fg=self.fg_color, bd=0, highlightthickness=0, wrap="word", state="disabled", padx=16, pady=8, selectbackground=self.shadow_dark, selectforeground=self.fg_color)
+        self.tape_text = tk.Text(paper, font=self.font_small, bg=self.tape_bg, fg=self.fg_color, bd=0, highlightthickness=0, wrap="word", state="disabled", padx=self.s(16), pady=self.s(8), selectbackground=self.shadow_dark, selectforeground=self.fg_color)
         self.tape_text.pack(fill="both", expand=True)
 
-        self.tape_text.tag_configure("header", foreground=self.text_secondary, font=(self.font_main[0], 8, "bold"))
+        self.tape_text.tag_configure("header", foreground=self.text_secondary, font=(self.font_small[0], self.font_small[1], "bold"))
         self.tape_text.tag_configure("result", foreground=self.accent_color, font=self.font_bold)
         self.tape_text.tag_configure("flash", background=self.shadow_dark)
 
         btn_frame = tk.Frame(paper, bg=self.tape_bg)
-        btn_frame.pack(fill="x", pady=(8, 16), padx=16)
+        btn_frame.pack(fill="x", pady=(self.s(8), self.s(16)), padx=self.s(16))
 
         copy_btn = tk.Button(btn_frame, text=L["tape_copy_btn"], font=self.font_small, bg=self.tape_bg, fg=self.text_secondary, bd=1, relief="raised", activebackground=self.tab_inactive_bg, cursor="hand2", command=self._copy_tape)
-        copy_btn.pack(side="left", fill="x", expand=True, padx=(0, 4))
-        
+        copy_btn.pack(side="left", fill="x", expand=True, padx=(0, self.s(4)))
+
         self.tape_clear_btn = tk.Button(btn_frame, text=L["tape_clear_btn"], font=self.font_small, bg=self.tape_bg, fg=self.text_secondary, bd=1, relief="raised", activebackground=self.tab_inactive_bg, cursor="hand2", command=self._clear_tape)
-        self.tape_clear_btn.pack(side="left", fill="x", expand=True, padx=(4, 0))
+        self.tape_clear_btn.pack(side="left", fill="x", expand=True, padx=(self.s(4), 0))
 
         for btn in (copy_btn, self.tape_clear_btn):
             btn.bind("<Button-1>", lambda e, b=btn: b.config(relief="sunken"))
@@ -465,15 +511,15 @@ class MainUI:
         about_win = self._create_centered_modal(L["about_title"], self.s(264), self.s(192))
         about_win.config(bg=self.bg_secondary)
 
-        tk.Label(about_win, text=L["app_name"], font=(self.font_bold[0], 14, "bold"), fg=self.fg_color, bg=self.bg_secondary).pack(pady=(24, 2))
+        tk.Label(about_win, text=L["app_name"], font=(self.font_bold[0], -int(19 * self.sf), "bold"), fg=self.fg_color, bg=self.bg_secondary).pack(pady=(self.s(24), self.s(2)))
         tk.Label(about_win, text=f"v{self.app_version} (Build {self.build_year})", font=self.font_small, fg=self.text_secondary, bg=self.bg_secondary).pack()
 
         copyright_text = L["about_copyright"].format(year=self.build_year)
-        tk.Label(about_win, text=copyright_text, font=(self.font_main[0], 8), fg=self.text_disabled, bg=self.bg_secondary, justify="center").pack(pady=(12, 16))
+        tk.Label(about_win, text=copyright_text, font=self.font_small, fg=self.text_disabled, bg=self.bg_secondary, justify="center").pack(pady=(self.s(12), self.s(16)))
 
         close_btn = tk.Button(about_win, text=L["about_ok"], width=9, font=self.font_bold, bg=self.accent_color, fg=self.shadow_light,
                               bd=2, relief="raised", activebackground=self.accent_hover, activeforeground=self.shadow_light, cursor="hand2", command=about_win.destroy)
-        close_btn.pack(pady=(0, 24))
+        close_btn.pack(pady=(0, self.s(24)))
 
         about_win.bind('<Escape>', lambda e: about_win.destroy())
         about_win.bind('<Return>', lambda e: about_win.destroy())
@@ -485,28 +531,29 @@ class MainUI:
         guide_win = self._create_centered_modal(L["guide_title"], self.s(344), self.s(448))
         guide_win.config(bg=self.bg_secondary)
 
-        tk.Label(guide_win, text=L["guide_heading"], font=(self.font_bold[0], 14, "bold"), fg=self.fg_color, bg=self.bg_secondary).pack(anchor="w", padx=24, pady=(24, 6))
-        tk.Frame(guide_win, bg=self.shadow_dark, height=1).pack(fill="x", padx=24, pady=(0, 8))
+        tk.Label(guide_win, text=L["guide_heading"], font=(self.font_bold[0], -int(19 * self.sf), "bold"), fg=self.fg_color, bg=self.bg_secondary).pack(anchor="w", padx=self.s(24), pady=(self.s(24), self.s(6)))
+        tk.Frame(guide_win, bg=self.shadow_dark, height=1).pack(fill="x", padx=self.s(24), pady=(0, self.s(8)))
 
         close_btn = tk.Button(guide_win, text=L["guide_ok"], width=9, font=self.font_bold, bg=self.accent_color, fg=self.shadow_light,
                               bd=2, relief="raised", activebackground=self.accent_hover, activeforeground=self.shadow_light, cursor="hand2", command=guide_win.destroy)
-        close_btn.pack(side="bottom", pady=(8, 24))
+        close_btn.pack(side="bottom", pady=(self.s(8), self.s(24)))
 
         text_frame = tk.Frame(guide_win, bg=self.bg_secondary)
-        text_frame.pack(fill="both", expand=True, padx=24, pady=(0, 8))
+        text_frame.pack(fill="both", expand=True, padx=self.s(24), pady=(0, self.s(8)))
 
         guide_text = tk.Text(text_frame, font=self.font_small, bg=self.bg_secondary, fg=self.text_secondary, wrap="word",
-                             bd=0, highlightthickness=0, padx=8, pady=8, cursor="arrow", selectbackground=self.shadow_dark, selectforeground=self.fg_color)
+                             bd=0, highlightthickness=0, padx=self.s(8), pady=self.s(8), cursor="arrow", selectbackground=self.shadow_dark, selectforeground=self.fg_color)
         guide_text.pack(side="left", fill="both", expand=True)
 
         # Tipografik Stil ve Paragraf Yönetimi
-        guide_text.tag_configure("header", font=(self.font_bold[0], 10, "bold"), foreground=self.accent_color, spacing1="12", spacing3="6")
-        guide_text.tag_configure("highlight", font=(self.font_bold[0], 8, "bold"), foreground=self.fg_color)
-        
-        guide_text.tag_configure("bullet", foreground=self.accent_color, font=(self.font_bold[0], 8, "bold"), lmargin1=str(self.s(4)), lmargin2=str(self.s(16)))
+        _bold_small = (self.font_small[0], self.font_small[1], "bold")
+        guide_text.tag_configure("header", font=(self.font_bold[0], -int(13 * self.sf), "bold"), foreground=self.accent_color, spacing1="12", spacing3="6")
+        guide_text.tag_configure("highlight", font=_bold_small, foreground=self.fg_color)
+
+        guide_text.tag_configure("bullet", foreground=self.accent_color, font=_bold_small, lmargin1=str(self.s(4)), lmargin2=str(self.s(16)))
         guide_text.tag_configure("list_item", font=self.font_small, spacing2="2", spacing3="6", lmargin1=str(self.s(4)), lmargin2=str(self.s(16)))
 
-        guide_text.tag_configure("key", font=(self.font_bold[0], 8, "bold"), background=self.tab_inactive_bg, foreground=self.fg_color, spacing1="2", spacing3="2", lmargin1=str(self.s(4)))
+        guide_text.tag_configure("key", font=_bold_small, background=self.tab_inactive_bg, foreground=self.fg_color, spacing1="2", spacing3="2", lmargin1=str(self.s(4)))
         guide_text.tag_configure("shortcut", font=self.font_small, spacing1="2", spacing3="2", lmargin2=str(self.s(96)), tabs=(str(self.s(96)), "left"))
 
         for text, tag in L["guide_content"]:

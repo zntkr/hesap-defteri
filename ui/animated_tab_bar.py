@@ -201,10 +201,6 @@ class AnimatedTabBar(tk.Canvas):
         self.coords(lines[9], x2 - 1, y1 + c, x2 - 1, y2)
         self.itemconfig(lines[9], fill=sh)
 
-        font = (
-            (self.ui.font_main[0], 8, "bold")
-            if activity > 0.5
-            else self.ui.font_small
-        )
+        font = (self.ui.font_small[0], self.ui.font_small[1], "bold") if activity > 0.5 else self.ui.font_small
         self.coords(items['text'], x + w / 2, h / 2)
         self.itemconfig(items['text'], text=label, fill=fg, font=font)

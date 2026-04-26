@@ -25,6 +25,7 @@ TR: Dict[str, Any] = {
     "menu_view": "Görünüş",
     "menu_always_on_top": "Her Zaman Üstte Tut",
     "menu_show_tape": "Hesap Şeridini Göster",
+    "menu_scale": "Ölçek",
 
     # Menu - Language
     "menu_language": "Dil",
@@ -214,6 +215,7 @@ EN: Dict[str, Any] = {
     "menu_view": "View",
     "menu_always_on_top": "Always on Top",
     "menu_show_tape": "Show Receipt Tape",
+    "menu_scale": "Scale",
 
     # Menu - Language
     "menu_language": "Language",

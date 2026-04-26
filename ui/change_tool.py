@@ -11,18 +11,18 @@ class ChangeToolWidget(BaseToolWidget):
         L = self.ui.lang
         self._build_header(self, L["chng_desc"])
         change_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        change_frame.pack(fill="x", pady=8)
+        change_frame.pack(fill="x", pady=self.ui.s(8))
 
         self.old_val_entry = self._build_input_row(change_frame, 0, L["chng_label_old"])
         self.new_val_entry = self._build_input_row(change_frame, 1, L["chng_label_new"])
         self._build_action_buttons(change_frame, self.calculate_change, self.clear_data)
 
         change_res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        change_res_frame.pack(fill="x", pady=(13, 0))
+        change_res_frame.pack(fill="x", pady=(self.ui.s(13), 0))
 
-        tk.Label(change_res_frame, text=L["chng_label_rate"], fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=4)
+        tk.Label(change_res_frame, text=L["chng_label_rate"], fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=self.ui.s(4))
         self.change_res_lbl = tk.Label(change_res_frame, text="-", font=self.ui.font_title, fg=self.ui.fg_color, bg=self.ui.bg_secondary)
-        self.change_res_lbl.grid(row=0, column=1, sticky="w", padx=24)
+        self.change_res_lbl.grid(row=0, column=1, sticky="w", padx=self.ui.s(24))
         self._make_label_clickable(self.change_res_lbl)
         self.result_labels["degisim_orani"] = self.change_res_lbl
 

@@ -135,5 +135,16 @@ class TestFinansMotoru(unittest.TestCase):
         sonuc = FinansMotoru._temiz_sayi(cok_buyuk_sayi)
         self.assertEqual(sonuc, 1e300)
 
+    def test_kdv_hesapla_sifir_tutar(self):
+        # Tutar sıfır olduğunda kdv_tutari ve toplam da sıfır olmalı
+        sonuc = FinansMotoru.kdv_hesapla(0, 20)
+        self.assertEqual(sonuc["kdv_tutari"], 0.0)
+        self.assertEqual(sonuc["toplam"], 0.0)
+
+    def test_oranti_hesapla_sifir_c(self):
+        # C=0 geçerli girdi, sonuç 0 olmalı (ZeroDivisionError değil)
+        sonuc = FinansMotoru.oranti_hesapla(150, 4500, 0)
+        self.assertEqual(sonuc["sonuc"], 0.0)
+
 if __name__ == '__main__':
     unittest.main()

@@ -11,16 +11,16 @@ class AgeToolWidget(BaseToolWidget):
         L = self.ui.lang
         self._build_header(self, L["age_desc"])
         age_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        age_frame.pack(fill="x", pady=8)
+        age_frame.pack(fill="x", pady=self.ui.s(8))
 
         self.age_year_entry = self._build_input_row(age_frame, 0, L["age_label_dob"], "")
         self._build_action_buttons(age_frame, self.calculate_age, self.clear_data)
 
         age_res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        age_res_frame.pack(fill="x", pady=(13, 0))
+        age_res_frame.pack(fill="x", pady=(self.ui.s(13), 0))
 
         self.age_res_txt = tk.Text(age_res_frame, font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_secondary, cursor="hand2", wrap="word", bd=0, highlightthickness=0, height=13, selectbackground=self.ui.shadow_dark, selectforeground=self.ui.fg_color)
-        self.age_res_txt.pack(anchor="w", fill="x", padx=8, pady=8)
+        self.age_res_txt.pack(anchor="w", fill="x", padx=self.ui.s(8), pady=self.ui.s(8))
         self.age_res_txt.tag_configure("bold", font=self.ui.font_bold)
         self.age_res_txt.insert("1.0", "-")
         self.age_res_txt.config(state="disabled")

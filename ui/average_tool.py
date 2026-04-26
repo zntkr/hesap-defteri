@@ -13,10 +13,10 @@ class AverageToolWidget(BaseToolWidget):
         L = self.ui.lang
         self._build_header(self, L["avg_desc"])
         input_frame = tk.Frame(self, bg=self.ui.bg_secondary)
-        input_frame.pack(fill="x", pady=8)
+        input_frame.pack(fill="x", pady=self.ui.s(8))
 
         text_wrapper = tk.Frame(input_frame, bg=self.ui.bg_secondary)
-        text_wrapper.grid(row=0, column=0, columnspan=2, rowspan=2, sticky="nsew", padx=(0, 8), pady=4)
+        text_wrapper.grid(row=0, column=0, columnspan=2, rowspan=2, sticky="nsew", padx=(0, self.ui.s(8)), pady=self.ui.s(4))
         input_frame.columnconfigure(0, weight=1)
         input_frame.rowconfigure(0, weight=1)
         input_frame.rowconfigure(1, weight=1)
@@ -30,7 +30,7 @@ class AverageToolWidget(BaseToolWidget):
         self.avg_text_input = tk.Text(text_wrapper, height=2, width=10, font=self.ui.font_main, bg=self.ui.input_bg, fg=self.ui.fg_color, bd=2, relief="sunken", highlightthickness=1, highlightbackground=self.ui.bg_secondary, highlightcolor=self.ui.accent_color, wrap="word", yscrollcommand=scrollbar.set, selectbackground=self.ui.shadow_dark, selectforeground=self.ui.fg_color)
         self.avg_text_input.pack(side="left", fill="both", expand=True)
         self.avg_text_input.tag_configure("detected_number", font=self.ui.font_bold, foreground=self.ui.accent_color)
-        self.avg_text_input.tag_configure("detected_scientific", font=self.ui.font_bold, foreground="#9C6644")
+        self.avg_text_input.tag_configure("detected_scientific", font=self.ui.font_bold, foreground=self.ui.color_scientific)
         scrollbar.config(command=self.avg_text_input.yview)
 
         self.avg_text_input.bind('<KeyRelease>', self.update_avg_char_count)
@@ -42,8 +42,8 @@ class AverageToolWidget(BaseToolWidget):
 
         self.calc_btn = tk.Button(input_frame, text=self.ui.lang["btn_calculate"], width=9, font=self.ui.font_bold, bg=self.ui.accent_color, fg=self.ui.shadow_light, bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground=self.ui.shadow_light, cursor="hand2", command=self.calculate_average)
         self.clear_btn = tk.Button(input_frame, text=self.ui.lang["btn_clear"], width=9, font=self.ui.font_small, bg=self.ui.bg_secondary, fg=self.ui.text_secondary, bd=1, relief="raised", activebackground=self.ui.tab_inactive_bg, cursor="hand2", command=lambda: self.clear_data(keep_input=False))
-        self.calc_btn.grid(row=0, column=2, sticky="ew", padx=(8, 16), pady=4)
-        self.clear_btn.grid(row=1, column=2, sticky="ew", padx=(8, 16), pady=4)
+        self.calc_btn.grid(row=0, column=2, sticky="ew", padx=(self.ui.s(8), self.ui.s(16)), pady=self.ui.s(4))
+        self.clear_btn.grid(row=1, column=2, sticky="ew", padx=(self.ui.s(8), self.ui.s(16)), pady=self.ui.s(4))
         for btn in (self.calc_btn, self.clear_btn):
             btn.bind("<Button-1>", lambda _, b=btn: b.config(relief="sunken"))
             btn.bind("<ButtonRelease-1>", lambda _, b=btn: b.config(relief="raised"))
@@ -54,20 +54,20 @@ class AverageToolWidget(BaseToolWidget):
         top_res_frame = tk.Frame(res_frame, bg=self.ui.bg_secondary)
         top_res_frame.pack(fill="x")
 
-        tk.Label(top_res_frame, text=L["avg_label_avg"], fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=4)
+        tk.Label(top_res_frame, text=L["avg_label_avg"], fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=0, column=0, sticky="w", pady=self.ui.s(4))
         self.avg_result_lbl = tk.Label(top_res_frame, text="-", font=self.ui.font_title, fg=self.ui.fg_color, bg=self.ui.bg_secondary)
-        self.avg_result_lbl.grid(row=0, column=1, sticky="w", padx=8)
+        self.avg_result_lbl.grid(row=0, column=1, sticky="w", padx=self.ui.s(8))
         self._make_label_clickable(self.avg_result_lbl)
 
-        tk.Label(top_res_frame, text=L["avg_label_sum"], fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=1, column=0, sticky="w", pady=4)
+        tk.Label(top_res_frame, text=L["avg_label_sum"], fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_main).grid(row=1, column=0, sticky="w", pady=self.ui.s(4))
         self.avg_sum_lbl = tk.Label(top_res_frame, text="-", font=self.ui.font_bold, fg=self.ui.fg_color, bg=self.ui.bg_secondary)
-        self.avg_sum_lbl.grid(row=1, column=1, sticky="w", padx=8)
+        self.avg_sum_lbl.grid(row=1, column=1, sticky="w", padx=self.ui.s(8))
         self._make_label_clickable(self.avg_sum_lbl)
 
         top_res_frame.columnconfigure(0, minsize=self.ui.s(88))
 
         stats_frame = tk.Frame(res_frame, bg=self.ui.bg_secondary)
-        stats_frame.pack(fill="x", pady=(8, 0))
+        stats_frame.pack(fill="x", pady=(self.ui.s(8), 0))
 
         self.avg_stats_labels = {}
         items = [
@@ -79,11 +79,11 @@ class AverageToolWidget(BaseToolWidget):
             (L["avg_stat_std"], "std_sapma"),
         ]
 
-        stat_val_font = (self.ui.font_main[0], 8, "bold")
+        stat_val_font = (self.ui.font_small[0], self.ui.font_small[1], "bold")
         for i, (text, key) in enumerate(items):
-            tk.Label(stats_frame, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_small).grid(row=i, column=0, sticky="w", pady=2)
+            tk.Label(stats_frame, text=text, fg=self.ui.text_secondary, bg=self.ui.bg_secondary, font=self.ui.font_small).grid(row=i, column=0, sticky="w", pady=self.ui.s(2))
             lbl = tk.Label(stats_frame, text="-", font=stat_val_font, fg=self.ui.fg_color, bg=self.ui.bg_secondary)
-            lbl.grid(row=i, column=1, sticky="w", padx=8)
+            lbl.grid(row=i, column=1, sticky="w", padx=self.ui.s(8))
             self._make_label_clickable(lbl)
             self.avg_stats_labels[key] = lbl
             
@@ -186,8 +186,9 @@ class AverageToolWidget(BaseToolWidget):
             self.show_message(L["avg_info_result"].format(count=self.format_number(analysis['adet'])), "success", transient=True)
 
             for key, lbl in self.avg_stats_labels.items():
-                if key in analysis: 
-                    lbl.config(text=self.format_number(analysis[key]))
+                if key in analysis:
+                    val = analysis[key]
+                    lbl.config(text=val if isinstance(val, str) else self.format_number(val))
                     self.flash_result(lbl)
 
             for match in MatematikMotoru.SAYI_PATERNI.finditer(full_text):
