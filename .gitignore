@@ -10,7 +10,8 @@ build/
 *.spec
 HesapDefteri.exe
 
-# Test kapsamı
+# Test
+.pytest_cache/
 .coverage
 htmlcov/
 coverage.xml
@@ -20,5 +21,11 @@ coverage.xml
 .idea/
 *.swp
 
+# AI geliştirme araçları
+.claude/
+CLAUDE.md
+AI_ANAYASASI.md
+
 # Geliştirme taslakları
-scratch_canvas.py
+scratch_*.py
+*_demo.py
