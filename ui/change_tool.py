@@ -32,6 +32,8 @@ class ChangeToolWidget(BaseToolWidget):
         self.primary_input = self.old_val_entry
 
     def calculate_change(self, event: Optional[tk.Event] = None) -> Optional[str]:
+        if event and not self.flash_calc_button():
+            return "break"
         L = self.ui.lang
         old_nums = self._get_numbers(self.old_val_entry)
         new_nums = self._get_numbers(self.new_val_entry)

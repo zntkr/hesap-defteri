@@ -150,6 +150,8 @@ class AverageToolWidget(BaseToolWidget):
         return "break"
 
     def calculate_average(self, event: Optional[tk.Event] = None) -> Optional[str]:
+        if event and not self.flash_calc_button():
+            return "break"
         L = self.ui.lang
         full_text = self.avg_text_input.get("1.0", "end-1c")
 
@@ -191,7 +193,9 @@ class AverageToolWidget(BaseToolWidget):
 
         return "break"
 
-    def clear_data(self, keep_input: bool = False) -> None:
+    def clear_data(self, from_keyboard: bool = False, keep_input: bool = False) -> None:
+        if from_keyboard:
+            self.flash_clear_button()
         if not keep_input:
             self.avg_text_input.delete("1.0", tk.END)
         self.avg_text_input.tag_remove("detected_number", "1.0", tk.END)

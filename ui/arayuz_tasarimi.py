@@ -313,7 +313,7 @@ class MainUI:
         tk.Label(header_frame, text=L["tape_header"], font=self.font_bold, fg=self.accent_color, bg=self.tape_bg).pack()
         tk.Label(paper, text="- "*18, font=self.font_small, fg=self.shadow_dark, bg=self.tape_bg).pack(fill="x")
 
-        self.tape_text = tk.Text(paper, font=self.font_small, bg=self.tape_bg, fg=self.fg_color, bd=0, highlightthickness=0, wrap="word", state="disabled", padx=16, pady=8)
+        self.tape_text = tk.Text(paper, font=self.font_small, bg=self.tape_bg, fg=self.fg_color, bd=0, highlightthickness=0, wrap="word", state="disabled", padx=16, pady=8, selectbackground=self.shadow_dark, selectforeground=self.fg_color)
         self.tape_text.pack(fill="both", expand=True)
 
         self.tape_text.tag_configure("header", foreground=self.text_secondary, font=(self.font_main[0], 8, "bold"))
@@ -326,10 +326,10 @@ class MainUI:
         copy_btn = tk.Button(btn_frame, text=L["tape_copy_btn"], font=self.font_small, bg=self.tape_bg, fg=self.text_secondary, bd=1, relief="raised", activebackground=self.tab_inactive_bg, cursor="hand2", command=self._copy_tape)
         copy_btn.pack(side="left", fill="x", expand=True, padx=(0, 4))
         
-        clear_btn = tk.Button(btn_frame, text=L["tape_clear_btn"], font=self.font_small, bg=self.tape_bg, fg=self.text_secondary, bd=1, relief="raised", activebackground=self.tab_inactive_bg, cursor="hand2", command=self._clear_tape)
-        clear_btn.pack(side="left", fill="x", expand=True, padx=(4, 0))
+        self.tape_clear_btn = tk.Button(btn_frame, text=L["tape_clear_btn"], font=self.font_small, bg=self.tape_bg, fg=self.text_secondary, bd=1, relief="raised", activebackground=self.tab_inactive_bg, cursor="hand2", command=self._clear_tape)
+        self.tape_clear_btn.pack(side="left", fill="x", expand=True, padx=(4, 0))
 
-        for btn in (copy_btn, clear_btn):
+        for btn in (copy_btn, self.tape_clear_btn):
             btn.bind("<Button-1>", lambda e, b=btn: b.config(relief="sunken"))
             btn.bind("<ButtonRelease-1>", lambda e, b=btn: b.config(relief="raised"))
 
@@ -340,7 +340,11 @@ class MainUI:
             self.root.clipboard_append(content)
             self.root.update()
 
-    def _clear_tape(self) -> None:
+    def _clear_tape(self, from_keyboard: bool = False) -> None:
+        if from_keyboard and hasattr(self, 'tape_clear_btn') and self.tape_clear_btn.winfo_exists():
+            self.tape_clear_btn.config(relief="sunken", bg=self.tab_inactive_bg)
+            self.root.after(150, lambda: self.tape_clear_btn.config(relief="raised", bg=self.tape_bg) if self.tape_clear_btn.winfo_exists() else None)
+
         self.tape_text.config(state="normal")
         self.tape_text.delete("1.0", tk.END)
         self.tape_text.config(state="disabled")
@@ -405,10 +409,11 @@ class MainUI:
         self.root.bind('<Control-Tab>', lambda e: self.main_view.cycle_tools(e))
 
     def clear_all(self, _event: Optional[tk.Event] = None) -> None:
+        from_keyboard = bool(_event)
         if hasattr(self, 'main_view'):
-            self.main_view.clear_data()
+            self.main_view.clear_data(from_keyboard=from_keyboard)
         if hasattr(self, 'tape_text'):
-            self._clear_tape()
+            self._clear_tape(from_keyboard=from_keyboard)
 
     def _create_centered_modal(self, title: str, width: int, height: int) -> tk.Toplevel:
         modal = tk.Toplevel(self.root)
@@ -436,27 +441,28 @@ class MainUI:
 
     def show_about(self) -> None:
         L = self.lang
-        about_win = self._create_centered_modal(L["about_title"], self.s(344), self.s(216))
+        about_win = self._create_centered_modal(L["about_title"], self.s(272), self.s(168))
         about_win.config(bg=self.bg_secondary)
 
-        tk.Label(about_win, text=L["app_name"], font=(self.font_bold[0], 16, "bold"), fg=self.fg_color, bg=self.bg_secondary).pack(pady=(32, 4))
+        tk.Label(about_win, text=L["app_name"], font=(self.font_bold[0], 16, "bold"), fg=self.fg_color, bg=self.bg_secondary).pack(pady=(16, 2))
         tk.Label(about_win, text=f"v{self.app_version} (Build {self.build_year})", font=self.font_main, fg=self.text_secondary, bg=self.bg_secondary).pack()
 
         copyright_text = L["about_copyright"].format(year=self.build_year)
-        tk.Label(about_win, text=copyright_text, font=(self.font_main[0], 8), fg=self.text_disabled, bg=self.bg_secondary, justify="center").pack(pady=(16, 16))
+        tk.Label(about_win, text=copyright_text, font=(self.font_main[0], 8), fg=self.text_disabled, bg=self.bg_secondary, justify="center").pack(pady=(8, 16))
 
         close_btn = tk.Button(about_win, text=L["about_ok"], font=self.font_bold, bg=self.accent_color, fg=self.shadow_light,
                               bd=2, relief="raised", activebackground=self.accent_hover, activeforeground=self.shadow_light, cursor="hand2", command=about_win.destroy)
-        close_btn.pack(pady=(0, 24), ipadx=24)
+        close_btn.pack(pady=(0, 16), ipadx=24)
 
         about_win.deiconify()
 
     def show_guide(self) -> None:
         L = self.lang
-        guide_win = self._create_centered_modal(L["guide_title"], self.s(480), self.s(480))
+        guide_win = self._create_centered_modal(L["guide_title"], self.s(376), self.s(608))
         guide_win.config(bg=self.bg_secondary)
 
-        tk.Label(guide_win, text=L["guide_heading"], font=(self.font_bold[0], 16, "bold"), fg=self.accent_color, bg=self.bg_secondary).pack(anchor="w", padx=24, pady=(24, 8))
+        tk.Label(guide_win, text=L["guide_heading"], font=(self.font_bold[0], 16, "bold"), fg=self.accent_color, bg=self.bg_secondary).pack(anchor="w", padx=24, pady=(24, 6))
+        tk.Frame(guide_win, bg=self.shadow_dark, height=1).pack(fill="x", padx=24, pady=(0, 8))
 
         close_btn = tk.Button(guide_win, text=L["guide_ok"], font=self.font_bold, bg=self.accent_color, fg=self.shadow_light,
                               bd=2, relief="raised", activebackground=self.accent_hover, activeforeground=self.shadow_light, cursor="hand2", command=guide_win.destroy)
@@ -465,17 +471,22 @@ class MainUI:
         text_frame = tk.Frame(guide_win, bg=self.bg_secondary)
         text_frame.pack(fill="both", expand=True, padx=24, pady=(0, 8))
 
-        guide_text = tk.Text(text_frame, font=self.font_main, bg=self.bg_secondary, fg=self.text_secondary,
-                             wrap="word", bd=0, highlightthickness=0, padx=0, pady=8, cursor="arrow")
+        guide_text = tk.Text(text_frame, font=self.font_main, bg=self.bg_secondary, fg=self.text_secondary, wrap="word",
+                             bd=0, highlightthickness=0, padx=16, pady=8, cursor="arrow", selectbackground=self.shadow_dark, selectforeground=self.fg_color)
         guide_text.pack(side="left", fill="both", expand=True)
 
-        guide_text.tag_configure("header", font=self.font_bold, foreground=self.accent_color, spacing1=8, spacing3=4)
+        # Tipografik Stil ve Paragraf Yönetimi
+        guide_text.tag_configure("header", font=(self.font_bold[0], 12, "bold"), foreground=self.accent_color, spacing1="16", spacing3="8")
         guide_text.tag_configure("highlight", font=self.font_bold, foreground=self.fg_color)
-        guide_text.tag_configure("key", font=self.font_bold, foreground=self.shadow_light, background=self.accent_color)
-        guide_text.tag_configure("bullet", foreground=self.accent_color, font=self.font_bold)
+        
+        guide_text.tag_configure("bullet", foreground=self.accent_color, font=self.font_bold, spacing2="4", spacing3="8", lmargin1=str(self.s(8)), lmargin2=str(self.s(24)))
+        guide_text.tag_configure("list_item", spacing2="4", spacing3="8", lmargin1=str(self.s(8)), lmargin2=str(self.s(24)))
+
+        guide_text.tag_configure("key", font=(self.font_main[0], 9, "bold"), background=self.tab_inactive_bg, foreground=self.fg_color, relief="raised", borderwidth="1", spacing2="4", spacing3="8", lmargin1=str(self.s(8)), lmargin2=str(self.s(120)), tabs=(str(self.s(120)), "left"))
+        guide_text.tag_configure("shortcut", spacing2="4", spacing3="8", lmargin1=str(self.s(8)), lmargin2=str(self.s(120)), tabs=(str(self.s(120)), "left"))
 
         for text, tag in L["guide_content"]:
-            guide_text.insert(tk.END, text, tag if tag != "normal" else "")
+            guide_text.insert(tk.END, text, tag)
 
         guide_text.bind("<Key>", lambda e: "break" if e.keysym not in ("c", "C") or not (isinstance(e.state, int) and (e.state & 0x0004)) else None)
 

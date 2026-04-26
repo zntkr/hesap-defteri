@@ -19,7 +19,7 @@ class AgeToolWidget(BaseToolWidget):
         age_res_frame = tk.Frame(self, bg=self.ui.bg_secondary)
         age_res_frame.pack(fill="x", pady=(16, 0))
 
-        self.age_res_txt = tk.Text(age_res_frame, font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_secondary, cursor="hand2", wrap="word", bd=0, highlightthickness=0, height=12)
+        self.age_res_txt = tk.Text(age_res_frame, font=self.ui.font_main, fg=self.ui.fg_color, bg=self.ui.bg_secondary, cursor="hand2", wrap="word", bd=0, highlightthickness=0, height=13, selectbackground=self.ui.shadow_dark, selectforeground=self.ui.fg_color)
         self.age_res_txt.pack(anchor="w", fill="x", padx=8, pady=8)
         self.age_res_txt.tag_configure("bold", font=self.ui.font_bold)
         self.age_res_txt.insert("1.0", "-")
@@ -32,6 +32,8 @@ class AgeToolWidget(BaseToolWidget):
         self.primary_input = self.age_year_entry
 
     def calculate_age(self, event: Optional[tk.Event] = None) -> Optional[str]:
+        if event and not self.flash_calc_button():
+            return "break"
         L = self.ui.lang
         date_str = self.age_year_entry.get().strip()
 
@@ -87,6 +89,6 @@ class AgeToolWidget(BaseToolWidget):
         self.age_res_txt.insert("1.0", text)
         self.age_res_txt.config(state="disabled")
 
-    def clear_data(self) -> None:
-        super().clear_data()
+    def clear_data(self, from_keyboard: bool = False) -> None:
+        super().clear_data(from_keyboard=from_keyboard)
         self._set_result("-")

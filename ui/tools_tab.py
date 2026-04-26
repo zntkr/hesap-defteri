@@ -93,9 +93,14 @@ class ToolsTab(tk.Frame):
         content_frame.pack(fill="both", expand=True)
 
         # Sol kenar boşluğu — kırmızı çizgi skeuomorfizmi
-        left_margin = tk.Frame(content_frame, bg=self.ui.bg_secondary, width=self.ui.s(40))
+        left_margin = tk.Frame(content_frame, bg=self.ui.bg_secondary, width=self.ui.s(32))
         left_margin.pack(side="left", fill="y")
         left_margin.pack_propagate(False)
+
+        # Easter Egg: Sol alt köşedeki gizli buton (Hesap Şeridini tetikler)
+        easter_egg = tk.Frame(left_margin, bg=self.ui.bg_secondary, height=self.ui.s(32), cursor="hand2")
+        easter_egg.pack(side="bottom", fill="x")
+        easter_egg.bind("<Button-1>", lambda e: self.ui.toggle_tape(e))
 
         tk.Frame(content_frame, bg=self.ui.accent_color, width=3).pack(side="left", fill="y")
 
@@ -148,8 +153,8 @@ class ToolsTab(tk.Frame):
         """Klavye kısayolları ve ana menü radyolarından tetiklendiğinde senkronize eder."""
         self.select_tab(self.tool_var.get())
 
-    def clear_data(self) -> None:
+    def clear_data(self, from_keyboard: bool = False) -> None:
         tool = self.frames.get(self.tool_var.get())
         if tool:
-            tool.clear_data()
+            tool.clear_data(from_keyboard=from_keyboard)
         self._focus_active()

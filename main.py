@@ -60,7 +60,8 @@ if __name__ == "__main__":
     y = (root.winfo_screenheight() // 2) - (yukseklik // 2)
     root.geometry(f"{genislik}x{yukseklik}+{x}+{y}")
 
-    _apply_square_corners(root)
+    # Windows 11'in varsayılan yuvarlak köşelerine izin vermek için iptal edildi
+    # _apply_square_corners(root)
 
     # 5. PERDEYİ AÇ: Kusursuz bir şekilde ekranda göster
     root.deiconify()

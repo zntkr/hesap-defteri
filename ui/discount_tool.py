@@ -34,6 +34,8 @@ class DiscountToolWidget(BaseToolWidget):
         self.primary_input = self.discount_amount_entry
 
     def calculate_discount(self, event: Optional[tk.Event] = None) -> Optional[str]:
+        if event and not self.flash_calc_button():
+            return "break"
         L = self.ui.lang
         amount_numbers = self._get_numbers(self.discount_amount_entry)
         rate_numbers = self._get_numbers(self.discount_rate_entry)

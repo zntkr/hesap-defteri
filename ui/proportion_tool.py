@@ -34,6 +34,8 @@ class ProportionToolWidget(BaseToolWidget):
         self.primary_input = self.prop_a_entry
 
     def calculate_proportion(self, event: Optional[tk.Event] = None) -> Optional[str]:
+        if event and not self.flash_calc_button():
+            return "break"
         L = self.ui.lang
         a_nums = self._get_numbers(self.prop_a_entry)
         b_nums = self._get_numbers(self.prop_b_entry)

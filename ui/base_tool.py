@@ -1,5 +1,6 @@
 import tkinter as tk
-from typing import Optional, Tuple, TYPE_CHECKING, Callable, Any, Dict, List, Union
+import time
+from typing import Optional, Tuple, TYPE_CHECKING, Callable, Any, Dict, List, Union, Literal
 
 if TYPE_CHECKING:
     from ui.arayuz_tasarimi import MainUI
@@ -34,7 +35,17 @@ class BaseToolWidget(tk.Frame):
     def build_ui(self) -> None:
         raise NotImplementedError("Alt sınıf arayüzünü (UI) tanımlamalıdır.")
 
-    def clear_data(self) -> None:
+    def destroy(self) -> None:
+        """Widget yok edilirken arka planda kalan zamanlayıcıları (timer) iptal ederek bellek sızıntısını önler."""
+        timer_id = getattr(self, '_msg_timer', None)
+        if timer_id is not None:
+            self.ui.root.after_cancel(timer_id)
+            self._msg_timer = None
+        super().destroy()
+
+    def clear_data(self, from_keyboard: bool = False) -> None:
+        if from_keyboard:
+            self.flash_clear_button()
         self.reset_defaults()
         for lbl in self.result_labels.values():
             lbl.config(text="-")
@@ -92,20 +103,39 @@ class BaseToolWidget(tk.Frame):
         if default_val:
             entry.insert(0, default_val)
         self.default_inputs[entry] = default_val
-        entry.grid(row=row, column=1, sticky="w", padx=8, pady=8)
-        parent.columnconfigure(0, minsize=120)
+        entry.grid(row=row, column=1, sticky="ew", padx=8, pady=8)
+        parent.columnconfigure(0, minsize=self.ui.s(88))
         parent.columnconfigure(1, weight=1)
         return entry
 
     def _build_action_buttons(self, parent: tk.Frame, calc_cmd: Callable[..., Any], clear_cmd: Callable[[], None], rowspan: int = 2) -> None:
-        calc_btn = tk.Button(parent, text=self.ui.lang["btn_calculate"], font=self.ui.font_bold, bg=self.ui.accent_color, fg=self.ui.shadow_light, bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground=self.ui.shadow_light, cursor="hand2", command=calc_cmd)
-        calc_btn.grid(row=0, column=2, rowspan=max(1, rowspan - 1), padx=8, sticky="nsew", pady=(8, 4), ipadx=8)
-        clear_btn = tk.Button(parent, text=self.ui.lang["btn_clear"], font=self.ui.font_small, bg=self.ui.bg_secondary, fg=self.ui.text_secondary, bd=1, relief="raised", activebackground=self.ui.tab_inactive_bg, cursor="hand2", command=clear_cmd)
-        clear_btn.grid(row=rowspan - 1, column=2, padx=8, sticky="nsew", pady=(4, 8))
+        self.calc_btn = tk.Button(parent, text=self.ui.lang["btn_calculate"], width=10, font=self.ui.font_bold, bg=self.ui.accent_color, fg=self.ui.shadow_light, bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground=self.ui.shadow_light, cursor="hand2", command=calc_cmd)
+        self.calc_btn.grid(row=0, column=2, rowspan=max(1, rowspan - 1), padx=(8, 16), sticky="nsew", pady=(8, 4), ipadx=8)
+        self.clear_btn = tk.Button(parent, text=self.ui.lang["btn_clear"], width=10, font=self.ui.font_small, bg=self.ui.bg_secondary, fg=self.ui.text_secondary, bd=1, relief="raised", activebackground=self.ui.tab_inactive_bg, cursor="hand2", command=clear_cmd)
+        self.clear_btn.grid(row=rowspan - 1, column=2, padx=(8, 16), sticky="nsew", pady=(4, 8))
 
-        for btn in (calc_btn, clear_btn):
+        for btn in (self.calc_btn, self.clear_btn):
             btn.bind("<Button-1>", lambda e, b=btn: b.config(relief="sunken"))
             btn.bind("<ButtonRelease-1>", lambda e, b=btn: b.config(relief="raised"))
+
+    def flash_calc_button(self) -> bool:
+        """Enter tuşu ile hesaplama tetiklendiğinde animasyon verir ve basılı tutma (spam) durumunu engeller."""
+        current_time = time.time()
+        if hasattr(self, '_last_calc_time') and current_time - getattr(self, '_last_calc_time') < 0.4:
+            return False  # 400ms dolmadan yeni bir klavye işlemine izin verme (Debounce)
+            
+        self._last_calc_time = current_time
+        
+        if hasattr(self, 'calc_btn') and self.calc_btn.winfo_exists():
+            self.calc_btn.config(relief="sunken", bg=self.ui.accent_hover)
+            self.ui.root.after(150, lambda: self.calc_btn.config(relief="raised", bg=self.ui.accent_color) if self.calc_btn.winfo_exists() else None)
+        return True
+
+    def flash_clear_button(self) -> None:
+        """Esc tuşu ile temizleme tetiklendiğinde butona tıklanma animasyonu verir."""
+        if hasattr(self, 'clear_btn') and self.clear_btn.winfo_exists():
+            self.clear_btn.config(relief="sunken", bg=self.ui.tab_inactive_bg)
+            self.ui.root.after(150, lambda: self.clear_btn.config(relief="raised", bg=self.ui.bg_secondary) if self.clear_btn.winfo_exists() else None)
 
     def _build_info_label(self, parent: tk.Frame, default_msg: str, pad_y: Tuple[int, int] = (16, 16)) -> tk.Label:
         self.default_info_msg = default_msg
@@ -118,14 +148,14 @@ class BaseToolWidget(tk.Frame):
     def _make_clickable(self, widget: Union[tk.Label, tk.Text]) -> None:
         widget.config(cursor="hand2", bd=2, relief="flat")
         
-        def on_press(e: tk.Event, w: Union[tk.Label, tk.Text] = widget) -> None:
-            text = w.get("1.0", "end-1c").strip() if isinstance(w, tk.Text) else w.cget("text")
+        def on_press(e: tk.Event) -> None:
+            text = widget.get("1.0", "end-1c").strip() if isinstance(widget, tk.Text) else str(widget.cget("text"))
             if text not in ("", "-"):
-                w.config(relief="sunken", bg=self.ui.shadow_dark, fg=self.ui.accent_color)
+                widget.config(relief="sunken", bg=self.ui.shadow_dark, fg=self.ui.accent_color)
                 self.copy_to_clipboard(text)
                 
-        def on_release(e: tk.Event, w: Union[tk.Label, tk.Text] = widget) -> None:
-            w.config(relief="flat", bg=self.ui.bg_secondary, fg=self.ui.fg_color)
+        def on_release(e: tk.Event) -> None:
+            widget.config(relief="flat", bg=self.ui.bg_secondary, fg=self.ui.fg_color)
             
         widget.bind('<Button-1>', on_press)
         widget.bind('<ButtonRelease-1>', on_release)
@@ -140,7 +170,7 @@ class BaseToolWidget(tk.Frame):
             lbl.grid(row=i, column=1, sticky="w", padx=padx)
             self._make_label_clickable(lbl)
             self.result_labels[key] = lbl
-        parent.columnconfigure(0, minsize=self.ui.s(120))
+        parent.columnconfigure(0, minsize=self.ui.s(104))
         return self.result_labels
 
     def _get_numbers(self, entry: tk.Entry) -> List[float]:
@@ -158,13 +188,13 @@ class BaseToolWidget(tk.Frame):
         if len(formatted) > max_len:
             formatted = f"{val:.4e}"
             
-        if getattr(self.ui, 'aktif_dil', 'tr') == "tr":
+        if self.ui.aktif_dil == "tr":
             formatted = formatted.replace(',', 'X').replace('.', ',').replace('X', '.')
         return formatted
 
     def format_percentage(self, val: Union[int, float, str], isaret: str = "") -> str:
         formatted_val = self.format_number(val)
-        if getattr(self.ui, 'aktif_dil', 'tr') == "en":
+        if self.ui.aktif_dil == "en":
             return f"{isaret}{formatted_val}%"
         return f"%{isaret}{formatted_val}"
 
@@ -173,7 +203,7 @@ class BaseToolWidget(tk.Frame):
         widget.config(fg=self.ui.accent_color)
         self.ui.root.after(1000, lambda: widget.config(fg=self.ui.fg_color) if widget.winfo_exists() else None)
 
-    def show_message(self, text: str, msg_type: str = "info", transient: bool = False, duration: int = 1500) -> None:
+    def show_message(self, text: str, msg_type: Literal["info", "success", "error"] = "info", transient: bool = False, duration: int = 1500) -> None:
         """Akıllı Geri Bildirim Yöneticisi: Mesaj türüne göre renk atar ve geçici/kalıcı durumları hafızada tutarak yönetir."""
         if not self.info_lbl: return
         
@@ -193,6 +223,10 @@ class BaseToolWidget(tk.Frame):
         if not transient:
             self._permanent_msg = (text, color)
         else:
+            # Otomatik İyileştirme (Auto-recovery): Başarı mesajı gelmişse ve kalıcı hafızada hata durumu kaldıysa, durumu sıfırla.
+            if msg_type == "success" and hasattr(self, '_permanent_msg') and self._permanent_msg[1] == self.ui.error_color:
+                self._permanent_msg = (self.default_info_msg, self.ui.text_secondary)
+                
             def restore() -> None:
                 if self.info_lbl and hasattr(self, '_permanent_msg'):
                     self.info_lbl.config(text=self._permanent_msg[0], fg=self._permanent_msg[1])
