@@ -109,7 +109,7 @@ class MainUI:
 
     def _init_fonts(self) -> None:
         available_fonts = tkfont.families()
-        preferred_fonts = ["JetBrains Mono", "Consolas", "Courier New", "Courier"]
+        preferred_fonts = ["Consolas", "JetBrains Mono", "Courier New", "Courier"]
         selected_font = next((f for f in preferred_fonts if f in available_fonts), "Courier")
         self.font_main  = (selected_font, -int(12 * self.sf))
         self.font_bold  = (selected_font, -int(12 * self.sf), "bold")
