@@ -108,7 +108,7 @@ class BaseToolWidget(tk.Frame):
         return entry
 
     def _build_action_buttons(self, parent: tk.Frame, calc_cmd: Callable[..., Any], clear_cmd: Callable[[], None]) -> None:
-        self.calc_btn = tk.Button(parent, text=self.ui.lang["btn_calculate"], width=9, font=self.ui.font_bold, bg=self.ui.accent_color, fg=self.ui.shadow_light, bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground=self.ui.shadow_light, cursor="hand2", command=calc_cmd)
+        self.calc_btn = tk.Button(parent, text=self.ui.lang["btn_calculate"], width=9, font=self.ui.font_bold, bg=self.ui.btn_bg, fg=self.ui.shadow_light, bd=2, relief="raised", activebackground=self.ui.btn_hover, activeforeground=self.ui.shadow_light, cursor="hand2", command=calc_cmd)
         self.clear_btn = tk.Button(parent, text=self.ui.lang["btn_clear"], width=9, font=self.ui.font_small, bg=self.ui.bg_secondary, fg=self.ui.text_secondary, bd=1, relief="raised", activebackground=self.ui.tab_inactive_bg, cursor="hand2", command=clear_cmd)
         self.calc_btn.grid(row=0, column=2, sticky="ew", padx=(self.ui.s(8), self.ui.s(16)), pady=self.ui.s(4))
         self.clear_btn.grid(row=1, column=2, sticky="ew", padx=(self.ui.s(8), self.ui.s(16)), pady=self.ui.s(4))

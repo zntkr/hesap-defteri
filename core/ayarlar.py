@@ -3,8 +3,8 @@ import os
 from pathlib import Path
 from typing import Any, Dict
 
-_DEFAULTS: Dict[str, Any] = {"lang": "tr", "ui_scale": 1.0}
-_VALID: Dict[str, set] = {"lang": {"tr", "en"}, "ui_scale": {1.0, 1.15, 1.25, 1.5}}
+_DEFAULTS: Dict[str, Any] = {"lang": "tr", "ui_scale": 1.0, "theme": "light"}
+_VALID: Dict[str, set] = {"lang": {"tr", "en"}, "ui_scale": {1.0, 1.15, 1.25, 1.5}, "theme": {"light", "dark"}}
 
 
 def app_dir() -> Path:

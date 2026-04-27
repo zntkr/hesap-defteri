@@ -13,6 +13,58 @@ from ui.tools_tab import ToolsTab, PaperShadowCanvas
 import core.dil as dil
 import core.ayarlar as ayarlar
 
+_THEMES = {
+    "light": {
+        "bg_color":        "#4A423A",   # pencere arka planı (sol kenar şeridi, genel zemin)
+        "bg_shadow":       "#38322C",   # bg_color'dan bir ton koyu gölge şeridi
+        "fg_color":        "#2D2D2D",   # ana metin rengi
+        "accent_color":    "#C85A47",   # metin/ikon vurgusu: tape başlığı, combobox seçim arka planı
+        "accent_hover":    "#A84534",   # accent_color hover (combobox vb.)
+        "accent_light":    "#E08D7D",   # ikincil vurgu (şu an kullanılmıyor, ileride link/badge için)
+        "btn_bg":          "#C85A47",   # Hesapla butonu yüzey rengi
+        "btn_hover":       "#A84534",   # Hesapla butonu basılı/active rengi
+        "border_color":    "#E0DCE3",   # giriş alanı, panel kenarlıkları, sekme + kağıt gölge kenarı
+        "shadow_dark":     "#AFAFAF",   # 3D buton koyu kenar + menü hover arka planı
+        "shadow_light":    "#FFFFFF",   # 3D buton açık kenar + accent buton yazısı
+        "paper_edge":      "#FFFFFF",   # kağıt/sekme çerçevesi üst/sol aydınlık kenar
+        "text_secondary":  "#666666",   # ikincil/açıklama metinleri
+        "text_disabled":   "#B0B0B0",   # devre dışı veya soluk etiketler
+        "bg_secondary":    "#EFEBE6",   # kağıt/kart yüzeyi (tape paneli, araç arka planı)
+        "tape_bg":         "#F4F1EA",   # tape iç alanı (bg_secondary'den hafif açık)
+        "input_bg":        "#F9F8F6",   # giriş alanı arka planı (en açık yüzey)
+        "error_color":     "#D32F2F",   # hata mesajı rengi
+        "text_placeholder":"#888888",   # placeholder yazı rengi
+        "text_inverse":    "#D0CFCB",   # açık bg üzerinde ters/soluk metin (bölücü çizgiler vb.)
+        "tab_inactive_bg": "#E0DCD7",   # pasif sekme arka planı
+        "color_scientific":"#9C6644",   # sayısal sonuçlarda bilimsel gösterim vurgusu
+    },
+    "dark": {
+        "bg_color":        "#131110",   # pencere arka planı (sol kenar şeridi, genel zemin)
+        "bg_shadow":       "#0F0D0C",   # bg_color'dan bir ton koyu gölge şeridi
+        "fg_color":        "#CAC0B5",   # ana metin rengi
+        "accent_color":    "#AA7F23",   # metin/ikon vurgusu: tape başlığı, combobox seçim arka planı
+        "accent_hover":    "#8D591E",   # accent_color hover (combobox vb.)
+        "accent_light":    "#E07060",   # ikincil vurgu (şu an kullanılmıyor, ileride link/badge için)
+        "btn_bg":          "#C7902B",   # Hesapla butonu yüzey rengi (koyu bakalit)
+        "btn_hover":       "#694515",   # Hesapla butonu basılı/active rengi (daha koyu bakalit)
+        "border_color":    "#3D3530",   # giriş alanı, panel kenarlıkları, sekme + kağıt gölge kenarı
+        "shadow_dark":     "#473108",   # 3D buton koyu kenar + menü hover arka planı
+        "shadow_light":    "#FFFFFF",   # 3D buton açık kenar + accent buton yazısı
+        "paper_edge":      "#58514C",   # kağıt/sekme çerçevesi üst/sol aydınlık kenar
+        "text_secondary":  "#A09890",   # ikincil/açıklama metinleri
+        "text_disabled":   "#5A5450",   # devre dışı veya soluk etiketler
+        "bg_secondary":    "#312E2A",   # kağıt/kart yüzeyi (tape paneli, araç arka planı)
+        "tape_bg":         "#282420",   # tape iç alanı (bg_secondary'den hafif koyu)
+        "input_bg":        "#242120",   # giriş alanı arka planı (en koyu yüzey)
+        "error_color":     "#F0D24D",   # hata mesajı rengi
+        "text_placeholder":"#5A5450",   # placeholder yazı rengi
+        "text_inverse":    "#2D2926",   # koyu bg üzerinde ters/soluk metin (bölücü çizgiler vb.)
+        "tab_inactive_bg": "#252220",   # pasif sekme arka planı
+        "color_scientific":"#6AC8C0",   # sayısal sonuçlarda bilimsel gösterim vurgusu
+    },
+}
+
+
 class MainUI:
     """
     Main Orchestrator class for the UI (Presentation Layer).
@@ -36,26 +88,9 @@ class MainUI:
         self.root.title(f"{self.lang['app_name']} - v{self.app_version}")
         self.root.geometry(f"{self.s(376)}x{self.s(544)}")
 
-        # --- NEO-RETRO THEME VARIABLES ---
-        self.bg_color = "#4A423A"
-        self.bg_shadow = "#38322C"
-        self.fg_color = "#2D2D2D"
-        self.accent_color = "#C85A47"
-        self.accent_hover = "#A84534"
-        self.accent_light = "#E08D7D"
-        self.border_color = "#E0DCE3"
-        self.shadow_dark = "#AFAFAF"
-        self.shadow_light = "#FFFFFF"
-        self.text_secondary = "#666666"
-        self.text_disabled = "#B0B0B0"
-        self.bg_secondary = "#EFEBE6"
-        self.tape_bg = "#F4F1EA"
-        self.input_bg = "#F9F8F6"
-        self.error_color = "#D32F2F"
-        self.text_placeholder = "#888888"
-        self.text_inverse = "#D0CFCB"
-        self.tab_inactive_bg = "#E0DCD7" # bg_secondary'den 15 birim karanlık — bir ton koyusu
-        self.color_scientific = "#9C6644"
+        # --- THEME ---
+        self.aktif_tema = ayarlar.load().get("theme", "light")
+        self._apply_theme(self.aktif_tema)
 
         # --- TYPOGRAPHY ---
         self._init_fonts()
@@ -80,6 +115,64 @@ class MainUI:
         self.font_bold  = (selected_font, -int(12 * self.sf), "bold")
         self.font_small = (selected_font, -int(11 * self.sf))
         self.font_title = (selected_font, -int(21 * self.sf))
+
+    def _apply_theme(self, mode: str) -> None:
+        p = _THEMES.get(mode, _THEMES["light"])
+        self.bg_color         = p["bg_color"]
+        self.bg_shadow        = p["bg_shadow"]
+        self.fg_color         = p["fg_color"]
+        self.accent_color     = p["accent_color"]
+        self.accent_hover     = p["accent_hover"]
+        self.accent_light     = p["accent_light"]
+        self.btn_bg           = p["btn_bg"]
+        self.btn_hover        = p["btn_hover"]
+        self.border_color     = p["border_color"]
+        self.shadow_dark      = p["shadow_dark"]
+        self.shadow_light     = p["shadow_light"]
+        self.paper_edge       = p["paper_edge"]
+        self.text_secondary   = p["text_secondary"]
+        self.text_disabled    = p["text_disabled"]
+        self.bg_secondary     = p["bg_secondary"]
+        self.tape_bg          = p["tape_bg"]
+        self.input_bg         = p["input_bg"]
+        self.error_color      = p["error_color"]
+        self.text_placeholder = p["text_placeholder"]
+        self.text_inverse     = p["text_inverse"]
+        self.tab_inactive_bg  = p["tab_inactive_bg"]
+        self.color_scientific = p["color_scientific"]
+
+    def _switch_theme(self, mode: str) -> None:
+        if mode == self.aktif_tema:
+            return
+
+        topmost_val = self.always_on_top_var.get()
+        tape_val = self.show_tape_var.get()
+
+        self.root.wm_attributes("-alpha", 0.0)
+        try:
+            self.aktif_tema = mode
+            self._apply_theme(mode)
+            _s = ayarlar.load(); _s["theme"] = mode; ayarlar.save(_s)
+
+            self._print_queue = []
+            self._is_printing = False
+            self.root["menu"] = ""
+            for widget in self.root.winfo_children():
+                widget.destroy()
+
+            self.always_on_top_var = tk.BooleanVar(value=topmost_val)
+            self.show_tape_var = tk.BooleanVar(value=tape_val)
+
+            self.root.config(bg=self.bg_color)
+            self.build_ui()
+            self.build_menu()
+            self.build_context_menu()
+
+            self.root.wm_attributes("-topmost", topmost_val)
+            self.root.update_idletasks()
+            self.toggle_tape()
+        finally:
+            self.root.wm_attributes("-alpha", 1.0)
 
     def _switch_language(self, lang_code: str) -> None:
         if lang_code == self.aktif_dil:
@@ -189,6 +282,12 @@ class MainUI:
         for _lbl, _val in [("100%", 1.0), ("115%", 1.15), ("125%", 1.25), ("150%", 1.5)]:
             scale_menu.add_radiobutton(label=_lbl, variable=self._scale_var, value=_val, command=lambda v=_val: self._switch_scale(v))
         view_menu.add_cascade(label=L["menu_scale"], menu=scale_menu)
+        view_menu.add_separator()
+        theme_menu = tk.Menu(view_menu, tearoff=0, font=self.font_main, bg=self.bg_secondary, fg=self.fg_color, activebackground=self.shadow_dark, activeforeground=self.fg_color)
+        self._theme_var = tk.StringVar(value=self.aktif_tema)
+        theme_menu.add_radiobutton(label=L["menu_theme_light"], variable=self._theme_var, value="light", command=lambda: self._switch_theme("light"))
+        theme_menu.add_radiobutton(label=L["menu_theme_dark"],  variable=self._theme_var, value="dark",  command=lambda: self._switch_theme("dark"))
+        view_menu.add_cascade(label=L["menu_theme"], menu=theme_menu)
 
         self.root.bind("<Control-h>", self.toggle_tape)
         self.root.bind("<Control-H>", self.toggle_tape)
@@ -368,12 +467,12 @@ class MainUI:
         # Yazar Kasa / Rulo Çıkış Yuvası Efekti (Kağıdın çıktığı yerdeki karanlık yarık)
         slot_frame = tk.Frame(paper, bg=self.bg_shadow, height=self.s(6))
         slot_frame.pack(side="top", fill="x")
-        tk.Frame(slot_frame, bg=self.shadow_dark, height=1).pack(side="bottom", fill="x")
+        tk.Frame(slot_frame, bg=self.border_color, height=1).pack(side="bottom", fill="x")
 
-        tk.Frame(paper, bg=self.shadow_light, height=2).pack(side="top", fill="x")
-        tk.Frame(paper, bg=self.shadow_dark, height=2).pack(side="bottom", fill="x")
-        tk.Frame(paper, bg=self.shadow_light, width=2).pack(side="left", fill="y")
-        tk.Frame(paper, bg=self.shadow_dark, width=2).pack(side="right", fill="y")
+        tk.Frame(paper, bg=self.paper_edge, height=2).pack(side="top", fill="x")
+        tk.Frame(paper, bg=self.border_color, height=2).pack(side="bottom", fill="x")
+        tk.Frame(paper, bg=self.paper_edge, width=2).pack(side="left", fill="y")
+        tk.Frame(paper, bg=self.border_color, width=2).pack(side="right", fill="y")
 
         header_frame = tk.Frame(paper, bg=self.tape_bg)
         header_frame.pack(fill="x", pady=(self.s(16), self.s(8)))
@@ -517,8 +616,8 @@ class MainUI:
         copyright_text = L["about_copyright"].format(year=self.build_year)
         tk.Label(about_win, text=copyright_text, font=self.font_small, fg=self.text_disabled, bg=self.bg_secondary, justify="center").pack(pady=(self.s(12), self.s(16)))
 
-        close_btn = tk.Button(about_win, text=L["about_ok"], width=9, font=self.font_bold, bg=self.accent_color, fg=self.shadow_light,
-                              bd=2, relief="raised", activebackground=self.accent_hover, activeforeground=self.shadow_light, cursor="hand2", command=about_win.destroy)
+        close_btn = tk.Button(about_win, text=L["about_ok"], width=9, font=self.font_bold, bg=self.btn_bg, fg=self.shadow_light,
+                              bd=2, relief="raised", activebackground=self.btn_hover, activeforeground=self.shadow_light, cursor="hand2", command=about_win.destroy)
         close_btn.pack(pady=(0, self.s(24)))
 
         about_win.bind('<Escape>', lambda e: about_win.destroy())
@@ -534,8 +633,8 @@ class MainUI:
         tk.Label(guide_win, text=L["guide_heading"], font=(self.font_bold[0], -int(19 * self.sf), "bold"), fg=self.fg_color, bg=self.bg_secondary).pack(anchor="w", padx=self.s(24), pady=(self.s(24), self.s(6)))
         tk.Frame(guide_win, bg=self.shadow_dark, height=1).pack(fill="x", padx=self.s(24), pady=(0, self.s(8)))
 
-        close_btn = tk.Button(guide_win, text=L["guide_ok"], width=9, font=self.font_bold, bg=self.accent_color, fg=self.shadow_light,
-                              bd=2, relief="raised", activebackground=self.accent_hover, activeforeground=self.shadow_light, cursor="hand2", command=guide_win.destroy)
+        close_btn = tk.Button(guide_win, text=L["guide_ok"], width=9, font=self.font_bold, bg=self.btn_bg, fg=self.shadow_light,
+                              bd=2, relief="raised", activebackground=self.btn_hover, activeforeground=self.shadow_light, cursor="hand2", command=guide_win.destroy)
         close_btn.pack(side="bottom", pady=(self.s(8), self.s(24)))
 
         text_frame = tk.Frame(guide_win, bg=self.bg_secondary)

@@ -139,7 +139,7 @@ class AnimatedTabBar(tk.Canvas):
         # Raf çizgisi: sekme çubuğunu içerik alanından ayırır, aktif sekme altında kesilir.
         ax1 = round(self._current_idx * tab_w)
         ax2 = round((self._current_idx + 1) * tab_w)
-        hl, sh = self.ui.shadow_light, self.ui.shadow_dark
+        hl, sh = self.ui.paper_edge, self.ui.border_color
 
         # Sol segment
         self.coords(self._shelf_lines[0], 0, h - 2, ax1, h - 2)
@@ -157,8 +157,8 @@ class AnimatedTabBar(tk.Canvas):
         c = self._CLIP
         bg = self._lerp_color(self.ui.tab_inactive_bg, self.ui.bg_secondary, activity)
         fg = self._lerp_color(self.ui.text_secondary, self.ui.accent_color, activity)
-        hl = self.ui.shadow_light    # highlight — üst/sol kenar (parlak)
-        sh = self.ui.shadow_dark     # shadow — alt/sağ kenar (koyu)
+        hl = self.ui.paper_edge      # highlight — üst/sol kenar (kağıt sistemiyle uyumlu)
+        sh = self.ui.border_color    # shadow — alt/sağ kenar (kağıt kenarlık rengi)
 
         x1, y1 = round(x), 0
         x2, y2 = round(x + w) - 1, h

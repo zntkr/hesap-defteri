@@ -159,9 +159,9 @@ class ToolsTab(tk.Frame):
         paper.pack(side="top", fill="both", expand=True, padx=(0, offset), pady=(0, offset))
 
         # Fiziksel kağıt kenarları (3D highlight/shadow)
-        tk.Frame(paper, bg=self.ui.shadow_dark, height=2).pack(side="bottom", fill="x")
-        tk.Frame(paper, bg=self.ui.shadow_light, width=2).pack(side="left", fill="y")
-        tk.Frame(paper, bg=self.ui.shadow_dark, width=2).pack(side="right", fill="y")
+        tk.Frame(paper, bg=self.ui.border_color, height=2).pack(side="bottom", fill="x")
+        tk.Frame(paper, bg=self.ui.paper_edge, width=2).pack(side="left", fill="y")
+        tk.Frame(paper, bg=self.ui.border_color, width=2).pack(side="right", fill="y")
 
         content_frame = tk.Frame(paper, bg=self.ui.bg_secondary)
         content_frame.pack(fill="both", expand=True)

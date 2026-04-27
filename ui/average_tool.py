@@ -40,7 +40,7 @@ class AverageToolWidget(BaseToolWidget):
         self.avg_text_input.bind('<Tab>', self._handle_tab)
         self.avg_text_input.bind('<Shift-Tab>', self._handle_shift_tab)
 
-        self.calc_btn = tk.Button(input_frame, text=self.ui.lang["btn_calculate"], width=9, font=self.ui.font_bold, bg=self.ui.accent_color, fg=self.ui.shadow_light, bd=2, relief="raised", activebackground=self.ui.accent_hover, activeforeground=self.ui.shadow_light, cursor="hand2", command=self.calculate_average)
+        self.calc_btn = tk.Button(input_frame, text=self.ui.lang["btn_calculate"], width=9, font=self.ui.font_bold, bg=self.ui.btn_bg, fg=self.ui.shadow_light, bd=2, relief="raised", activebackground=self.ui.btn_hover, activeforeground=self.ui.shadow_light, cursor="hand2", command=self.calculate_average)
         self.clear_btn = tk.Button(input_frame, text=self.ui.lang["btn_clear"], width=9, font=self.ui.font_small, bg=self.ui.bg_secondary, fg=self.ui.text_secondary, bd=1, relief="raised", activebackground=self.ui.tab_inactive_bg, cursor="hand2", command=lambda: self.clear_data(keep_input=False))
         self.calc_btn.grid(row=0, column=2, sticky="ew", padx=(self.ui.s(8), self.ui.s(16)), pady=self.ui.s(4))
         self.clear_btn.grid(row=1, column=2, sticky="ew", padx=(self.ui.s(8), self.ui.s(16)), pady=self.ui.s(4))

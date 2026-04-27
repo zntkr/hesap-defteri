@@ -67,8 +67,8 @@ class TestAyarlarLoad(unittest.TestCase):
         )
         with self._patch():
             result = load()
-        self.assertNotIn("theme", result)
-        self.assertNotIn("zoom", result)
+        self.assertEqual(result["theme"], "dark")  # bilinen anahtar — yüklenmeli
+        self.assertNotIn("zoom", result)            # bilinmeyen anahtar — yüklenmemeli
         self.assertEqual(result["lang"], "en")
 
     def test_sonuc_her_zaman_tum_anahtarlari_icerir(self):
