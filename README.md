@@ -1,71 +1,23 @@
-# Hesap Defteri
-
-[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://python.org)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
-[![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://python.org)
-[![Dependencies](https://img.shields.io/badge/runtime%20dependencies-zero-brightgreen.svg)](requirements.txt)
-[![Tests](https://img.shields.io/badge/tests-45%20passing-success.svg)](test/)
-[![Release](https://img.shields.io/github/v/release/zntkr/hesap-defteri)](https://github.com/zntkr/hesap-defteri/releases/latest)
-
-> A financial and statistical desktop calculator — built with pure `tkinter`, pushed to its engineering limits.
-
 <div align="center">
-  <img src="assets/demo.gif" alt="Animated tab switching and calculation demo" width="424">
+  <h1>Hesap Defteri</h1>
+  <p>Paste any number. Get your answer.</p>
+
+  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md)
+  [![Release](https://img.shields.io/github/v/release/zntkr/hesap-defteri)](https://github.com/zntkr/hesap-defteri/releases/latest)
+  [![Platform](https://img.shields.io/badge/Platform-Windows-0078d7.svg?logo=windows)](https://microsoft.com/windows)
 </div>
 
 ---
 
-## What makes this technically interesting
+Most calculators make you format your input. Hesap Defteri works with whatever you paste — a line from an invoice, a row from a spreadsheet, a number buried in an e-mail. It reads Turkish (`1.500,50`) and US (`1,500.50`) formats simultaneously, without configuration.
 
-This is not a typical tkinter app. Every component that the platform couldn't render correctly was reimplemented from scratch in `tk.Canvas`.
+Six tools covering the calculations that actually come up at a desk: percentage change, statistical analysis, VAT, discount, proportion, and age. Results are click-to-copy. No install, no cloud, no data stored anywhere.
 
-### Custom animated tab bar — `AnimatedTabBar`
+## Install
 
-`ttk.Notebook` was replaced entirely. The replacement is a `tk.Canvas` subclass that draws all tabs as chamfered polygons with double-layer highlight/shadow bevel edges and a shelf line that breaks cleanly under the active tab.
+Download `HesapDefteri.exe` from [Releases](https://github.com/zntkr/hesap-defteri/releases/latest), double-click, done. No runtime required.
 
-Color transitions run through a `_progress: List[float]` array — one float per tab — animated with **ease-out cubic** over an `after()` loop. Rapid tab switching continues from the current interpolated position rather than resetting.
-
-```python
-ease = 1.0 - (1.0 - t) ** 3          # ease-out cubic
-bg   = lerp(tab_inactive_bg, bg_secondary, activity)  # per-tab color
-```
-
-The canvas background matches the outer frame so clipped polygon corners are invisible — a detail `tk.Button` grids can never achieve.
-
-### Format-agnostic number parsing
-
-A single regex extracts numbers from free text without knowing the locale. Turkish (`1.500,50`) and US (`1,500.50`) thousand-separators are recognized simultaneously — paste a spreadsheet, an e-mail, or an invoice and the engine figures it out.
-
-### `Decimal`-precision finance
-
-All financial calculations use Python's `Decimal`. Float's IEEE 754 accumulation error is non-trivial in VAT chains; this is the right tool.
-
-### Flicker-free startup
-
-`root.withdraw()` before any I/O, geometry calculated statically, `root.deiconify()` only when everything is ready. The window appears exactly where it should, at full size, on the first frame.
-
-### Atomic settings persistence
-
-Language preference is written to `%APPDATA%\HesapDefteri\settings.json` via a `.tmp → rename` pattern — the same technique databases use for crash-safe writes. A corrupt or missing file falls back to defaults; unknown JSON keys are whitelisted out rather than forwarded.
-
----
-
-## Tools
-
-| # | Tab | Description |
-|---|-----|-------------|
-| 1 | CHANGE | Percentage change between two values |
-| 2 | AVERAGE | Statistical analysis from raw text (mean, median, std dev, range, count) |
-| 3 | VAT | VAT calculation — gross-up or net-down |
-| 4 | DISCOUNT | Discount / net price calculator |
-| 5 | RATIO | Cross-multiplication / proportion |
-| 6 | AGE | Exact age, days lived, next birthday countdown |
-
-All results are click-to-copy. Supports Turkish and English UI (`View → Language`; preference is persisted).
-
----
-
-## Quick start
+**Or build from source:**
 
 ```bash
 git clone https://github.com/zntkr/hesap-defteri.git
@@ -73,111 +25,53 @@ cd hesap-defteri
 python main.py
 ```
 
-No `pip install`. No virtual environment. Python 3.8+ is sufficient.
+No `pip install`. Python 3.8+ is sufficient.
 
-### Standalone Windows executable
+## Tools
 
-```
-build.bat
-```
+| # | Tool | What it does |
+|---|------|--------------|
+| 1 | CHANGE | Percentage change between two values |
+| 2 | AVERAGE | Mean, median, std dev, range, count — from raw text |
+| 3 | VAT | Gross-up or net-down |
+| 4 | DISCOUNT | Discount / net price |
+| 5 | RATIO | Cross-multiplication / proportion |
+| 6 | AGE | Exact age, days lived, next birthday countdown |
 
-Double-click `build.bat`. Installs PyInstaller automatically if missing. Output: `dist/HesapDefteri.exe` — single portable file, no installer required.
+Turkish and English UI (`View → Language`). Preference is persisted.
 
-Or download the latest pre-built binary from [Releases](https://github.com/zntkr/hesap-defteri/releases/latest).
+## What makes it interesting
 
----
+The tab bar is a hand-drawn `tk.Canvas`, not a widget — tab transitions animate from their current interpolated position, so rapid switching never resets mid-motion. The window appears at full size on the first frame, no flicker. Financial calculations use `Decimal` throughout; float's IEEE 754 accumulation error is non-trivial in VAT chains. Settings survive crashes — written atomically, falls back silently on corruption.
 
-## Architecture
+## What it doesn't do
 
-Three-layer modular monolith. Cross-layer leakage is a hard error.
-
-```
-hesapdefteri/
-├── main.py                    # Boot: window init, DPI awareness, flicker prevention
-├── core/
-│   ├── matematik_motoru.py    # Stateless: number extraction + statistics (float, 4 dp)
-│   ├── finans_motoru.py       # Stateless: VAT, discount, age, ratio (Decimal, 2 dp)
-│   ├── ayarlar.py             # Settings: atomic load/save, whitelist validation
-│   └── dil.py                 # Localisation: TR / EN string tables
-└── ui/
-    ├── arayuz_tasarimi.py     # MainUI: theme constants, menus, keyboard shortcuts
-    ├── tools_tab.py           # ToolsTab: frame switching, tab orchestration
-    ├── animated_tab_bar.py    # AnimatedTabBar: custom Canvas tab widget
-    ├── base_tool.py           # BaseToolWidget: shared input/output patterns, clipboard
-    ├── change_tool.py
-    ├── average_tool.py
-    ├── tax_tool.py
-    ├── discount_tool.py
-    ├── proportion_tool.py
-    └── age_tool.py
-```
-
-**Layer contracts:**
-- `core/` → zero tkinter imports, pure functions, `None` on bad input
-- `ui/` → zero business logic, state visualisation only
-- `main.py` → window bootstrap and event loop only
-
----
-
-## Design system
-
-| Token | Value | Role |
-|-------|-------|------|
-| `bg_color` | `#4A423A` | Desk surface (dark walnut) |
-| `bg_secondary` | `#EFEBE6` | Paper surface |
-| `tab_inactive_bg` | `#E0DCD7` | Inactive tab — one shade darker than paper |
-| `input_bg` | `#F9F8F6` | Input fields |
-| `accent_color` | `#C85A47` | Terracotta — primary action |
-| `shadow_light` | `#FFFFFF` | Bevel highlight edge |
-| `shadow_dark` | `#AFAFAF` | Bevel shadow edge |
-| `error_color` | `#D32F2F` | Validation error state |
-| `tape_bg` | `#F4F1EA` | Calculator tape (straw paper) |
-
-**Typography** — Consolas → Courier New → Courier (monospace cascade)
-
-**Skeuomorphism** — Paper pages have physical 3D bevel edges. A 45° desk shadow is simulated with offset dark frames. The tab bar is a hand-drawn Canvas, not a widget.
-
----
+- Store your data — nothing is logged, nothing persists between sessions
+- Replace a spreadsheet — no formulas, no history
+- Run on mobile or web — desktop Windows only, by design
 
 ## Keyboard shortcuts
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+1` … `Ctrl+6` | Jump to tool directly |
-| `Ctrl+Tab` | Cycle through tools |
+| `Ctrl+1` … `Ctrl+6` | Jump to tool |
+| `Ctrl+Tab` | Cycle tools |
 | `Enter` | Calculate |
-| `Esc` | Clear active tool |
-| `Ctrl+H` | Toggle calculator tape |
-| `F1` | Open usage guide |
-
----
+| `Esc` | Clear |
+| `F1` | Usage guide |
 
 ## Tests
 
 ```bash
-python -m unittest discover     # 45 tests
+python -m unittest discover
 ```
 
-Test coverage includes: IEEE 754 precision edge cases, leap-year age calculation (Feb 29 birthdays), TR/US format ambiguity, division by zero, corrupt/missing settings file, `OSError` on save.
+Covers IEEE 754 precision edge cases, leap-year age (Feb 29 birthdays), TR/US format ambiguity, division by zero, corrupt settings file.
 
 ---
 
-<details>
-<summary>Türkçe</summary>
-
-Türk ofis çalışanları için finansal ve istatistiksel masaüstü hesap makinesi. Standart Python kütüphanesi dışında bağımlılık yok.
-
-**Araçlar:** Değişim oranı · Ortalama/istatistik · KDV · İndirim · Oran/orantı · Yaş hesaplama
-
-**Öne çıkan özellikler:**
-- TR ve US sayı formatlarını eş zamanlı tanır — yapıştır ve hesapla
-- `Decimal` tabanlı finansal hassasiyet
-- Animasyonlu özel sekme çubuğu (`tk.Canvas`)
-- Tüm sonuçlar tıkla-kopyala
-- TR/EN dil desteği, tercih kalıcı olarak kaydedilir
-
-</details>
+[Türkçe README](README.tr.md)
 
 ---
 
-> *"Does the job and frees the system resources."*
+<sub>Built with pure Python · tkinter · zero runtime dependencies</sub>

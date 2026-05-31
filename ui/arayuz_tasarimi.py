@@ -20,7 +20,6 @@ _THEMES = {
         "fg_color":        "#2D2D2D",   # ana metin rengi
         "accent_color":    "#C85A47",   # metin/ikon vurgusu: tape başlığı, combobox seçim arka planı
         "accent_hover":    "#A84534",   # accent_color hover (combobox vb.)
-        "accent_light":    "#E08D7D",   # ikincil vurgu (şu an kullanılmıyor, ileride link/badge için)
         "btn_bg":          "#C85A47",   # Hesapla butonu yüzey rengi
         "btn_hover":       "#A84534",   # Hesapla butonu basılı/active rengi
         "border_color":    "#E0DCE3",   # giriş alanı, panel kenarlıkları, sekme + kağıt gölge kenarı
@@ -44,7 +43,6 @@ _THEMES = {
         "fg_color":        "#CAC0B5",   # ana metin rengi
         "accent_color":    "#AA7F23",   # metin/ikon vurgusu: tape başlığı, combobox seçim arka planı
         "accent_hover":    "#8D591E",   # accent_color hover (combobox vb.)
-        "accent_light":    "#E07060",   # ikincil vurgu (şu an kullanılmıyor, ileride link/badge için)
         "btn_bg":          "#C7902B",   # Hesapla butonu yüzey rengi (koyu bakalit)
         "btn_hover":       "#694515",   # Hesapla butonu basılı/active rengi (daha koyu bakalit)
         "border_color":    "#3D3530",   # giriş alanı, panel kenarlıkları, sekme + kağıt gölge kenarı
@@ -123,7 +121,6 @@ class MainUI:
         self.fg_color         = p["fg_color"]
         self.accent_color     = p["accent_color"]
         self.accent_hover     = p["accent_hover"]
-        self.accent_light     = p["accent_light"]
         self.btn_bg           = p["btn_bg"]
         self.btn_hover        = p["btn_hover"]
         self.border_color     = p["border_color"]
