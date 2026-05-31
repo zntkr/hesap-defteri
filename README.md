@@ -1,4 +1,5 @@
 <div align="center">
+  <img src="assets/app_icon.png" alt="Hesap Defteri" width="80">
   <h1>Hesap Defteri</h1>
   <p>Paste any number. Get your answer.</p>
 
